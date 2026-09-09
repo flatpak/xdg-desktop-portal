@@ -39,3 +39,4 @@ struct _XdpAppInfoClass
   GDesktopAppInfo * (*create_gappinfo) (XdpAppInfo *app_info);
 };
 
+void xdp_app_info_emit_disconnected (XdpAppInfo *app_info);

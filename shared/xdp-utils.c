@@ -325,6 +325,25 @@ xdp_is_valid_token (const char *string)
 }
 
 
+/* Peer keys are D-Bus unique names, or `varlink:<cookie>`, neither of which
+ * is a valid object path element as it stands */
+char *
+xdp_peer_key_to_path_element (const char *key)
+{
+  GString *element = g_string_new (NULL);
+  size_t i;
+
+  for (i = 0; key[i]; i++)
+    {
+      if (g_ascii_isalnum (key[i]))
+        g_string_append_c (element, key[i]);
+      else if (element->len > 0)
+        g_string_append_c (element, '_');
+    }
+
+  return g_string_free (element, FALSE);
+}
+
 char *
 xdp_maybe_quote (const char *arg,
                  gboolean    quote_escape)

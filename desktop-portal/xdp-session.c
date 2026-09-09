@@ -24,6 +24,8 @@ typedef enum
 static GParamSpec *obj_props[PROP_IMPL_DBUS_NAME + 1];
 
 G_LOCK_DEFINE (sessions);
+
+/* NULL until a portal built on this session type is instantiated */
 static GHashTable *sessions;
 
 static void g_initable_iface_init (GInitableIface *iface);
@@ -54,6 +56,9 @@ xdp_session_from_request (const char *session_handle,
 {
   g_autoptr(XdpSession) session = NULL;
 
+  if (sessions == NULL)
+    return NULL;
+
   G_LOCK (sessions);
   session = g_hash_table_lookup (sessions, session_handle);
   if (session)
@@ -75,6 +80,9 @@ xdp_session_from_app_info (const char *session_handle,
 {
   g_autoptr(XdpSession) session = NULL;
 
+  if (sessions == NULL)
+    return NULL;
+
   G_LOCK (sessions);
   session = g_hash_table_lookup (sessions, session_handle);
   if (session)
@@ -94,6 +102,9 @@ XdpSession *
 xdp_session_lookup (const char *session_handle)
 {
   g_autoptr(XdpSession) session = NULL;
+
+  if (sessions == NULL)
+    return NULL;
 
   G_LOCK (sessions);
   session = g_hash_table_lookup (sessions, session_handle);

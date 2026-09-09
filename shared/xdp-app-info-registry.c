@@ -6,6 +6,7 @@
 
 #include "xdp-app-info-registry.h"
 
+#include "xdp-app-info-private.h"
 #include "xdp-app-info.h"
 #include "xdp-dex.h"
 
@@ -124,6 +125,43 @@ xdp_app_info_registry_new (void)
   g_mutex_init (&registry->channels_lock);
 
   return registry;
+}
+
+static gboolean
+value_is_app_info (gpointer key,
+                   gpointer value,
+                   gpointer user_data)
+{
+  return value == user_data;
+}
+
+/* Removes @key, handing back the app info only when nothing else maps to it.
+ * A varlink instance shares one app info across its connections */
+static XdpAppInfo *
+registry_steal_app_info (XdpAppInfoRegistry *registry,
+                         const char         *key,
+                         gboolean           *out_removed)
+{
+  XdpAppInfo *app_info;
+
+  G_MUTEX_AUTO_LOCK (&registry->app_infos_lock, locker);
+
+  app_info = g_hash_table_lookup (registry->app_infos, key);
+  *out_removed = app_info != NULL;
+
+  if (app_info == NULL)
+    return NULL;
+
+  g_object_ref (app_info);
+  g_hash_table_remove (registry->app_infos, key);
+
+  if (g_hash_table_find (registry->app_infos, value_is_app_info, app_info))
+    {
+      g_object_unref (app_info);
+      return NULL;
+    }
+
+  return app_info;
 }
 
 static DexFuture *
@@ -245,13 +283,16 @@ work_fiber (XdpAppInfoRegistry *registry,
           break;
         case QUEUE_DATA_KIND_DELETE:
           {
+            g_autoptr(XdpAppInfo) orphaned = NULL;
+            gboolean removed;
+
             g_debug ("XdpAppInfoRegistry: Delete for peer %s", key);
 
-            g_mutex_lock (&registry->app_infos_lock);
-            dex_promise_resolve_boolean (data->promise,
-                                         g_hash_table_remove (registry->app_infos,
-                                                              key));
-            g_mutex_unlock (&registry->app_infos_lock);
+            orphaned = registry_steal_app_info (registry, key, &removed);
+            if (orphaned)
+              xdp_app_info_emit_disconnected (orphaned);
+
+            dex_promise_resolve_boolean (data->promise, removed);
           }
           break;
         default:
@@ -335,27 +376,31 @@ DexFuture *
 xdp_app_info_registry_delete_future (XdpAppInfoRegistry *registry,
                                      const char         *key)
 {
-  g_autoptr(QueueData) data = NULL;
+  g_autoptr(XdpAppInfo) orphaned = NULL;
+  gboolean removed = FALSE;
 
-  G_MUTEX_AUTO_LOCK (&registry->channels_lock, locker);
+  {
+    G_MUTEX_AUTO_LOCK (&registry->channels_lock, locker);
 
-  /* Shortcut if we have no active channel (i.e. no in-flight changes) */
-  if (!g_hash_table_contains (registry->channels, key))
-    {
-      gboolean removed;
+    /* Shortcut if we have no active channel (i.e. no in-flight changes) */
+    if (g_hash_table_contains (registry->channels, key))
+      {
+        g_autoptr(QueueData) data = g_new0 (QueueData, 1);
 
-      g_mutex_lock (&registry->app_infos_lock);
-      removed = g_hash_table_remove (registry->app_infos, key);
-      g_mutex_unlock (&registry->app_infos_lock);
+        data->kind = QUEUE_DATA_KIND_DELETE;
+        data->key = g_strdup (key);
 
-      return dex_future_new_for_boolean (removed);
-    }
+        return queue_work (registry, key, g_steal_pointer (&data));
+      }
 
-  data = g_new0 (QueueData, 1);
-  data->kind = QUEUE_DATA_KIND_DELETE;
-  data->key = g_strdup (key);
+    orphaned = registry_steal_app_info (registry, key, &removed);
+  }
 
-  return queue_work (registry, key, g_steal_pointer (&data));
+  /* Emitted with no lock held, since handlers tear down sessions */
+  if (orphaned)
+    xdp_app_info_emit_disconnected (orphaned);
+
+  return dex_future_new_for_boolean (removed);
 }
 
 DexFuture *

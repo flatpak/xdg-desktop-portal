@@ -194,6 +194,35 @@ test_app_id_via_systemd_unit (void)
 }
 #endif /* HAVE_LIBSYSTEMD */
 
+static void
+test_peer_key_to_path_element (void)
+{
+  struct {
+    const char *key;
+    const char *expected;
+  } tests[] = {
+    { ":1.42", "1_42" },
+    { ":1.2.3", "1_2_3" },
+    { "varlink:1234", "varlink_1234" },
+    { "", "" },
+    { ":::", "" },
+  };
+
+  for (size_t i = 0; i < G_N_ELEMENTS (tests); i++)
+    {
+      g_autofree char *element = xdp_peer_key_to_path_element (tests[i].key);
+      g_autofree char *path = NULL;
+
+      g_assert_cmpstr (element, ==, tests[i].expected);
+
+      if (element[0] == '\0')
+        continue;
+
+      path = g_strdup_printf ("/foo/%s", element);
+      g_assert_true (g_variant_is_object_path (path));
+    }
+}
+
 int main (int argc, char **argv)
 {
   g_test_init (&argc, &argv, NULL);
@@ -202,6 +231,7 @@ int main (int argc, char **argv)
   g_test_add_func ("/parse-cgroup/systemd", test_parse_cgroup_systemd);
   g_test_add_func ("/parse-cgroup/not-snap", test_parse_cgroup_not_snap);
   g_test_add_func ("/alternate-doc-path", test_alternate_doc_path);
+  g_test_add_func ("/peer-key-to-path-element", test_peer_key_to_path_element);
 #if HAVE_LIBSYSTEMD
   g_test_add_func ("/app-id-via-systemd-unit", test_app_id_via_systemd_unit);
 #endif

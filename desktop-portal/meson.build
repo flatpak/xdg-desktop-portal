@@ -128,6 +128,7 @@ if have_varlink
     'xdp-varlink.c',
     'xdp-varlink-connection.c',
     'xdp-varlink-instance.c',
+    'xdp-varlink-session.c',
   )
 endif
 

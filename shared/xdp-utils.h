@@ -22,6 +22,8 @@
 gboolean xdp_is_valid_app_id (const char *string);
 gboolean xdp_is_valid_token (const char *string);
 
+char * xdp_peer_key_to_path_element (const char *key);
+
 
 typedef enum
 {

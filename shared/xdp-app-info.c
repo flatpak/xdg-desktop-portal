@@ -59,6 +59,7 @@ typedef struct _XdpAppInfoPrivate
   XdpAppInfoFlags flags;
 
   gboolean disposed;
+  gboolean disconnected;
 } XdpAppInfoPrivate;
 
 static void g_initable_init_iface (GInitableIface *iface);
@@ -83,6 +84,7 @@ static GParamSpec *properties [PROP_SENDER + 1];
 enum
 {
   DESTROYED,
+  DISCONNECTED,
   N_SIGNALS,
 };
 
@@ -310,6 +312,13 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
                                      0,
                                      NULL, NULL, NULL,
                                      G_TYPE_NONE, 0);
+
+  signals[DISCONNECTED] = g_signal_new ("disconnected",
+                                        G_TYPE_FROM_CLASS (klass),
+                                        G_SIGNAL_RUN_LAST,
+                                        0,
+                                        NULL, NULL, NULL,
+                                        G_TYPE_NONE, 0);
 }
 
 static void
@@ -509,6 +518,22 @@ xdp_app_info_get_engine (XdpAppInfo *app_info)
   priv = xdp_app_info_get_instance_private (app_info);
 
   return priv->engine;
+}
+
+void
+xdp_app_info_emit_disconnected (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv;
+
+  g_return_if_fail (XDP_IS_APP_INFO (app_info));
+
+  priv = xdp_app_info_get_instance_private (app_info);
+
+  if (priv->disconnected)
+    return;
+
+  priv->disconnected = TRUE;
+  g_signal_emit (app_info, signals[DISCONNECTED], 0);
 }
 
 const char *

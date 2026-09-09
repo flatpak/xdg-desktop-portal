@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include "xdp-dbus.h"
 #include "xdp-types.h"
 
@@ -19,11 +21,21 @@ DexFuture * xdp_session_dex_new (XdpContext             *context,
                                  GDBusProxy             *proxy_impl,
                                  GVariant               *arg_options);
 
+DexFuture * xdp_session_dex_new_for_varlink (XdpContext *context,
+                                             XdpAppInfo *app_info,
+                                             GDBusProxy *proxy_impl,
+                                             int64_t     handle);
+
+void xdp_session_dex_close (XdpSessionDex *session,
+                            gboolean       notify_closed);
+
 gboolean xdp_session_dex_is_closed (XdpSessionDex *session);
 
 XdpAppInfo * xdp_session_dex_get_app_info (XdpSessionDex *session);
 
 const char * xdp_session_dex_get_object_path (XdpSessionDex *session);
+
+const char * xdp_session_dex_get_key (XdpSessionDex *session);
 
 #define XDP_TYPE_SESSION_DEX_STORE (xdp_session_dex_store_get_type ())
 G_DECLARE_FINAL_TYPE (XdpSessionDexStore,

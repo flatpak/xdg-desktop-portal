@@ -107,8 +107,11 @@ xdp_request_dex_dispose (GObject *object)
 
       g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
       request->exported = FALSE;
-      xdp_context_unclaim_object_path (request->context, request->id);
     }
+
+  /* Claimed before the request is exported, and one that only names the impl
+   * side is never exported */
+  xdp_context_unclaim_object_path (request->context, request->id);
 
   g_clear_object (&request->app_info);
   g_clear_object (&request->impl_request);
@@ -230,7 +233,7 @@ xdp_request_dex_new (XdpContext             *context,
   g_autoptr(DexFuture) future = NULL;
   RequestImplProxyCreateData *data;
   const char *token = NULL;
-  g_autofree char *sender = NULL;
+  g_autofree char *peer = NULL;
   g_autofree char *id = NULL;
 
   g_variant_lookup (arg_options, "handle_token", "&s", &token);
@@ -242,21 +245,16 @@ xdp_request_dex_new (XdpContext             *context,
                                                     "Invalid token: %s", token));
     }
 
-  sender = g_strdup (xdp_app_info_get_sender (app_info) + 1);
-  for (size_t i = 0; sender[i]; i++)
-    {
-      if (sender[i] == '.')
-        sender[i] = '_';
-    }
+  peer = xdp_peer_key_to_path_element (xdp_app_info_get_sender (app_info));
 
-  id = g_strdup_printf (DESKTOP_DBUS_PATH "/request/%s/%s", sender, token);
+  id = g_strdup_printf (DESKTOP_DBUS_PATH "/request/%s/%s", peer, token);
 
   while (!xdp_context_claim_object_path (context, id))
     {
       uint32_t r = g_random_int ();
       g_free (id);
       id = g_strdup_printf (DESKTOP_DBUS_PATH "/request/%s/%s/%u",
-                            sender,
+                            peer,
                             token,
                             r);
     }
@@ -327,4 +325,10 @@ const char *
 xdp_request_dex_get_object_path (XdpRequestDex *request)
 {
   return request->id;
+}
+
+gboolean
+xdp_request_dex_is_closed (XdpRequestDex *request)
+{
+  return !request->exported;
 }
