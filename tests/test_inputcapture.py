@@ -12,6 +12,7 @@ import pytest
 from gi.repository import GLib
 
 import tests.xdp_utils as xdp
+from tests.test_varlink import VarlinkConnection
 
 counter = count()
 
@@ -817,3 +818,266 @@ class TestInputCapture:
         token7 = create_persistent_session(persist_mode=mode, restore_token=token3)
         assert token7 is not None
         assert token7 == token3
+
+
+INPUT_CAPTURE = "org.freedesktop.portal.InputCapture"
+
+
+class TestVarlinkInputCapture:
+    @pytest.fixture
+    def xdp_app_info(self) -> xdp.AppInfo:
+        return xdp.AppInfoHost()
+
+    def create_session(self, conn):
+        """
+        Create a session on @conn and return its id; the call stays parked, so
+        @conn cannot be used for anything else.
+        """
+        conn.send(f"{INPUT_CAPTURE}.CreateSession", more=True)
+        reply = conn.receive()
+        assert "error" not in reply, reply
+        assert reply["continues"]
+
+        return reply["parameters"]["session"]
+
+    def start(self, conn, session, capabilities=None):
+        reply = conn.call(
+            f"{INPUT_CAPTURE}.Start",
+            session=session,
+            parent_window="",
+            capabilities=capabilities or ["keyboard", "pointer"],
+        )
+        assert "error" not in reply, reply
+        return reply["parameters"]
+
+    def test_get_supported_capabilities(self, portals):
+        with VarlinkConnection() as conn:
+            conn.register()
+
+            reply = conn.call(f"{INPUT_CAPTURE}.GetSupportedCapabilities")
+            assert "error" not in reply, reply
+            assert set(reply["parameters"]["capabilities"]) == {
+                "keyboard",
+                "pointer",
+                "touchscreen",
+            }
+
+    def test_create_session_requires_more(self, portals):
+        with VarlinkConnection() as conn:
+            conn.register()
+
+            reply = conn.call(f"{INPUT_CAPTURE}.CreateSession")
+            assert reply["error"] == f"{INPUT_CAPTURE}.ExpectedMore"
+
+    def test_create_session_before_registering(self, portals):
+        with VarlinkConnection() as conn:
+            conn.send(f"{INPUT_CAPTURE}.CreateSession", more=True)
+            reply = conn.receive()
+            assert reply["error"] == f"{INPUT_CAPTURE}.NotRegistered"
+
+    def test_create_and_start(self, portals):
+        with VarlinkConnection() as session_conn:
+            instance = session_conn.register()
+            session = self.create_session(session_conn)
+
+            with VarlinkConnection() as conn:
+                conn.call(
+                    "org.freedesktop.host.portal.Registry.Claim",
+                    instance_id=instance,
+                )
+
+                results = self.start(conn, session)
+                assert set(results["capabilities"]) == {"keyboard", "pointer"}
+                assert results["clipboard_enabled"] is False
+
+    def test_unknown_session(self, portals):
+        with VarlinkConnection() as conn:
+            conn.register()
+
+            reply = conn.call(f"{INPUT_CAPTURE}.GetZones", session=9999)
+            assert reply["error"] == f"{INPUT_CAPTURE}.NoSuchSession"
+
+    @pytest.mark.parametrize(
+        "template_params",
+        (
+            {
+                "inputcapture": {
+                    "default-zone": dbus.Array(
+                        [dbus.Struct(z, signature="uuii") for z in default_zones()],
+                        signature="(uuii)",
+                        variant_level=1,
+                    )
+                },
+            },
+        ),
+    )
+    def test_zones_and_barriers(self, portals, zones):
+        with VarlinkConnection() as session_conn:
+            instance = session_conn.register()
+            session = self.create_session(session_conn)
+
+            with VarlinkConnection() as conn:
+                conn.call(
+                    "org.freedesktop.host.portal.Registry.Claim",
+                    instance_id=instance,
+                )
+                self.start(conn, session)
+
+                reply = conn.call(f"{INPUT_CAPTURE}.GetZones", session=session)
+                assert "error" not in reply, reply
+
+                got = [
+                    (z["width"], z["height"], z["x"], z["y"])
+                    for z in reply["parameters"]["zones"]
+                ]
+                assert got == zones
+
+                zone_set = reply["parameters"]["zone_set"]
+
+                reply = conn.call(
+                    f"{INPUT_CAPTURE}.SetPointerBarriers",
+                    session=session,
+                    zone_set=zone_set,
+                    barriers=[
+                        {"barrier_id": 10, "x1": 0, "y1": 0, "x2": 1024, "y2": 0}
+                    ],
+                )
+                assert "error" not in reply, reply
+                assert reply["parameters"]["failed_barriers"] == []
+
+    def test_connect_to_eis(self, portals):
+        with VarlinkConnection() as session_conn:
+            instance = session_conn.register()
+            session = self.create_session(session_conn)
+
+            with VarlinkConnection() as conn:
+                conn.call(
+                    "org.freedesktop.host.portal.Registry.Claim",
+                    instance_id=instance,
+                )
+                self.start(conn, session)
+
+                reply = conn.call(f"{INPUT_CAPTURE}.ConnectToEIS", session=session)
+                assert "error" not in reply, reply
+                assert reply["parameters"]["fd_idx"] == 0
+                assert len(conn.fds) == 1
+
+    def test_session_ends_with_its_connection(self, portals):
+        session_conn = VarlinkConnection()
+        instance = session_conn.register()
+        session = self.create_session(session_conn)
+
+        with VarlinkConnection() as conn:
+            conn.call(
+                "org.freedesktop.host.portal.Registry.Claim", instance_id=instance
+            )
+            self.start(conn, session)
+
+            session_conn.close()
+
+            xdp.wait_for(
+                lambda: conn.call(
+                    f"{INPUT_CAPTURE}.GetZones", session=session
+                ).get("error")
+                == f"{INPUT_CAPTURE}.NoSuchSession"
+            )
+
+    @pytest.mark.parametrize(
+        "template_params",
+        (
+            {
+                "inputcapture": {
+                    "activated-delay": 200,
+                    "deactivated-delay": 300,
+                },
+            },
+        ),
+    )
+    def test_subscribe_capture_status(self, portals):
+        with VarlinkConnection() as session_conn:
+            instance = session_conn.register()
+            session = self.create_session(session_conn)
+
+            with VarlinkConnection() as conn, VarlinkConnection() as status_conn:
+                for c in (conn, status_conn):
+                    c.call(
+                        "org.freedesktop.host.portal.Registry.Claim",
+                        instance_id=instance,
+                    )
+
+                self.start(conn, session)
+
+                reply = conn.call(f"{INPUT_CAPTURE}.ConnectToEIS", session=session)
+                assert "error" not in reply, reply
+
+                # The default zone is 1920x1080
+                reply = conn.call(f"{INPUT_CAPTURE}.GetZones", session=session)
+                zone_set = reply["parameters"]["zone_set"]
+                conn.call(
+                    f"{INPUT_CAPTURE}.SetPointerBarriers",
+                    session=session,
+                    zone_set=zone_set,
+                    barriers=[
+                        {"barrier_id": 10, "x1": 0, "y1": 0, "x2": 1920, "y2": 0}
+                    ],
+                )
+
+                status_conn.send(
+                    f"{INPUT_CAPTURE}.SubscribeCaptureStatus",
+                    more=True,
+                    session=session,
+                )
+
+                reply = conn.call(f"{INPUT_CAPTURE}.Enable", session=session)
+                assert "error" not in reply, reply
+
+                reply = status_conn.receive()
+                assert "error" not in reply, reply
+                assert reply["parameters"]["status"] == "activated"
+                assert reply["parameters"]["barrier_id"] == 10
+                assert reply["parameters"]["cursor_position"] == {"x": 10.0, "y": 20.0}
+
+                reply = status_conn.receive()
+                assert reply["parameters"]["status"] == "deactivated"
+
+    @pytest.mark.parametrize(
+        "template_params",
+        (
+            {
+                "inputcapture": {
+                    "default-zone": dbus.Array(
+                        [dbus.Struct(z, signature="uuii") for z in default_zones()],
+                        signature="(uuii)",
+                        variant_level=1,
+                    )
+                },
+            },
+        ),
+    )
+    def test_subscribe_zones(self, portals, zones):
+        with VarlinkConnection() as session_conn:
+            instance = session_conn.register()
+            session = self.create_session(session_conn)
+
+            with VarlinkConnection() as conn, VarlinkConnection() as zones_conn:
+                for c in (conn, zones_conn):
+                    c.call(
+                        "org.freedesktop.host.portal.Registry.Claim",
+                        instance_id=instance,
+                    )
+
+                self.start(conn, session)
+
+                zones_conn.send(
+                    f"{INPUT_CAPTURE}.SubscribeZones", more=True, session=session
+                )
+
+                reply = zones_conn.receive()
+                assert "error" not in reply, reply
+                assert reply["continues"]
+
+                got = [
+                    (z["width"], z["height"], z["x"], z["y"])
+                    for z in reply["parameters"]["zones"]
+                ]
+                assert got == zones

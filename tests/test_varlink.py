@@ -3,6 +3,7 @@
 #
 # This file is formatted with Python Black
 
+import array
 import json
 import os
 import socket
@@ -31,6 +32,7 @@ class VarlinkConnection:
         self.socket.settimeout(10)
         self.socket.connect(os.fspath(socket_path(socket_name)))
         self._buffer = b""
+        self.fds: list[int] = []
 
     def send(self, method: str, more: bool = False, **parameters) -> None:
         message: dict = {"method": method}
@@ -42,8 +44,19 @@ class VarlinkConnection:
 
     def receive(self) -> dict:
         while b"\0" not in self._buffer:
-            data = self.socket.recv(4096)
+            data, ancdata, _, _ = self.socket.recvmsg(
+                4096, socket.CMSG_SPACE(64 * array.array("i").itemsize)
+            )
             assert data, "Connection closed before the reply arrived"
+
+            for level, type_, cmsg in ancdata:
+                if level == socket.SOL_SOCKET and type_ == socket.SCM_RIGHTS:
+                    received = array.array("i")
+                    received.frombytes(
+                        cmsg[: len(cmsg) - (len(cmsg) % received.itemsize)]
+                    )
+                    self.fds.extend(received)
+
             self._buffer += data
 
         reply, _, self._buffer = self._buffer.partition(b"\0")
@@ -59,6 +72,9 @@ class VarlinkConnection:
         return reply["parameters"]["instance_id"]
 
     def close(self) -> None:
+        for fd in self.fds:
+            os.close(fd)
+        self.fds = []
         self.socket.close()
 
     def __enter__(self) -> "VarlinkConnection":

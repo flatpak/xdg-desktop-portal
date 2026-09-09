@@ -26,6 +26,7 @@ struct _Clipboard
 {
   XdpDbusClipboardSkeleton parent_instance;
 
+  XdpContext *context;
   XdpDbusImplClipboard *impl;
 };
 
@@ -45,55 +46,101 @@ G_DEFINE_TYPE_WITH_CODE (Clipboard,
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Clipboard, g_object_unref)
 
-static gboolean
-session_supports_clipboard (XdpSession *session)
+/* Input capture and remote desktop sessions share no base, so a clipboard
+ * capable session is only known to be a GObject here */
+static GObject *
+clipboard_session_lookup (Clipboard  *clipboard,
+                          const char *session_handle,
+                          XdpAppInfo *app_info)
 {
-  return IS_REMOTE_DESKTOP_SESSION (session) ||
-         IS_INPUT_CAPTURE_SESSION (session);
+  XdpInputCaptureSession *input_capture_session;
+  XdpSession *session;
+
+  input_capture_session = input_capture_lookup_session (clipboard->context,
+                                                        session_handle,
+                                                        app_info);
+  if (input_capture_session)
+    return G_OBJECT (input_capture_session);
+
+  session = app_info ? xdp_session_from_app_info (session_handle, app_info)
+                     : xdp_session_lookup (session_handle);
+
+  return session ? G_OBJECT (session) : NULL;
 }
 
 static gboolean
-session_can_request_clipboard (XdpSession *session)
+session_supports_clipboard (GObject *session)
 {
-  if (IS_REMOTE_DESKTOP_SESSION (session))
-    return remote_desktop_session_can_request_clipboard (REMOTE_DESKTOP_SESSION (session));
-  else if (IS_INPUT_CAPTURE_SESSION (session))
-    return input_capture_session_can_request_clipboard (INPUT_CAPTURE_SESSION (session));
-  else
-    g_assert_not_reached ();
+  return XDP_IS_INPUT_CAPTURE_SESSION (session) ||
+         IS_REMOTE_DESKTOP_SESSION (session);
+}
+
+static gboolean
+session_can_request_clipboard (GObject *session)
+{
+  if (XDP_IS_INPUT_CAPTURE_SESSION (session))
+    return input_capture_session_can_request_clipboard (XDP_INPUT_CAPTURE_SESSION (session));
+
+  return remote_desktop_session_can_request_clipboard (REMOTE_DESKTOP_SESSION (session));
 }
 
 static void
-session_clipboard_requested (XdpSession *session)
+session_clipboard_requested (GObject *session)
 {
-  if (IS_REMOTE_DESKTOP_SESSION (session))
+  if (XDP_IS_INPUT_CAPTURE_SESSION (session))
+    input_capture_session_clipboard_requested (XDP_INPUT_CAPTURE_SESSION (session));
+  else
     remote_desktop_session_clipboard_requested (REMOTE_DESKTOP_SESSION (session));
-  else if (IS_INPUT_CAPTURE_SESSION (session))
-    input_capture_session_clipboard_requested (INPUT_CAPTURE_SESSION (session));
-  else
-    g_assert_not_reached ();
 }
 
 static gboolean
-session_is_clipboard_enabled (XdpSession *session)
+session_is_clipboard_enabled (GObject *session)
 {
-  if (IS_REMOTE_DESKTOP_SESSION (session))
-    return remote_desktop_session_is_clipboard_enabled (REMOTE_DESKTOP_SESSION (session));
-  else if (IS_INPUT_CAPTURE_SESSION (session))
-    return input_capture_session_is_clipboard_enabled (INPUT_CAPTURE_SESSION (session));
-  else
-    g_assert_not_reached ();
+  if (XDP_IS_INPUT_CAPTURE_SESSION (session))
+    return input_capture_session_is_clipboard_enabled (XDP_INPUT_CAPTURE_SESSION (session));
+
+  return remote_desktop_session_is_clipboard_enabled (REMOTE_DESKTOP_SESSION (session));
 }
 
 static gboolean
-session_can_access_clipboard (XdpSession *session)
+session_can_access_clipboard (GObject *session)
 {
-  if (IS_REMOTE_DESKTOP_SESSION (session))
-    return remote_desktop_session_can_access_clipboard (REMOTE_DESKTOP_SESSION (session));
-  else if (IS_INPUT_CAPTURE_SESSION (session))
-    return input_capture_session_can_access_clipboard (INPUT_CAPTURE_SESSION (session));
-  else
-    g_assert_not_reached();
+  if (XDP_IS_INPUT_CAPTURE_SESSION (session))
+    return input_capture_session_can_access_clipboard (XDP_INPUT_CAPTURE_SESSION (session));
+
+  return remote_desktop_session_can_access_clipboard (REMOTE_DESKTOP_SESSION (session));
+}
+
+static const char *
+session_get_object_path (GObject *session)
+{
+  if (XDP_IS_INPUT_CAPTURE_SESSION (session))
+    return input_capture_session_get_object_path (XDP_INPUT_CAPTURE_SESSION (session));
+
+  return XDP_SESSION (session)->id;
+}
+
+static const char *
+session_get_sender (GObject *session)
+{
+  if (XDP_IS_INPUT_CAPTURE_SESSION (session))
+    {
+      XdpAppInfo *app_info =
+        input_capture_session_get_app_info (XDP_INPUT_CAPTURE_SESSION (session));
+
+      return xdp_app_info_get_sender (app_info);
+    }
+
+  return XDP_SESSION (session)->sender;
+}
+
+static gboolean
+session_is_closed (GObject *session)
+{
+  if (XDP_IS_INPUT_CAPTURE_SESSION (session))
+    return input_capture_session_is_closed (XDP_INPUT_CAPTURE_SESSION (session));
+
+  return XDP_SESSION (session)->closed;
 }
 
 static XdpOptionKey clipboard_set_selection_options[] = {
@@ -108,9 +155,9 @@ handle_request_clipboard (XdpDbusClipboard *object,
 {
   Clipboard *clipboard = (Clipboard *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
-  XdpSession *session;
+  g_autoptr(GObject) session = NULL;
 
-  session = xdp_session_from_app_info (arg_session_handle, app_info);
+  session = clipboard_session_lookup (clipboard, arg_session_handle, app_info);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -119,8 +166,6 @@ handle_request_clipboard (XdpDbusClipboard *object,
                                              "Invalid session");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
-
-  SESSION_AUTOLOCK_UNREF (session);
 
   if (!session_supports_clipboard (session))
     {
@@ -139,7 +184,7 @@ handle_request_clipboard (XdpDbusClipboard *object,
     }
 
   xdp_dbus_impl_clipboard_call_request_clipboard (clipboard->impl,
-                                                  session->id,
+                                                  session_get_object_path (session),
                                                   arg_options,
                                                   NULL, NULL, NULL);
 
@@ -157,13 +202,13 @@ handle_set_selection (XdpDbusClipboard *object,
 {
   Clipboard *clipboard = (Clipboard *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
-  XdpSession *session;
+  g_autoptr(GObject) session = NULL;
   g_auto(GVariantBuilder) options_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
-  session = xdp_session_from_app_info (arg_session_handle, app_info);
+  session = clipboard_session_lookup (clipboard, arg_session_handle, app_info);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -172,8 +217,6 @@ handle_set_selection (XdpDbusClipboard *object,
                                              "Invalid session");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
-
-  SESSION_AUTOLOCK_UNREF (session);
 
   if (!session_supports_clipboard (session))
     {
@@ -281,9 +324,9 @@ handle_selection_write (XdpDbusClipboard *object,
 {
   Clipboard *clipboard = (Clipboard *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
-  XdpSession *session;
+  g_autoptr(GObject) session = NULL;
 
-  session = xdp_session_from_app_info (arg_session_handle, app_info);
+  session = clipboard_session_lookup (clipboard, arg_session_handle, app_info);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -292,8 +335,6 @@ handle_selection_write (XdpDbusClipboard *object,
                                              "Invalid session");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
-
-  SESSION_AUTOLOCK_UNREF (session);
 
   if (!session_supports_clipboard (session))
     {
@@ -333,9 +374,9 @@ handle_selection_write_done (XdpDbusClipboard *object,
 {
   Clipboard *clipboard = (Clipboard *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
-  XdpSession *session;
+  g_autoptr(GObject) session = NULL;
 
-  session = xdp_session_from_app_info (arg_session_handle, app_info);
+  session = clipboard_session_lookup (clipboard, arg_session_handle, app_info);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -344,8 +385,6 @@ handle_selection_write_done (XdpDbusClipboard *object,
                                              "Invalid session");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
-
-  SESSION_AUTOLOCK_UNREF (session);
 
   if (!session_supports_clipboard (session))
     {
@@ -431,9 +470,9 @@ handle_selection_read (XdpDbusClipboard *object,
 {
   Clipboard *clipboard = (Clipboard *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
-  XdpSession *session;
+  g_autoptr(GObject) session = NULL;
 
-  session = xdp_session_from_app_info (arg_session_handle, app_info);
+  session = clipboard_session_lookup (clipboard, arg_session_handle, app_info);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -442,8 +481,6 @@ handle_selection_read (XdpDbusClipboard *object,
                                              "Invalid session");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
-
-  SESSION_AUTOLOCK_UNREF (session);
 
   if (!session_supports_clipboard (session))
     {
@@ -535,23 +572,22 @@ selection_transfer_cb (XdpDbusImplClipboard *impl,
 {
   GDBusConnection *connection =
     g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
-  XdpSession *session;
+  Clipboard *clipboard = data;
+  g_autoptr(GObject) session = NULL;
 
-  session = xdp_session_lookup (arg_session_handle);
-  if (!session)
+  session = clipboard_session_lookup (clipboard, arg_session_handle, NULL);
+  if (!session || !session_supports_clipboard (session))
     {
       g_warning ("Cannot find session");
       return;
     }
 
-  SESSION_AUTOLOCK_UNREF (session);
-
   if (session_is_clipboard_enabled (session) &&
-      !session->closed)
+      !session_is_closed (session))
     {
       g_dbus_connection_emit_signal (
         connection,
-        session->sender,
+        session_get_sender (session),
         DESKTOP_DBUS_PATH,
         CLIPBOARD_DBUS_IFACE,
         "SelectionTransfer",
@@ -568,23 +604,22 @@ selection_owner_changed_cb (XdpDbusImplClipboard *impl,
 {
   GDBusConnection *connection =
     g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
-  XdpSession *session;
+  Clipboard *clipboard = data;
+  g_autoptr(GObject) session = NULL;
 
-  session = xdp_session_lookup (arg_session_handle);
-  if (!session)
+  session = clipboard_session_lookup (clipboard, arg_session_handle, NULL);
+  if (!session || !session_supports_clipboard (session))
     {
       g_warning ("Cannot find session");
       return;
     }
 
-  SESSION_AUTOLOCK_UNREF (session);
-
   if (session_is_clipboard_enabled (session) &&
-      !session->closed)
+      !session_is_closed (session))
     {
       g_dbus_connection_emit_signal (
         connection,
-        session->sender,
+        session_get_sender (session),
         DESKTOP_DBUS_PATH,
         CLIPBOARD_DBUS_IFACE,
         "SelectionOwnerChanged",
@@ -594,11 +629,13 @@ selection_owner_changed_cb (XdpDbusImplClipboard *impl,
 }
 
 static Clipboard *
-clipboard_new (XdpDbusImplClipboard *impl)
+clipboard_new (XdpContext           *context,
+               XdpDbusImplClipboard *impl)
 {
   Clipboard *clipboard;
 
   clipboard = g_object_new (clipboard_get_type (), NULL);
+  clipboard->context = context;
   clipboard->impl = g_object_ref (impl);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (clipboard->impl), G_MAXINT);
@@ -607,12 +644,12 @@ clipboard_new (XdpDbusImplClipboard *impl)
 
   g_signal_connect_object (clipboard->impl, "selection-transfer",
                            G_CALLBACK (selection_transfer_cb),
-                           impl,
+                           clipboard,
                            G_CONNECT_DEFAULT);
 
   g_signal_connect_object (clipboard->impl, "selection-owner-changed",
                            G_CALLBACK (selection_owner_changed_cb),
-                           impl,
+                           clipboard,
                            G_CONNECT_DEFAULT);
 
   return clipboard;
@@ -644,9 +681,9 @@ init_clipboard (XdpContext *context)
       return;
     }
 
-  clipboard = clipboard_new (impl);
+  clipboard = clipboard_new (context, impl);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&clipboard)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
+                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER);
 }
