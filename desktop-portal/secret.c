@@ -23,7 +23,12 @@
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-types.h"
+#include "xdp-request-dex.h"
 #include "xdp-utils.h"
+
+#if HAVE_VARLINK
+#include "xdp-varlink.h"
+#endif
 
 typedef struct _Secret Secret;
 typedef struct _SecretClass SecretClass;
@@ -32,6 +37,7 @@ struct _Secret
 {
   XdpDbusSecretSkeleton parent_instance;
 
+  XdpContext *context;
   XdpDbusImplSecret *impl;
 };
 
@@ -193,11 +199,13 @@ secret_class_init (SecretClass *klass)
 }
 
 static Secret *
-secret_new (XdpDbusImplSecret *impl)
+secret_new (XdpContext        *context,
+            XdpDbusImplSecret *impl)
 {
   Secret *secret;
 
   secret = g_object_new (secret_get_type (), NULL);
+  secret->context = context;
   secret->impl = g_object_ref (impl);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (secret->impl), G_MAXINT);
@@ -206,6 +214,162 @@ secret_new (XdpDbusImplSecret *impl)
 
   return secret;
 }
+
+#if HAVE_VARLINK
+
+#define VARLINK_INTERFACE "org.freedesktop.portal.Secret"
+
+static const char varlink_interface_description[] =
+  "# The Secret portal allows sandboxed applications to retrieve a\n"
+  "# per-application secret. The secret can then be used for encrypting\n"
+  "# confidential data inside the sandbox.\n"
+  "#\n"
+  "# There is no session and no request object: a call needing the user to act\n"
+  "# does not reply until it resolves, and closing the connection cancels it\n"
+  "interface " VARLINK_INTERFACE "\n"
+  "\n"
+  "# Retrieves a master secret for a sandboxed application, writing it to\n"
+  "# fd_idx. The creation of the file descriptor is the responsibility of the\n"
+  "# caller, which passes the write end of a pipe.\n"
+  "#\n"
+  "# The master secret is unique per application and does not change as long as\n"
+  "# the application is installed (once it has been created). In a typical\n"
+  "# backend implementation, it is stored in the user's keyring, under the\n"
+  "# application ID as a key.\n"
+  "#\n"
+  "# While the master secret can be used for encrypting any confidential data\n"
+  "# in the sandbox, the format is opaque to the application. In particular,\n"
+  "# the length of the secret might not be sufficient for the use with certain\n"
+  "# encryption algorithm. In that case, the application is supposed to expand\n"
+  "# it using a KDF algorithm.\n"
+  "#\n"
+  "# The portal may return an additional identifier associated with the secret\n"
+  "# in token. In the next call of this method, the application shall indicate\n"
+  "# it through the token argument\n"
+  "method RetrieveSecret(fd_idx: int, token: ?string) -> (token: ?string)\n"
+  "\n"
+  "# A secret is not available\n"
+  "error NoSecret()\n"
+  "\n"
+  "# The user dismissed the request, as opposed to\n"
+  "# org.varlink.service.PermissionDenied for one refused without asking\n"
+  "error Cancelled()\n"
+  "\n"
+  "# The descriptor could not be passed on to the backend\n"
+  "error TransferFailed()\n"
+  "\n"
+  "error " XDP_VARLINK_ERROR_NOT_REGISTERED "()\n";
+
+static long
+handle_varlink_retrieve_secret (XdpVarlinkService    *service,
+                                XdpVarlinkConnection *connection,
+                                VarlinkCall          *call,
+                                VarlinkObject        *parameters,
+                                uint64_t              flags,
+                                gpointer              user_data)
+{
+  Secret *secret = user_data;
+  XdpAppInfo *app_info = xdp_varlink_connection_get_app_info (connection);
+  g_autoptr(XdpDbusImplSecretRetrieveSecretResult) result = NULL;
+  g_autoptr(XdpRequestDex) request = NULL;
+  g_autoptr(GUnixFDList) fd_list = NULL;
+  g_autoptr(VarlinkObject) reply = NULL;
+  g_autoptr(GVariant) options = NULL;
+  g_autoptr(GError) error = NULL;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  const char *token = NULL;
+  g_autofd int fd = -1;
+  int64_t fd_idx;
+
+  if (varlink_object_get_int (parameters, "fd_idx", &fd_idx) < 0)
+    return varlink_call_reply_invalid_parameter (call, "fd_idx");
+
+  fd = varlink_call_take_fd (call, fd_idx);
+  if (fd < 0)
+    return varlink_call_reply_invalid_parameter (call, "fd_idx");
+
+  if (varlink_object_get_string (parameters, "token", &token) >= 0 && token != NULL)
+    {
+      g_variant_builder_add (&options_builder, "{sv}",
+                             "token", g_variant_new_string (token));
+    }
+
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
+
+  fd_list = g_unix_fd_list_new ();
+  if (g_unix_fd_list_append (fd_list, fd, &error) < 0)
+    {
+      g_warning ("Failed to pass on the secret fd: %s", error->message);
+      return varlink_call_reply_error (call, VARLINK_INTERFACE ".TransferFailed", NULL);
+    }
+
+  /* The backend answers on a request object no varlink client sees */
+  request = dex_await_object (
+    xdp_request_dex_new (secret->context,
+                         app_info,
+                         G_DBUS_INTERFACE_SKELETON (secret),
+                         G_DBUS_PROXY (secret->impl),
+                         options),
+    &error);
+  if (!request)
+    return varlink_call_reply_error (call, VARLINK_INTERFACE ".NoSecret", NULL);
+
+  result = dex_await_boxed (
+    xdp_dbus_impl_secret_call_retrieve_secret_future (
+      secret->impl,
+      xdp_request_dex_get_object_path (request),
+      xdp_app_info_get_id (app_info),
+      g_variant_new_handle (0),
+      options,
+      fd_list),
+    &error);
+
+  if (!result)
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_warning ("A backend call failed: %s", error->message);
+      return varlink_call_reply_error (call, VARLINK_INTERFACE ".NoSecret", NULL);
+    }
+
+  if (result->response == XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED)
+    return varlink_call_reply_error (call, VARLINK_INTERFACE ".Cancelled", NULL);
+
+  if (result->response != XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS)
+    return varlink_call_reply_error (call, VARLINK_INTERFACE ".NoSecret", NULL);
+
+  varlink_object_new (&reply);
+
+  if (result->results &&
+      g_variant_lookup (result->results, "token", "&s", &token))
+    varlink_object_set_string (reply, "token", token);
+
+  return varlink_call_reply (call, reply, 0);
+}
+
+static const XdpVarlinkMethod varlink_methods[] = {
+  { "RetrieveSecret", handle_varlink_retrieve_secret, XDP_VARLINK_METHOD_FLAGS_NONE },
+};
+
+gboolean
+init_secret_varlink (XdpVarlinkService  *service,
+                     XdpContext         *context,
+                     GError            **error)
+{
+  GDBusInterfaceSkeleton *skeleton;
+
+  skeleton = xdp_context_get_portal (context, SECRET_DBUS_IFACE);
+  if (skeleton == NULL)
+    return TRUE;
+
+  return xdp_varlink_service_add_interface (service, varlink_interface_description,
+                                            varlink_methods,
+                                            G_N_ELEMENTS (varlink_methods),
+                                            g_object_ref (skeleton),
+                                            g_object_unref, error);
+}
+
+#endif /* HAVE_VARLINK */
 
 DexFuture *
 init_secret (gpointer user_data)
@@ -235,7 +399,7 @@ init_secret (gpointer user_data)
       return dex_future_new_false ();
     }
 
-  secret = secret_new (impl);
+  secret = secret_new (context, impl);
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&secret)),
                                       XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);

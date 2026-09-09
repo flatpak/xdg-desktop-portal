@@ -415,7 +415,10 @@ init_varlink (XdpContext *context,
   if (!init_input_capture_varlink (context->portal_varlink, context, error))
     return FALSE;
 
-  return init_clipboard_varlink (context->portal_varlink, context, error);
+  if (!init_clipboard_varlink (context->portal_varlink, context, error))
+    return FALSE;
+
+  return init_secret_varlink (context->portal_varlink, context, error);
 }
 #endif
 

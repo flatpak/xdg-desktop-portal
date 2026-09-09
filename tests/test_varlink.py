@@ -34,13 +34,24 @@ class VarlinkConnection:
         self._buffer = b""
         self.fds: list[int] = []
 
-    def send(self, method: str, more: bool = False, **parameters) -> None:
+    def send(
+        self, method: str, more: bool = False, fds: list[int] | None = None, **parameters
+    ) -> None:
         message: dict = {"method": method}
         if parameters:
             message["parameters"] = parameters
         if more:
             message["more"] = True
-        self.socket.sendall(json.dumps(message).encode() + b"\0")
+
+        data = json.dumps(message).encode() + b"\0"
+
+        if fds:
+            self.socket.sendmsg(
+                [data],
+                [(socket.SOL_SOCKET, socket.SCM_RIGHTS, array.array("i", fds))],
+            )
+        else:
+            self.socket.sendall(data)
 
     def receive(self) -> dict:
         while b"\0" not in self._buffer:
@@ -62,8 +73,8 @@ class VarlinkConnection:
         reply, _, self._buffer = self._buffer.partition(b"\0")
         return json.loads(reply)
 
-    def call(self, method: str, **parameters) -> dict:
-        self.send(method, **parameters)
+    def call(self, method: str, fds: list[int] | None = None, **parameters) -> dict:
+        self.send(method, fds=fds, **parameters)
         return self.receive()
 
     def register(self, app_id_hint: str = "") -> str:

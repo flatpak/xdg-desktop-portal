@@ -218,6 +218,7 @@ def xdg_desktop_portal_dir_default_files() -> dict[str, bytes]:
         "org.freedesktop.impl.portal.RemoteDesktop",
         "org.freedesktop.impl.portal.ScreenCast",
         "org.freedesktop.impl.portal.Screenshot",
+        "org.freedesktop.impl.portal.Secret",
         "org.freedesktop.impl.portal.Settings",
         "org.freedesktop.impl.portal.Usb",
         "org.freedesktop.impl.portal.Wallpaper",
