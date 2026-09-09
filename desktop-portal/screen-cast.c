@@ -119,7 +119,7 @@ screen_cast_session_close (XdpSession *session)
 
   screen_cast_session->state = SCREEN_CAST_SESSION_STATE_CLOSED;
 
-  xdp_session_persistence_generate_and_save_restore_token (session,
+  xdp_session_persistence_generate_and_save_restore_token (session->app_info,
                                                            SCREEN_CAST_PERMISSION_TABLE,
                                                            screen_cast_session->persist_mode,
                                                            &screen_cast_session->restore_token,
@@ -499,7 +499,7 @@ replace_screen_cast_restore_token_with_data (XdpSession  *session,
       ScreenCastSession *screen_cast_session = SCREEN_CAST_SESSION (session);
 
       screen_cast_session->persist_mode = persist_mode;
-      xdp_session_persistence_replace_restore_token_with_data (session,
+      xdp_session_persistence_replace_restore_token_with_data (session->app_info,
                                                                SCREEN_CAST_PERMISSION_TABLE,
                                                                in_out_options,
                                                                &screen_cast_session->restore_token);
@@ -771,7 +771,7 @@ static void
 replace_restore_screen_cast_data_with_token (ScreenCastSession *screen_cast_session,
                                              GVariant **in_out_results)
 {
-  xdp_session_persistence_replace_restore_data_with_token (XDP_SESSION (screen_cast_session),
+  xdp_session_persistence_replace_restore_data_with_token (XDP_SESSION (screen_cast_session)->app_info,
                                                            SCREEN_CAST_PERMISSION_TABLE,
                                                            in_out_results,
                                                            &screen_cast_session->persist_mode,

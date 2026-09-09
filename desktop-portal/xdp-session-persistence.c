@@ -7,6 +7,7 @@
 #include "xdp-session-persistence.h"
 
 #include "xdp-permissions.h"
+#include "xdp-utils.h"
 
 static GMutex transient_permissions_lock;
 static GHashTable *transient_permissions;
@@ -14,10 +15,10 @@ static GHashTable *transient_permissions;
 #define RESTORE_DATA_TYPE "(suv)"
 
 static void
-on_peer_disconnect (XdpContext *context,
-                    const char *peer,
-                    gpointer    user_data)
+on_app_info_disconnected (XdpAppInfo *app_info,
+                          gpointer    user_data)
 {
+  const char *peer = xdp_app_info_get_sender (app_info);
   g_autoptr(GMutexLocker) locker = NULL;
   GHashTableIter iter;
   const char *key;
@@ -37,12 +38,29 @@ on_peer_disconnect (XdpContext *context,
     }
 }
 
-/*
- * Transient permissions are scoped by session->sender: the hash key is
- * "sender/token", so a token is only valid for the peer that created it.
- */
+/* Connected once per app info, so that its tokens go when the peer does */
+static void
+watch_app_info (XdpAppInfo *app_info)
+{
+  static GQuark quark_watched;
+
+  if (quark_watched == 0)
+    quark_watched = g_quark_from_static_string ("xdp-persistence-watched");
+
+  if (g_object_get_qdata (G_OBJECT (app_info), quark_watched))
+    return;
+
+  g_object_set_qdata (G_OBJECT (app_info), quark_watched, GINT_TO_POINTER (TRUE));
+
+  g_signal_connect (app_info, "disconnected",
+                    G_CALLBACK (on_app_info_disconnected),
+                    NULL);
+}
+
+/* Scoped by peer key: the hash key is "peer/token", so a token is only valid
+ * for the peer that created it */
 void
-xdp_session_persistence_set_transient_permissions (XdpSession *session,
+xdp_session_persistence_set_transient_permissions (XdpAppInfo *app_info,
                                                    const char *restore_token,
                                                    GVariant *restore_data)
 {
@@ -53,19 +71,17 @@ xdp_session_persistence_set_transient_permissions (XdpSession *session,
       transient_permissions =
         g_hash_table_new_full (g_str_hash, g_str_equal,
                                g_free, (GDestroyNotify) g_variant_unref);
-
-      g_signal_connect (session->context, "peer-disconnect",
-                        G_CALLBACK (on_peer_disconnect),
-                        NULL);
     }
 
+  watch_app_info (app_info);
+
   g_hash_table_insert (transient_permissions,
-                       g_strdup_printf ("%s/%s", session->sender, restore_token),
+                       g_strdup_printf ("%s/%s", xdp_app_info_get_sender (app_info), restore_token),
                        g_variant_ref (restore_data));
 }
 
 void
-xdp_session_persistence_delete_transient_permissions (XdpSession *session,
+xdp_session_persistence_delete_transient_permissions (XdpAppInfo *app_info,
                                                       const char *restore_token)
 {
   g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
@@ -74,12 +90,12 @@ xdp_session_persistence_delete_transient_permissions (XdpSession *session,
   if (!transient_permissions)
     return;
 
-  id = g_strdup_printf ("%s/%s", session->sender, restore_token);
+  id = g_strdup_printf ("%s/%s", xdp_app_info_get_sender (app_info), restore_token);
   g_hash_table_remove (transient_permissions, id);
 }
 
 GVariant *
-xdp_session_persistence_get_transient_permissions (XdpSession *session,
+xdp_session_persistence_get_transient_permissions (XdpAppInfo *app_info,
                                                    const char *restore_token)
 {
   g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
@@ -89,17 +105,15 @@ xdp_session_persistence_get_transient_permissions (XdpSession *session,
   if (!transient_permissions)
     return NULL;
 
-  id = g_strdup_printf ("%s/%s", session->sender, restore_token);
+  id = g_strdup_printf ("%s/%s", xdp_app_info_get_sender (app_info), restore_token);
   permissions = g_hash_table_lookup (transient_permissions, id);
   return permissions ? g_variant_ref (permissions) : NULL;
 }
 
-/*
- * Persistent permissions are scoped by session->app_id: the permission
- * store entry is keyed by token, but lookup checks that app_id has access.
- */
+/* Scoped by app id: the store entry is keyed by token, but lookup checks that
+ * the app id has access */
 void
-xdp_session_persistence_set_persistent_permissions (XdpSession *session,
+xdp_session_persistence_set_persistent_permissions (XdpAppInfo *app_info,
                                                     const char *table,
                                                     const char *restore_token,
                                                     GVariant *restore_data)
@@ -111,7 +125,7 @@ xdp_session_persistence_set_persistent_permissions (XdpSession *session,
 
   permission = xdp_permissions_from_tristate (XDP_PERMISSION_YES);
 
-  g_variant_builder_add (&permissions_builder, "{s^a&s}", session->app_id, permission);
+  g_variant_builder_add (&permissions_builder, "{s^a&s}", xdp_app_info_get_id (app_info), permission);
 
   if (!xdp_dbus_impl_permission_store_call_set_sync (xdp_get_permission_store (),
                                                      table,
@@ -128,7 +142,7 @@ xdp_session_persistence_set_persistent_permissions (XdpSession *session,
 }
 
 void
-xdp_session_persistence_delete_persistent_permissions (XdpSession *session,
+xdp_session_persistence_delete_persistent_permissions (XdpAppInfo *app_info,
                                                        const char *table,
                                                        const char *restore_token)
 {
@@ -147,7 +161,7 @@ xdp_session_persistence_delete_persistent_permissions (XdpSession *session,
 }
 
 GVariant *
-xdp_session_persistence_get_persistent_permissions (XdpSession *session,
+xdp_session_persistence_get_persistent_permissions (XdpAppInfo *app_info,
                                                     const char *table,
                                                     const char *restore_token)
 {
@@ -167,7 +181,7 @@ xdp_session_persistence_get_persistent_permissions (XdpSession *session,
       return NULL;
     }
 
-  if (!perms || !g_variant_lookup (perms, session->app_id, "^a&s", &permissions))
+  if (!perms || !g_variant_lookup (perms, xdp_app_info_get_id (app_info), "^a&s", &permissions))
     return NULL;
 
   if (!data)
@@ -177,7 +191,7 @@ xdp_session_persistence_get_persistent_permissions (XdpSession *session,
 }
 
 void
-xdp_session_persistence_replace_restore_token_with_data (XdpSession *session,
+xdp_session_persistence_replace_restore_token_with_data (XdpAppInfo *app_info,
                                                          const char *table,
                                                          GVariant **in_out_options,
                                                          char **out_restore_token)
@@ -207,22 +221,22 @@ xdp_session_persistence_replace_restore_token_with_data (XdpSession *session,
            * mode uses the app id.
            */
           restore_data =
-            xdp_session_persistence_get_transient_permissions (session,
+            xdp_session_persistence_get_transient_permissions (app_info,
                                                                restore_token);
           if (restore_data)
             {
-              xdp_session_persistence_delete_transient_permissions (session,
+              xdp_session_persistence_delete_transient_permissions (app_info,
                                                                     restore_token);
             }
           else
             {
               restore_data =
-                xdp_session_persistence_get_persistent_permissions (session,
+                xdp_session_persistence_get_persistent_permissions (app_info,
                                                                     table,
                                                                     restore_token);
               if (restore_data)
                 {
-                  xdp_session_persistence_delete_persistent_permissions (session,
+                  xdp_session_persistence_delete_persistent_permissions (app_info,
                                                                          table,
                                                                          restore_token);
                 }
@@ -251,7 +265,7 @@ xdp_session_persistence_replace_restore_token_with_data (XdpSession *session,
 }
 
 void
-xdp_session_persistence_generate_and_save_restore_token (XdpSession *session,
+xdp_session_persistence_generate_and_save_restore_token (XdpAppInfo *app_info,
                                                          const char *table,
                                                          XdpSessionPersistenceMode persist_mode,
                                                          char **in_out_restore_token,
@@ -261,10 +275,10 @@ xdp_session_persistence_generate_and_save_restore_token (XdpSession *session,
     {
       if (*in_out_restore_token)
         {
-          xdp_session_persistence_delete_persistent_permissions (session,
+          xdp_session_persistence_delete_persistent_permissions (app_info,
                                                                  table,
                                                                  *in_out_restore_token);
-          xdp_session_persistence_delete_transient_permissions (session,
+          xdp_session_persistence_delete_transient_permissions (app_info,
                                                                 *in_out_restore_token);
         }
 
@@ -277,10 +291,10 @@ xdp_session_persistence_generate_and_save_restore_token (XdpSession *session,
     case XDP_SESSION_PERSISTENCE_MODE_NONE:
       if (*in_out_restore_token)
         {
-          xdp_session_persistence_delete_persistent_permissions (session,
+          xdp_session_persistence_delete_persistent_permissions (app_info,
                                                                  table,
                                                                  *in_out_restore_token);
-          xdp_session_persistence_delete_transient_permissions (session,
+          xdp_session_persistence_delete_transient_permissions (app_info,
                                                                 *in_out_restore_token);
         }
 
@@ -292,7 +306,7 @@ xdp_session_persistence_generate_and_save_restore_token (XdpSession *session,
       if (!*in_out_restore_token)
         *in_out_restore_token = xdp_generate_token ();
 
-      xdp_session_persistence_set_transient_permissions (session,
+      xdp_session_persistence_set_transient_permissions (app_info,
                                                          *in_out_restore_token,
                                                          *in_out_restore_data);
       break;
@@ -301,7 +315,7 @@ xdp_session_persistence_generate_and_save_restore_token (XdpSession *session,
       if (!*in_out_restore_token)
         *in_out_restore_token = xdp_generate_token ();
 
-      xdp_session_persistence_set_persistent_permissions (session,
+      xdp_session_persistence_set_persistent_permissions (app_info,
                                                           table,
                                                           *in_out_restore_token,
                                                           *in_out_restore_data);
@@ -311,7 +325,7 @@ xdp_session_persistence_generate_and_save_restore_token (XdpSession *session,
 }
 
 void
-xdp_session_persistence_replace_restore_data_with_token (XdpSession *session,
+xdp_session_persistence_replace_restore_data_with_token (XdpAppInfo *app_info,
                                                          const char *table,
                                                          GVariant **in_out_results,
                                                          XdpSessionPersistenceMode *in_out_persist_mode,
@@ -359,7 +373,7 @@ xdp_session_persistence_replace_restore_data_with_token (XdpSession *session,
     {
       g_debug ("Replacing restore data received from portal impl with a token");
 
-      xdp_session_persistence_generate_and_save_restore_token (session,
+      xdp_session_persistence_generate_and_save_restore_token (app_info,
                                                                table,
                                                                *in_out_persist_mode,
                                                                in_out_restore_token,

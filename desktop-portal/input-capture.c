@@ -518,7 +518,7 @@ start_done (GObject      *source_object,
                                  g_variant_new_boolean (clipboard_enabled));
         }
 
-      xdp_session_persistence_replace_restore_data_with_token (XDP_SESSION (input_capture_session),
+      xdp_session_persistence_replace_restore_data_with_token (XDP_SESSION (input_capture_session)->app_info,
                                                                INPUT_CAPTURE_PERMISSION_TABLE,
                                                                &results,
                                                                &input_capture_session->persist_mode,
@@ -561,7 +561,7 @@ replace_input_capture_restore_token_with_data (XdpSession  *session,
     persist_mode = XDP_SESSION_PERSISTENCE_MODE_NONE;
 
   input_capture_session->persist_mode = persist_mode;
-  xdp_session_persistence_replace_restore_token_with_data (session,
+  xdp_session_persistence_replace_restore_token_with_data (session->app_info,
                                                            INPUT_CAPTURE_PERMISSION_TABLE,
                                                            in_out_options,
                                                            &input_capture_session->restore_token);

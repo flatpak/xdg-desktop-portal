@@ -516,7 +516,7 @@ replace_remote_desktop_restore_token_with_data (XdpSession  *session,
     persist_mode = XDP_SESSION_PERSISTENCE_MODE_NONE;
 
   remote_desktop_session->persist_mode = persist_mode;
-  xdp_session_persistence_replace_restore_token_with_data (session,
+  xdp_session_persistence_replace_restore_token_with_data (session->app_info,
                                                            REMOTE_DESKTOP_PERMISSION_TABLE,
                                                            in_out_options,
                                                            &remote_desktop_session->restore_token);
@@ -619,7 +619,7 @@ static void
 replace_restore_remote_desktop_data_with_token (RemoteDesktopSession *remote_desktop_session,
                                                 GVariant **in_out_results)
 {
-  xdp_session_persistence_replace_restore_data_with_token (XDP_SESSION (remote_desktop_session),
+  xdp_session_persistence_replace_restore_data_with_token (XDP_SESSION (remote_desktop_session)->app_info,
                                                            REMOTE_DESKTOP_PERMISSION_TABLE,
                                                            in_out_results,
                                                            &remote_desktop_session->persist_mode,
