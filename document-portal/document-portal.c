@@ -29,6 +29,7 @@
 #include "permission-store-dbus.h"
 #include "xdp-app-info-registry.h"
 #include "xdp-app-info.h"
+#include "xdp-peer-dbus-private.h"
 #include "xdp-utils.h"
 
 #define TABLE_NAME "documents"
@@ -1328,10 +1329,14 @@ handle_method (GCallback              method_callback,
                GDBusMethodInvocation *invocation)
 {
   g_autoptr(DexFuture) future = NULL;
+  g_autoptr(XdpPeer) peer = NULL;
 
   g_object_set_data (G_OBJECT (invocation), "-xdp-portal-method", method_callback);
 
-  future = xdp_app_info_registry_ensure_future (app_info_registry, invocation);
+  peer = xdp_peer_dbus_new (g_dbus_method_invocation_get_connection (invocation),
+                            g_dbus_method_invocation_get_sender (invocation));
+
+  future = xdp_app_info_registry_ensure_future (app_info_registry, peer);
   future = dex_future_finally (future,
                                handle_method_with_app_info,
                                invocation,

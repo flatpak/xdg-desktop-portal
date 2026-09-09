@@ -26,6 +26,7 @@
 #include "document-portal.h"
 #include "xdp-app-info-registry.h"
 #include "xdp-app-info.h"
+#include "xdp-peer-dbus-private.h"
 #include "xdp-utils.h"
 
 static XdpDbusFileTransfer *file_transfer;
@@ -505,10 +506,14 @@ handle_method (GCallback              method_callback,
 {
   g_autoptr(GError) error = NULL;
   g_autoptr(DexFuture) future = NULL;
+  g_autoptr(XdpPeer) peer = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
   PortalMethod portal_method = (PortalMethod)method_callback;
 
-  future = xdp_app_info_registry_ensure_future (app_info_registry, invocation);
+  peer = xdp_peer_dbus_new (g_dbus_method_invocation_get_connection (invocation),
+                            g_dbus_method_invocation_get_sender (invocation));
+
+  future = xdp_app_info_registry_ensure_future (app_info_registry, peer);
   dex_thread_wait_for (dex_ref (future), NULL);
 
   app_info = dex_await_object (g_steal_pointer (&future), &error);

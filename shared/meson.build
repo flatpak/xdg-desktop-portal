@@ -11,6 +11,8 @@ xdp_utils_sources = files(
   'xdp-app-info-snap.c',
   'xdp-app-info-linyaps.c',
   'xdp-dex.c',
+  'xdp-peer.c',
+  'xdp-peer-dbus.c',
   'xdp-sealed-fd.c',
   'xdp-usb-query.c',
   'xdp-utils.c',

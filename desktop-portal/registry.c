@@ -12,6 +12,7 @@
 #include "xdp-app-info.h"
 #include "xdp-context.h"
 #include "xdp-host-dbus.h"
+#include "xdp-peer-dbus-private.h"
 #include "xdp-utils.h"
 
 typedef struct _Registry Registry;
@@ -47,18 +48,22 @@ handle_register (XdpDbusHostRegistry   *object,
 {
   Registry *registry = (Registry *) object;
   const char *sender = g_dbus_method_invocation_get_sender (invocation);
+  g_autoptr(XdpPeer) peer = NULL;
   g_autoptr(XdpAppInfo) new_app_info = NULL;
   g_autoptr(DexFuture) insert_future = NULL;
   g_autoptr(DexPromise) app_info_promise = NULL;
   gboolean success;
   g_autoptr(GError) error = NULL;
 
+  peer = xdp_peer_dbus_new (g_dbus_method_invocation_get_connection (invocation),
+                            sender);
+
   /* First, let's add an insert operation, that way we block any further
    * app info activity on the connection, until the promise is resolved. */
   app_info_promise = dex_promise_new ();
   insert_future =
     xdp_app_info_registry_insert_future (registry->app_info_registry,
-                                         invocation,
+                                         peer,
                                          DEX_FUTURE (dex_ref (app_info_promise)));
 
   /* Then we check if we actually should allow the caller to update the
@@ -66,7 +71,7 @@ handle_register (XdpDbusHostRegistry   *object,
   {
     g_autoptr(XdpAppInfo) detected_app_info = NULL;
 
-    detected_app_info = dex_await_object (xdp_app_info_new_for_invocation (invocation), &error);
+    detected_app_info = dex_await_object (xdp_app_info_new_for_peer (peer), &error);
     if (!detected_app_info)
       {
         g_debug ("Failed to detect app info for %s: %s",
@@ -98,7 +103,7 @@ handle_register (XdpDbusHostRegistry   *object,
       }
   }
 
-  new_app_info = dex_await_object (xdp_app_info_new_for_registered (invocation, arg_app_id), &error);
+  new_app_info = dex_await_object (xdp_app_info_new_for_registered (peer, arg_app_id), &error);
   if (!new_app_info)
     {
       g_debug ("Can't create registered app for %s: %s",

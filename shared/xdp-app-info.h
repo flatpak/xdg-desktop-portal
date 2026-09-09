@@ -12,6 +12,8 @@
 #include <gio/gio.h>
 #include <libdex.h>
 
+#include "xdp-peer.h"
+
 typedef enum _XdpAppInfoError
 {
   XDP_APP_INFO_ERROR_WRONG_APP_KIND,
@@ -26,10 +28,10 @@ G_DECLARE_DERIVABLE_TYPE (XdpAppInfo,
                           XDP, APP_INFO,
                           GObject);
 
-DexFuture * xdp_app_info_new_for_invocation (GDBusMethodInvocation *invocation);
+DexFuture * xdp_app_info_new_for_peer (XdpPeer *peer);
 
-DexFuture * xdp_app_info_new_for_registered (GDBusMethodInvocation *invocation,
-                                             const char            *appid);
+DexFuture * xdp_app_info_new_for_registered (XdpPeer    *peer,
+                                             const char *appid);
 
 gboolean xdp_app_info_is_host (XdpAppInfo *app_info);
 

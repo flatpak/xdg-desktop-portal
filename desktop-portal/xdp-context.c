@@ -40,6 +40,7 @@
 #include "xdp-documents.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-method-info.h"
+#include "xdp-peer-dbus-private.h"
 #include "xdp-permissions.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
@@ -234,12 +235,16 @@ authorize_callback_fiber (GDBusInterfaceSkeleton *interface,
                           gpointer                user_data)
 {
   XdpContext *context = XDP_CONTEXT (user_data);
+  g_autoptr(XdpPeer) peer = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) error = NULL;
 
+  peer = xdp_peer_dbus_new (g_dbus_method_invocation_get_connection (invocation),
+                            g_dbus_method_invocation_get_sender (invocation));
+
   app_info = dex_await_object (xdp_app_info_registry_ensure_future (
       context->app_info_registry,
-      invocation),
+      peer),
     &error);
 
   if (app_info == NULL)
@@ -262,12 +267,16 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
                     gpointer                user_data)
 {
   XdpContext *context = XDP_CONTEXT (user_data);
+  g_autoptr(XdpPeer) peer = NULL;
   g_autoptr(DexFuture) future = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) error = NULL;
 
+  peer = xdp_peer_dbus_new (g_dbus_method_invocation_get_connection (invocation),
+                            g_dbus_method_invocation_get_sender (invocation));
+
   future = xdp_app_info_registry_ensure_future (context->app_info_registry,
-                                                invocation);
+                                                peer);
   dex_thread_wait_for (dex_ref (future), NULL);
 
   app_info = dex_await_object (g_steal_pointer (&future), &error);

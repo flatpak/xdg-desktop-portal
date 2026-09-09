@@ -371,18 +371,18 @@ xdp_app_info_new (const char  *sender,
 }
 
 static DexFuture *
-app_info_new_for_invocation_then (DexFuture *future,
-                                  gpointer   user_data)
+app_info_new_for_peer_then (DexFuture *future,
+                            gpointer   user_data)
 {
-  GDBusMethodInvocation *invocation = G_DBUS_METHOD_INVOCATION (user_data);
-  const char *sender = g_dbus_method_invocation_get_sender (invocation);
-  g_autoptr(XdpPidFdResult) result = NULL;
+  XdpPeer *peer = XDP_PEER (user_data);
+  const char *key = xdp_peer_get_key (peer);
+  g_autoptr(XdpPeerCredentials) result = NULL;
   g_autoptr(GError) local_error = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
 
   result = dex_await_boxed (dex_ref (future), NULL);
 
-  app_info = xdp_app_info_new (sender, result->pid, g_steal_fd (&result->fd), &local_error);
+  app_info = xdp_app_info_new (key, result->pid, g_steal_fd (&result->fd), &local_error);
   if (!app_info)
     return dex_future_new_for_error (g_steal_pointer (&local_error));
 
@@ -390,19 +390,16 @@ app_info_new_for_invocation_then (DexFuture *future,
 }
 
 DexFuture *
-xdp_app_info_new_for_invocation (GDBusMethodInvocation *invocation)
+xdp_app_info_new_for_peer (XdpPeer *peer)
 {
-  GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
-  const char *sender = g_dbus_method_invocation_get_sender (invocation);
-
-  return dex_future_then (xdp_connection_get_pidfd (connection, sender),
-                          app_info_new_for_invocation_then,
-                          g_object_ref (invocation),
+  return dex_future_then (xdp_peer_resolve_credentials (peer),
+                          app_info_new_for_peer_then,
+                          g_object_ref (peer),
                           g_object_unref);
 }
 
 DEX_DEFINE_CLOSURE_TYPE (AppInfoNewRegisteredData, app_info_new_registered_data,
-                         DEX_DEFINE_CLOSURE_OBJECT (GDBusMethodInvocation, invocation),
+                         DEX_DEFINE_CLOSURE_OBJECT (XdpPeer, peer),
                          DEX_DEFINE_CLOSURE_POINTER (char *, appid, g_free))
 
 static DexFuture *
@@ -410,14 +407,14 @@ app_info_new_for_registered_then (DexFuture *future,
                                   gpointer   user_data)
 {
   AppInfoNewRegisteredData *closure_data = user_data;
-  const char *sender = g_dbus_method_invocation_get_sender (closure_data->invocation);
-  g_autoptr(XdpPidFdResult) result = NULL;
+  const char *key = xdp_peer_get_key (closure_data->peer);
+  g_autoptr(XdpPeerCredentials) result = NULL;
   g_autoptr(GError) local_error = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
 
   result = dex_await_boxed (dex_ref (future), NULL);
 
-  app_info = xdp_app_info_host_new_registered (sender, result->pid, g_steal_fd (&result->fd),
+  app_info = xdp_app_info_host_new_registered (key, result->pid, g_steal_fd (&result->fd),
                                                closure_data->appid, &local_error);
   if (!app_info)
     return dex_future_new_for_error (g_steal_pointer (&local_error));
@@ -426,20 +423,19 @@ app_info_new_for_registered_then (DexFuture *future,
 }
 
 DexFuture *
-xdp_app_info_new_for_registered (GDBusMethodInvocation *invocation,
-                                 const char            *appid)
+xdp_app_info_new_for_registered (XdpPeer    *peer,
+                                 const char *appid)
 {
-  GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
-  const char *sender = g_dbus_method_invocation_get_sender (invocation);
   AppInfoNewRegisteredData *closure_data;
 
   closure_data = app_info_new_registered_data_new ();
-  closure_data->invocation = g_object_ref (invocation);
+  closure_data->peer = g_object_ref (peer);
   closure_data->appid = g_strdup (appid);
 
-  return dex_future_then (xdp_connection_get_pidfd (connection, sender),
+  return dex_future_then (xdp_peer_resolve_credentials (peer),
                           app_info_new_for_registered_then,
-                          closure_data, (GDestroyNotify)app_info_new_registered_data_free);
+                          closure_data,
+                          (GDestroyNotify) app_info_new_registered_data_free);
 }
 
 const char *
