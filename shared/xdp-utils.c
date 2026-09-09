@@ -1305,7 +1305,7 @@ xdp_map_pids_full (DIR     *proc,
         {
           if (pids[i] == inside)
             {
-              res[idx] = outside;
+              res[i] = outside;
               count++;
             }
         }
