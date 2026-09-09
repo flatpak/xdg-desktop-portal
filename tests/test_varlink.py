@@ -32,10 +32,12 @@ class VarlinkConnection:
         self.socket.connect(os.fspath(socket_path(socket_name)))
         self._buffer = b""
 
-    def send(self, method: str, **parameters) -> None:
+    def send(self, method: str, more: bool = False, **parameters) -> None:
         message: dict = {"method": method}
         if parameters:
             message["parameters"] = parameters
+        if more:
+            message["more"] = True
         self.socket.sendall(json.dumps(message).encode() + b"\0")
 
     def receive(self) -> dict:

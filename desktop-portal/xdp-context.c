@@ -406,7 +406,10 @@ init_varlink (XdpContext *context,
   if (context->portal_varlink == NULL)
     return FALSE;
 
-  return init_registry_varlink (context->portal_varlink, error);
+  if (!init_registry_varlink (context->portal_varlink, error))
+    return FALSE;
+
+  return init_settings_varlink (context->portal_varlink, context, error);
 }
 #endif
 

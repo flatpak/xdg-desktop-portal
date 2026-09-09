@@ -7,6 +7,7 @@ import dbus
 import pytest
 
 import tests.xdp_utils as xdp
+from tests.test_varlink import VarlinkConnection
 
 SETTINGS_DATA_TEST1 = {
     "org.freedesktop.appearance": dbus.Dictionary(
@@ -336,3 +337,130 @@ class TestSettings:
         mock_intf.SetSetting(ns, key, new_value)
 
         xdp.wait_for(lambda: changed_count == 1)
+
+
+SETTINGS = "org.freedesktop.portal.Settings"
+
+# SETTINGS_DATA as the varlink interface reports it
+VARLINK_SETTINGS_DATA = {
+    "org.freedesktop.appearance": {
+        "color-scheme": {"v": 1},
+        "accent-color": {"v": [0.0, 0.1, 0.33]},
+        "contrast": {"v": 0},
+    },
+    "org.example.custom": {
+        "foo": {"v": "bar"},
+    },
+}
+
+
+def read_all(conn, namespaces):
+    reply = conn.call(f"{SETTINGS}.ReadAll", namespaces=namespaces)
+    assert "error" not in reply, reply
+    return {ns["namespace"]: ns["values"] for ns in reply["parameters"]["values"]}
+
+
+class TestVarlinkSettings:
+    @pytest.fixture
+    def xdp_app_info(self) -> xdp.AppInfo:
+        return xdp.AppInfoHost()
+
+    def test_read_all(self, portals):
+        with VarlinkConnection() as conn:
+            conn.register()
+
+            assert read_all(conn, []) == VARLINK_SETTINGS_DATA
+            assert read_all(conn, [""]) == VARLINK_SETTINGS_DATA
+            assert read_all(conn, ["org.*"]) == VARLINK_SETTINGS_DATA
+            assert read_all(conn, ["does-not-exist"]) == {}
+            assert read_all(conn, ["org.freedesktop.appearance"]) == {
+                "org.freedesktop.appearance": VARLINK_SETTINGS_DATA[
+                    "org.freedesktop.appearance"
+                ]
+            }
+
+    def test_read(self, portals):
+        with VarlinkConnection() as conn:
+            conn.register()
+
+            reply = conn.call(
+                f"{SETTINGS}.Read",
+                namespace="org.freedesktop.appearance",
+                key="color-scheme",
+            )
+            assert reply["parameters"]["value"] == {"v": 1}
+
+            reply = conn.call(
+                f"{SETTINGS}.Read",
+                namespace="org.freedesktop.appearance",
+                key="xcolor-scheme",
+            )
+            assert reply["error"] == f"{SETTINGS}.KeyNotFound"
+
+    def test_read_before_registering(self, portals):
+        with VarlinkConnection() as conn:
+            reply = conn.call(f"{SETTINGS}.ReadAll", namespaces=[])
+
+        assert reply["error"] == f"{SETTINGS}.NotRegistered"
+
+    def test_subscribe_without_more(self, portals):
+        with VarlinkConnection() as conn:
+            conn.register()
+            reply = conn.call(f"{SETTINGS}.SubscribeSettingChanged", namespaces=[])
+
+        assert reply["error"] == f"{SETTINGS}.ExpectedMore"
+
+    def test_subscribe(self, portals, dbus_con):
+        mock_intf = xdp.get_mock_iface(dbus_con, "org.freedesktop.impl.portal.Test1")
+        ns = "org.freedesktop.appearance"
+
+        with VarlinkConnection() as conn:
+            conn.register()
+            conn.send(
+                f"{SETTINGS}.SubscribeSettingChanged", more=True, namespaces=[ns]
+            )
+
+            # The current value of every setting in the namespace comes first
+            enumerated = {}
+            for _ in range(len(VARLINK_SETTINGS_DATA[ns])):
+                reply = conn.receive()
+                assert reply["continues"]
+                assert reply["parameters"]["namespace"] == ns
+                enumerated[reply["parameters"]["key"]] = reply["parameters"]["value"]
+
+            assert enumerated == VARLINK_SETTINGS_DATA[ns]
+
+            mock_intf.SetSetting(ns, "color-scheme", 2)
+
+            reply = conn.receive()
+            assert reply["continues"]
+            assert reply["parameters"] == {
+                "namespace": ns,
+                "key": "color-scheme",
+                "value": {"v": 2},
+            }
+
+    def test_subscribe_filters_by_namespace(self, portals, dbus_con):
+        test1 = xdp.get_mock_iface(dbus_con, "org.freedesktop.impl.portal.Test1")
+        test2 = xdp.get_mock_iface(dbus_con, "org.freedesktop.impl.portal.Test2")
+
+        with VarlinkConnection() as conn:
+            conn.register()
+            conn.send(
+                f"{SETTINGS}.SubscribeSettingChanged",
+                more=True,
+                namespaces=["org.example.*"],
+            )
+
+            reply = conn.receive()
+            assert reply["parameters"]["namespace"] == "org.example.custom"
+
+            test1.SetSetting("org.freedesktop.appearance", "color-scheme", 2)
+            test2.SetSetting("org.example.custom", "foo", "baz")
+
+            reply = conn.receive()
+            assert reply["parameters"] == {
+                "namespace": "org.example.custom",
+                "key": "foo",
+                "value": {"v": "baz"},
+            }

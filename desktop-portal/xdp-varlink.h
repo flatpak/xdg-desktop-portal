@@ -22,6 +22,7 @@ G_DECLARE_FINAL_TYPE (XdpVarlinkService,
                       GObject);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (VarlinkObject, varlink_object_unref);
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (VarlinkArray, varlink_array_unref);
 
 typedef enum
 {
@@ -59,3 +60,9 @@ gboolean xdp_varlink_service_add_interface (XdpVarlinkService *self,
                                             gpointer user_data,
                                             GDestroyNotify user_data_destroy,
                                             GError **error);
+
+VarlinkObject *xdp_varlink_object_new_for_variant (GVariant *value);
+
+long xdp_varlink_call_reply (VarlinkCall *call,
+                             VarlinkObject *parameters,
+                             uint64_t flags);

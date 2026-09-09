@@ -85,12 +85,10 @@ static GVariant *
 merged_to_variant (GHashTable *merged)
 {
   g_auto(GVariantBuilder) builder =
-    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE ("(a{sa{sv}})"));
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE ("a{sa{sv}}"));
   const char *namespace;
   GVariantDict *dict;
   GHashTableIter iter;
-
-  g_variant_builder_open (&builder, G_VARIANT_TYPE ("a{sa{sv}}"));
 
   g_hash_table_iter_init (&iter, merged);
   while (g_hash_table_iter_next (&iter,
@@ -102,19 +100,15 @@ merged_to_variant (GHashTable *merged)
                              g_variant_dict_end (dict));
     }
 
-  g_variant_builder_close (&builder);
-
   return g_variant_ref_sink (g_variant_builder_end (&builder));
 }
 
-static gboolean
-settings_handle_read_all (XdpDbusSettings       *object,
-                          GDBusMethodInvocation *invocation,
-                          const char    * const *arg_namespaces)
+/* Every setting in @namespaces, higher priority implementations winning */
+static GVariant *
+xdp_settings_read_all (XdpSettings       *self,
+                       const char *const *namespaces)
 {
-  XdpSettings *self = XDP_SETTINGS (object);
   g_autoptr(GHashTable) merged = NULL;
-  g_autoptr(GVariant) settings = NULL;
 
   merged = g_hash_table_new_full (g_str_hash, g_str_equal,
                                   g_free,
@@ -128,7 +122,7 @@ settings_handle_read_all (XdpDbusSettings       *object,
 
       result = dex_await_boxed (
         xdp_dbus_impl_settings_call_read_all_future (g_ptr_array_index (self->impls, j),
-                                                     arg_namespaces),
+                                                     namespaces),
         &error);
 
       if (result == NULL)
@@ -138,8 +132,46 @@ settings_handle_read_all (XdpDbusSettings       *object,
         merge_impl_settings (merged, result->value);
     }
 
-  settings = merged_to_variant (merged);
-  g_dbus_method_invocation_return_value (invocation, settings);
+  return merged_to_variant (merged);
+}
+
+/* The value of @key from the highest priority implementation that has it */
+static GVariant *
+xdp_settings_read (XdpSettings *self,
+                   const char  *namespace,
+                   const char  *key)
+{
+  for (size_t i = 0; i < self->impls->len; i++)
+    {
+      g_autoptr(XdpDbusImplSettingsReadResult) result = NULL;
+      g_autoptr(GError) error = NULL;
+
+      result = dex_await_boxed (
+        xdp_dbus_impl_settings_call_read_future (g_ptr_array_index (self->impls, i),
+                                                 namespace, key),
+        &error);
+
+      if (result != NULL)
+        return g_variant_ref (result->value);
+
+      g_debug ("Failed to Read() from Settings implementation: %s",
+               error->message);
+    }
+
+  return NULL;
+}
+
+static gboolean
+settings_handle_read_all (XdpDbusSettings       *object,
+                          GDBusMethodInvocation *invocation,
+                          const char    * const *arg_namespaces)
+{
+  XdpSettings *self = XDP_SETTINGS (object);
+  g_autoptr(GVariant) settings = NULL;
+
+  settings = xdp_settings_read_all (self, arg_namespaces);
+  g_dbus_method_invocation_return_value (invocation,
+                                         g_variant_new_tuple (&settings, 1));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -151,37 +183,24 @@ settings_handle_read (XdpDbusSettings       *object,
                       const char            *arg_key)
 {
   XdpSettings *self = XDP_SETTINGS (object);
+  g_autoptr(GVariant) value = NULL;
 
   g_debug ("Read %s %s", arg_namespace, arg_key);
 
-  for (size_t i = 0; i < self->impls->len; i++)
+  value = xdp_settings_read (self, arg_namespace, arg_key);
+  if (value == NULL)
     {
-      g_autoptr(XdpDbusImplSettingsReadResult) result = NULL;
-      g_autoptr(GError) error = NULL;
-
-      result = dex_await_boxed (
-        xdp_dbus_impl_settings_call_read_future (g_ptr_array_index (self->impls, i),
-                                                 arg_namespace,
-                                                 arg_key),
-        &error);
-
-      if (result != NULL)
-        {
-          g_dbus_method_invocation_return_value (invocation,
-                                                 g_variant_new ("(v)", result->value));
-          return G_DBUS_METHOD_INVOCATION_HANDLED;
-        }
-
-      g_debug ("Failed to Read() from Settings implementation: %s",
-               error->message);
+      g_debug ("Attempted to read unknown namespace/key pair: %s %s",
+               arg_namespace, arg_key);
+      g_dbus_method_invocation_return_error_literal (invocation,
+                                                     XDG_DESKTOP_PORTAL_ERROR,
+                                                     XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
+                                                     _("Requested setting not found"));
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_debug ("Attempted to read unknown namespace/key pair: %s %s",
-           arg_namespace, arg_key);
-  g_dbus_method_invocation_return_error_literal (invocation,
-                                                 XDG_DESKTOP_PORTAL_ERROR,
-                                                 XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
-                                                 _("Requested setting not found"));
+  g_dbus_method_invocation_return_value (invocation,
+                                         g_variant_new ("(v)", value));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -193,37 +212,24 @@ settings_handle_read_one (XdpDbusSettings       *object,
                           const char            *arg_key)
 {
   XdpSettings *self = XDP_SETTINGS (object);
+  g_autoptr(GVariant) value = NULL;
 
   g_debug ("ReadOne %s %s", arg_namespace, arg_key);
 
-  for (size_t i = 0; i < self->impls->len; i++)
+  value = xdp_settings_read (self, arg_namespace, arg_key);
+  if (value == NULL)
     {
-      g_autoptr(XdpDbusImplSettingsReadResult) result = NULL;
-      g_autoptr(GError) error = NULL;
-
-      result = dex_await_boxed (
-        xdp_dbus_impl_settings_call_read_future (g_ptr_array_index (self->impls, i),
-                                                 arg_namespace,
-                                                 arg_key),
-        &error);
-
-      if (result != NULL)
-        {
-          g_dbus_method_invocation_return_value (invocation,
-                                                 g_variant_new_tuple (&result->value, 1));
-          return G_DBUS_METHOD_INVOCATION_HANDLED;
-        }
-
-      g_debug ("Failed to Read() from Settings implementation: %s",
-               error->message);
+      g_debug ("Attempted to read unknown namespace/key pair: %s %s",
+               arg_namespace, arg_key);
+      g_dbus_method_invocation_return_error_literal (invocation,
+                                                     XDG_DESKTOP_PORTAL_ERROR,
+                                                     XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
+                                                     _("Requested setting not found"));
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_debug ("Attempted to read unknown namespace/key pair: %s %s",
-           arg_namespace, arg_key);
-  g_dbus_method_invocation_return_error_literal (invocation,
-                                                 XDG_DESKTOP_PORTAL_ERROR,
-                                                 XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
-                                                 _("Requested setting not found"));
+  g_dbus_method_invocation_return_value (invocation,
+                                         g_variant_new_tuple (&value, 1));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -425,3 +431,430 @@ init_settings (gpointer user_data)
                                       XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER);
   return dex_future_new_true ();
 }
+
+#if HAVE_VARLINK
+
+#define VARLINK_INTERFACE "org.freedesktop.portal.Settings"
+
+static const char varlink_interface_description[] =
+  "# This interface provides read-only access to a small number of\n"
+  "# standardized host settings required for toolkits similar to XSettings. It\n"
+  "# is not for general purpose settings.\n"
+  "#\n"
+  "# Implementations can provide keys beyond the standardized ones; they are\n"
+  "# entirely implementation details that are undocumented.\n"
+  "#\n"
+  "# Values are objects with a single `v` field, mirroring the D-Bus variant\n"
+  "# they replace: {\"v\": true}\n"
+  "interface " VARLINK_INTERFACE "\n"
+  "\n"
+  "# If namespaces is an empty array or contains an empty string it matches\n"
+  "# all. Globbing is supported but only for trailing sections, e.g.\n"
+  "# \"org.example.*\"\n"
+  "method ReadAll(namespaces: []string) -> (values: []Namespace)\n"
+  "\n"
+  "# Reads a single value which may be any valid type. Returns an error on any\n"
+  "# unknown namespace or key\n"
+  "method Read(namespace: string, key: string) -> (value: object)\n"
+  "\n"
+  "# Reports a setting changing. Call with `more` on a dedicated connection;\n"
+  "# the first replies enumerate the matching settings, and later ones report\n"
+  "# changes in the same shape\n"
+  "method SubscribeSettingChanged(namespaces: []string) -> (\n"
+  "  namespace: string,\n"
+  "  key: string,\n"
+  "  value: object\n"
+  ")\n"
+  "\n"
+  "# A namespace with its keys and values\n"
+  "type Namespace (\n"
+  "  namespace: string,\n"
+  "  values: [string]object\n"
+  ")\n"
+  "\n"
+  "# An unknown namespace or key\n"
+  "error KeyNotFound()\n"
+  "error ExpectedMore()\n"
+  "error " XDP_VARLINK_ERROR_NOT_REGISTERED "()\n";
+
+typedef struct _VarlinkSettings VarlinkSettings;
+
+/* One per SubscribeSettingChanged call, living until its connection closes */
+typedef struct
+{
+  VarlinkSettings *varlink_settings;
+
+  /* Owned, and NULL once the connection is gone */
+  VarlinkCall *call;
+
+  GStrv namespaces;
+
+  /* Held back during the initial enumeration, so a change arriving then is
+   * reported after the value it replaces */
+  GPtrArray *pending;
+
+  /* The subscribing handler owns it while it is still enumerating */
+  gboolean subscribing;
+} Subscription;
+
+struct _VarlinkSettings
+{
+  XdpSettings *settings;
+  gulong changed_id;
+
+  /* Not owned; each subscription removes itself when its connection closes */
+  GPtrArray *subscriptions;
+};
+
+static void
+varlink_object_free (gpointer data)
+{
+  varlink_object_unref (data);
+}
+
+static void
+subscription_free (Subscription *subscription)
+{
+  g_clear_pointer (&subscription->call, varlink_call_unref);
+  g_clear_pointer (&subscription->pending, g_ptr_array_unref);
+  g_clear_pointer (&subscription->namespaces, g_strfreev);
+  g_free (subscription);
+}
+
+static void
+subscription_close (Subscription *subscription)
+{
+  g_ptr_array_remove_fast (subscription->varlink_settings->subscriptions,
+                           subscription);
+  g_clear_pointer (&subscription->call, varlink_call_unref);
+
+  if (!subscription->subscribing)
+    subscription_free (subscription);
+}
+
+static void
+on_call_connection_closed (VarlinkCall *call,
+                           void        *user_data)
+{
+  subscription_close (user_data);
+}
+
+/* An empty list matches everything, as does a trailing `*` on a prefix */
+static gboolean
+namespace_matches (const char *const *namespaces,
+                   const char        *namespace)
+{
+  if (namespaces == NULL || namespaces[0] == NULL)
+    return TRUE;
+
+  for (size_t i = 0; namespaces[i] != NULL; i++)
+    {
+      const char *pattern = namespaces[i];
+      size_t length = strlen (pattern);
+
+      if (length == 0)
+        return TRUE;
+
+      if (pattern[length - 1] == '*')
+        {
+          if (strncmp (pattern, namespace, length - 1) == 0)
+            return TRUE;
+        }
+      else if (strcmp (pattern, namespace) == 0)
+        {
+          return TRUE;
+        }
+    }
+
+  return FALSE;
+}
+
+static GStrv
+get_namespaces (VarlinkObject *parameters)
+{
+  g_autoptr(GStrvBuilder) builder = g_strv_builder_new ();
+  VarlinkArray *array;
+  unsigned long n_elements;
+
+  if (varlink_object_get_array (parameters, "namespaces", &array) < 0)
+    return NULL;
+
+  n_elements = varlink_array_get_n_elements (array);
+  for (unsigned long i = 0; i < n_elements; i++)
+    {
+      const char *namespace;
+
+      if (varlink_array_get_string (array, i, &namespace) < 0)
+        return NULL;
+
+      g_strv_builder_add (builder, namespace);
+    }
+
+  return g_strv_builder_end (builder);
+}
+
+static VarlinkObject *
+changed_reply (const char *namespace,
+               const char *key,
+               GVariant   *value)
+{
+  g_autoptr(VarlinkObject) object = NULL;
+  g_autoptr(VarlinkObject) reply = NULL;
+
+  object = xdp_varlink_object_new_for_variant (value);
+  if (object == NULL)
+    return NULL;
+
+  varlink_object_new (&reply);
+  varlink_object_set_string (reply, "namespace", namespace);
+  varlink_object_set_string (reply, "key", key);
+  varlink_object_set_object (reply, "value", object);
+
+  return g_steal_pointer (&reply);
+}
+
+static void
+on_setting_changed (XdpSettings     *settings,
+                    const char      *namespace,
+                    const char      *key,
+                    GVariant        *value,
+                    VarlinkSettings *self)
+{
+  g_autoptr(GVariant) inner = g_variant_get_variant (value);
+
+  for (size_t i = 0; i < self->subscriptions->len; i++)
+    {
+      Subscription *subscription = g_ptr_array_index (self->subscriptions, i);
+      g_autoptr(VarlinkObject) reply = NULL;
+
+      if (!namespace_matches ((const char *const *) subscription->namespaces,
+                              namespace))
+        continue;
+
+      reply = changed_reply (namespace, key, inner);
+      if (reply == NULL)
+        continue;
+
+      if (subscription->pending != NULL)
+        g_ptr_array_add (subscription->pending, g_steal_pointer (&reply));
+      else
+        xdp_varlink_call_reply (subscription->call, reply,
+                                VARLINK_REPLY_CONTINUES);
+    }
+}
+
+static long
+handle_varlink_read_all (XdpVarlinkService    *service,
+                         XdpVarlinkConnection *connection,
+                         VarlinkCall          *call,
+                         VarlinkObject        *parameters,
+                         uint64_t              flags,
+                         gpointer              user_data)
+{
+  VarlinkSettings *self = user_data;
+  g_auto(GStrv) namespaces = NULL;
+  g_autoptr(VarlinkObject) reply = NULL;
+  g_autoptr(VarlinkArray) values = NULL;
+  g_autoptr(GVariant) settings = NULL;
+  GVariantIter iter;
+  const char *namespace;
+  GVariant *nsvalue;
+
+  namespaces = get_namespaces (parameters);
+  if (namespaces == NULL)
+    return varlink_call_reply_invalid_parameter (call, "namespaces");
+
+  settings = xdp_settings_read_all (self->settings,
+                                    (const char *const *) namespaces);
+
+  varlink_array_new (&values);
+  g_variant_iter_init (&iter, settings);
+  while (g_variant_iter_loop (&iter, "{&s@a{sv}}", &namespace, &nsvalue))
+    {
+      g_autoptr(VarlinkObject) entry = NULL;
+      g_autoptr(VarlinkObject) ns_values = NULL;
+      GVariantIter value_iter;
+      const char *key;
+      GVariant *value;
+
+      varlink_object_new (&ns_values);
+
+      g_variant_iter_init (&value_iter, nsvalue);
+      while (g_variant_iter_loop (&value_iter, "{&sv}", &key, &value))
+        {
+          g_autoptr(VarlinkObject) object = NULL;
+
+          object = xdp_varlink_object_new_for_variant (value);
+          if (object != NULL)
+            varlink_object_set_object (ns_values, key, object);
+        }
+
+      varlink_object_new (&entry);
+      varlink_object_set_string (entry, "namespace", namespace);
+      varlink_object_set_object (entry, "values", ns_values);
+      varlink_array_append_object (values, entry);
+    }
+
+  varlink_object_new (&reply);
+  varlink_object_set_array (reply, "values", values);
+
+  return varlink_call_reply (call, reply, 0);
+}
+
+static long
+handle_varlink_read (XdpVarlinkService    *service,
+                     XdpVarlinkConnection *connection,
+                     VarlinkCall          *call,
+                     VarlinkObject        *parameters,
+                     uint64_t              flags,
+                     gpointer              user_data)
+{
+  VarlinkSettings *self = user_data;
+  g_autoptr(GVariant) value = NULL;
+  g_autoptr(GVariant) inner = NULL;
+  g_autoptr(VarlinkObject) object = NULL;
+  g_autoptr(VarlinkObject) reply = NULL;
+  const char *namespace;
+  const char *key;
+
+  if (varlink_object_get_string (parameters, "namespace", &namespace) < 0)
+    return varlink_call_reply_invalid_parameter (call, "namespace");
+
+  if (varlink_object_get_string (parameters, "key", &key) < 0)
+    return varlink_call_reply_invalid_parameter (call, "key");
+
+  value = xdp_settings_read (self->settings, namespace, key);
+  if (value == NULL)
+    return varlink_call_reply_error (call, VARLINK_INTERFACE ".KeyNotFound", NULL);
+
+  inner = g_variant_get_variant (value);
+  object = xdp_varlink_object_new_for_variant (inner);
+  if (object == NULL)
+    return varlink_call_reply_error (call, VARLINK_INTERFACE ".KeyNotFound", NULL);
+
+  varlink_object_new (&reply);
+  varlink_object_set_object (reply, "value", object);
+
+  return varlink_call_reply (call, reply, 0);
+}
+
+static long
+handle_varlink_subscribe (XdpVarlinkService    *service,
+                          XdpVarlinkConnection *connection,
+                          VarlinkCall          *call,
+                          VarlinkObject        *parameters,
+                          uint64_t              flags,
+                          gpointer              user_data)
+{
+  VarlinkSettings *self = user_data;
+  Subscription *subscription;
+  g_auto(GStrv) namespaces = NULL;
+  g_autoptr(GVariant) settings = NULL;
+  GVariantIter iter;
+  const char *namespace;
+  GVariant *nsvalue;
+
+  if (!(flags & VARLINK_CALL_MORE))
+    return varlink_call_reply_error (call, VARLINK_INTERFACE ".ExpectedMore", NULL);
+
+  namespaces = get_namespaces (parameters);
+  if (namespaces == NULL)
+    return varlink_call_reply_invalid_parameter (call, "namespaces");
+
+  /* Registered before the enumeration reads, so a change landing during it
+   * is queued rather than lost */
+  subscription = g_new0 (Subscription, 1);
+  subscription->varlink_settings = self;
+  subscription->call = varlink_call_ref (call);
+  subscription->namespaces = g_strdupv (namespaces);
+  subscription->pending = g_ptr_array_new_with_free_func (varlink_object_free);
+  subscription->subscribing = TRUE;
+  g_ptr_array_add (self->subscriptions, subscription);
+  varlink_call_set_connection_closed_callback (call, on_call_connection_closed,
+                                               subscription);
+
+  settings = xdp_settings_read_all (self->settings,
+                                    (const char *const *) namespaces);
+  subscription->subscribing = FALSE;
+
+  if (subscription->call == NULL)
+    {
+      subscription_free (subscription);
+      return 0;
+    }
+
+  g_variant_iter_init (&iter, settings);
+  while (g_variant_iter_loop (&iter, "{&s@a{sv}}", &namespace, &nsvalue))
+    {
+      GVariantIter value_iter;
+      const char *key;
+      GVariant *value;
+
+      g_variant_iter_init (&value_iter, nsvalue);
+      while (g_variant_iter_loop (&value_iter, "{&sv}", &key, &value))
+        {
+          g_autoptr(VarlinkObject) reply = changed_reply (namespace, key, value);
+
+          if (reply != NULL)
+            varlink_call_reply (call, reply, VARLINK_REPLY_CONTINUES);
+        }
+    }
+
+  for (size_t i = 0; i < subscription->pending->len; i++)
+    {
+      varlink_call_reply (call, g_ptr_array_index (subscription->pending, i),
+                          VARLINK_REPLY_CONTINUES);
+    }
+
+  g_clear_pointer (&subscription->pending, g_ptr_array_unref);
+
+  return 0;
+}
+
+static const XdpVarlinkMethod varlink_methods[] = {
+  { "ReadAll", handle_varlink_read_all, XDP_VARLINK_METHOD_FLAGS_NONE },
+  { "Read", handle_varlink_read, XDP_VARLINK_METHOD_FLAGS_NONE },
+  { "SubscribeSettingChanged", handle_varlink_subscribe, XDP_VARLINK_METHOD_FLAGS_NONE },
+};
+
+static void
+varlink_settings_free (gpointer data)
+{
+  VarlinkSettings *self = data;
+
+  g_clear_signal_handler (&self->changed_id, self->settings);
+  g_clear_pointer (&self->subscriptions, g_ptr_array_unref);
+  g_clear_object (&self->settings);
+  g_free (self);
+}
+
+gboolean
+init_settings_varlink (XdpVarlinkService  *service,
+                       XdpContext         *context,
+                       GError            **error)
+{
+  GDBusInterfaceSkeleton *skeleton;
+  VarlinkSettings *self;
+
+  skeleton = xdp_context_get_portal (context, SETTINGS_DBUS_IFACE);
+  if (skeleton == NULL)
+    return TRUE;
+
+  self = g_new0 (VarlinkSettings, 1);
+  self->settings = g_object_ref (XDP_SETTINGS (skeleton));
+  self->subscriptions = g_ptr_array_new ();
+  self->changed_id = g_signal_connect (self->settings,
+                                       "setting-changed",
+                                       G_CALLBACK (on_setting_changed),
+                                       self);
+
+  return xdp_varlink_service_add_interface (service,
+                                            varlink_interface_description,
+                                            varlink_methods,
+                                            G_N_ELEMENTS (varlink_methods),
+                                            self,
+                                            varlink_settings_free,
+                                            error);
+}
+
+#endif /* HAVE_VARLINK */

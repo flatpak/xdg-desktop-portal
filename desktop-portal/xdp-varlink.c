@@ -10,6 +10,7 @@
 
 #include <gio/gio.h>
 #include <glib-unix.h>
+#include <json-glib/json-glib.h>
 #include <libdex.h>
 #include <varlink.h>
 
@@ -45,6 +46,7 @@ typedef struct
 
   /* Owned, and armed only while no fiber is dispatching this connection */
   GSource *source;
+  uint32_t armed_events;
 
   GIOCondition revents;
 } ConnectionEntry;
@@ -225,6 +227,7 @@ connection_entry_arm (ConnectionEntry *entry)
   g_assert (entry->source == NULL);
 
   events = varlink_service_connection_get_events (entry->varlink_connection);
+  entry->armed_events = events;
 
   entry->source =
     g_unix_fd_source_new (varlink_service_connection_get_fd (entry->varlink_connection),
@@ -234,6 +237,51 @@ connection_entry_arm (ConnectionEntry *entry)
                          entry,
                          NULL);
   g_source_attach (entry->source, entry->service->context);
+}
+
+long
+xdp_varlink_call_reply (VarlinkCall   *call,
+                        VarlinkObject *parameters,
+                        uint64_t       flags)
+{
+  VarlinkServiceConnection *varlink_connection = varlink_call_get_connection (call);
+  ConnectionEntry *entry;
+  long res;
+
+  if (varlink_service_connection_is_closed (varlink_connection))
+    return -VARLINK_ERROR_CONNECTION_CLOSED;
+
+  res = varlink_call_reply (call, parameters, flags);
+
+  entry = varlink_service_connection_get_userdata (varlink_connection);
+  if (entry->source != NULL &&
+      entry->armed_events != varlink_service_connection_get_events (varlink_connection))
+    {
+      g_source_destroy (entry->source);
+      g_clear_pointer (&entry->source, g_source_unref);
+      connection_entry_arm (entry);
+    }
+
+  return res;
+}
+
+VarlinkObject *
+xdp_varlink_object_new_for_variant (GVariant *value)
+{
+  g_autoptr(JsonNode) root = json_node_new (JSON_NODE_OBJECT);
+  g_autoptr(JsonObject) object = json_object_new ();
+  g_autofree char *json = NULL;
+  VarlinkObject *result = NULL;
+
+  /* TODO: Figure out a better way to handle uint64 */
+  json_object_set_member (object, "v", json_gvariant_serialize (value));
+  json_node_take_object (root, g_steal_pointer (&object));
+  json = json_to_string (root, FALSE);
+
+  if (varlink_object_new_from_json (&result, json) < 0)
+    return NULL;
+
+  return result;
 }
 
 static gboolean
