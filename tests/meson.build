@@ -99,6 +99,7 @@ tests = {
   'inhibit': {},
   'inputcapture': {},
   'location': {'enabled': have_geoclue},
+  'memorymonitor': {},
   'notification': {'timeout': 225},
   'openuri': {},
   'permission_store': {},
