@@ -46,6 +46,121 @@ XdpAppInfoRegistry *app_info_registry;
 
 G_LOCK_DEFINE (db);
 
+/* The documents table is not ours alone. The permission store is a separate
+ * process writing the same table, so `flatpak permission-remove`,
+ * `flatpak permission-reset` and any other PermissionStore client can change
+ * an entry behind our back. We keep a private PermissionDb because the FUSE
+ * layer needs a synchronous answer, which means a change we do not observe
+ * leaves us authorizing access the user has already revoked.
+ *
+ * Rather than apply the contents of the Changed signal, treat the entry as
+ * stale and re-read it. The signal carries the state the store held when it
+ * applied the change, so applying it directly means telling our own echoes
+ * apart from external ones, which means pairing signals to writes. Re-reading
+ * needs neither: whoever made the change, the answer is whatever the store
+ * holds now.
+ *
+ * That only holds while the store is not behind us. Our writes to it are
+ * asynchronous, so between applying a change locally and the store
+ * acknowledging it, a re-read would undo what we just applied. A Changed
+ * arriving in that window is therefore recorded, not acted on, and the read
+ * happens once our writes are acknowledged.
+ *
+ * https://github.com/flatpak/xdg-desktop-portal/issues/197
+ */
+typedef struct
+{
+  guint    writes;   /* our writes to the store not yet acknowledged */
+  gboolean reading;  /* a Lookup is in flight */
+  gboolean queued;   /* a Changed arrived while we could not read */
+} EntrySync;
+
+/* id -> EntrySync. Guarded by the db lock. */
+static GHashTable *entry_sync;
+
+static void start_refresh (const char *id, EntrySync *sync);
+
+static EntrySync *
+entry_sync_get (const char *id)
+{
+  EntrySync *sync = g_hash_table_lookup (entry_sync, id);
+
+  if (sync == NULL)
+    {
+      sync = g_new0 (EntrySync, 1);
+      g_hash_table_insert (entry_sync, g_strdup (id), sync);
+    }
+
+  return sync;
+}
+
+static void
+entry_sync_release (const char *id,
+                    EntrySync  *sync)
+{
+  if (sync->writes == 0 && !sync->reading && !sync->queued)
+    g_hash_table_remove (entry_sync, id);
+}
+
+/* Re-read the entry, unless the store is still catching up with us or a read
+ * is already under way. Call with the db lock held. */
+static void
+refresh_entry (const char *id,
+               EntrySync  *sync)
+{
+  if (sync->writes > 0 || sync->reading)
+    {
+      sync->queued = TRUE;
+      return;
+    }
+
+  sync->queued = FALSE;
+  start_refresh (id, sync);
+}
+
+/* One of our writes to the store has been acknowledged, or failed, in which
+ * case it emits no Changed and there is nothing further to wait for. */
+static void
+store_write_cb (GObject      *source_object,
+                GAsyncResult *res,
+                gpointer      user_data)
+{
+  g_autofree char *id = user_data;
+
+  g_autoptr(GVariant) ret = NULL;
+  g_autoptr(GError) error = NULL;
+  EntrySync *sync;
+
+  ret = g_dbus_proxy_call_finish (G_DBUS_PROXY (source_object), res, &error);
+  if (ret == NULL)
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_warning ("Failed to update the permission store for %s: %s", id, error->message);
+    }
+
+  XDP_AUTOLOCK (db);
+
+  sync = g_hash_table_lookup (entry_sync, id);
+  if (sync == NULL)
+    return;
+
+  if (sync->writes > 0)
+    sync->writes--;
+
+  if (sync->writes == 0 && sync->queued && !sync->reading)
+    refresh_entry (id, sync);
+  else
+    entry_sync_release (id, sync);
+}
+
+/* Call with the db lock held. */
+static void
+note_store_write (const char *id)
+{
+  entry_sync_get (id)->writes++;
+}
+
+
 char **
 xdp_list_apps (void)
 {
@@ -92,6 +207,7 @@ do_set_permissions (PermissionDbEntry    *entry,
 
   if (persist_entry (new_entry))
     {
+      note_store_write (doc_id);
       xdg_permission_store_call_set_permission (permission_store,
                                                 TABLE_NAME,
                                                 FALSE,
@@ -99,7 +215,7 @@ do_set_permissions (PermissionDbEntry    *entry,
                                                 app_id,
                                                 perms_s,
                                                 NULL,
-                                                NULL, NULL);
+                                                store_write_cb, g_strdup (doc_id));
     }
 }
 
@@ -268,8 +384,11 @@ portal_delete (GDBusMethodInvocation *invocation,
     permission_db_set_entry (db, id, NULL);
 
     if (persist_entry (entry))
-      xdg_permission_store_call_delete (permission_store, TABLE_NAME,
-                                        id, NULL, NULL, NULL);
+      {
+        note_store_write (id);
+        xdg_permission_store_call_delete (permission_store, TABLE_NAME,
+                                          id, NULL, store_write_cb, g_strdup (id));
+      }
   }
 
   /* All i/o is done now, so drop the lock so we can invalidate the fuse caches */
@@ -451,13 +570,14 @@ do_create_doc (struct stat *parent_st_buf,
     {
       g_autoptr(GVariant) data = permission_db_entry_get_data (entry);
 
+      note_store_write (id);
       xdg_permission_store_call_set (permission_store,
                                      TABLE_NAME,
                                      TRUE,
                                      id,
                                      g_variant_new_array (G_VARIANT_TYPE ("{sas}"), NULL, 0),
                                      g_variant_new_variant (data),
-                                     NULL, NULL, NULL);
+                                     NULL, store_write_cb, g_strdup (id));
     }
 
   return g_steal_pointer (&id);
@@ -1821,6 +1941,242 @@ printerr_handler (const gchar *string)
   fprintf (stderr, "%serror: %s%s\n", prefix, suffix, string);
 }
 
+static gboolean
+permissions_equal (const char **a,
+                   const char **b)
+{
+  gsize i;
+
+  if (a == NULL || b == NULL)
+    return a == b;
+
+  if (g_strv_length ((char **) a) != g_strv_length ((char **) b))
+    return FALSE;
+
+  for (i = 0; a[i] != NULL; i++)
+    {
+      if (!g_strv_contains ((const char * const *) b, a[i]))
+        return FALSE;
+    }
+
+  return TRUE;
+}
+
+/* Replace our copy of an entry's permissions with the ones the store holds.
+ * Only permissions are taken: the document metadata is ours and the store
+ * keeps a mirror of it. Returns the apps whose permissions changed, whose FUSE
+ * nodes must be invalidated once the db lock is dropped.
+ * Call with the db lock held. */
+static GPtrArray *
+apply_store_permissions (const char *id,
+                         GVariant   *permissions)
+{
+  g_autoptr(PermissionDbEntry) old_entry = NULL;
+  g_autoptr(PermissionDbEntry) new_entry = NULL;
+  g_autofree const char **old_apps = NULL;
+  GPtrArray *changed_apps;
+  GVariantIter iter;
+  const char *app_id;
+  GVariant *app_permissions;
+  gsize i;
+
+  changed_apps = g_ptr_array_new_with_free_func (g_free);
+
+  old_entry = permission_db_lookup (db, id);
+
+  /* An id we do not know about. We cannot usefully add it: the document
+   * metadata is ours and the store only mirrors it. Losing a grant is what
+   * matters here, and that cannot happen for an entry we do not have. */
+  if (old_entry == NULL)
+    return changed_apps;
+
+  old_apps = permission_db_entry_list_apps (old_entry);
+  new_entry = permission_db_entry_ref (old_entry);
+
+  /* Apps the store no longer lists have lost their grant entirely */
+  for (i = 0; old_apps[i] != NULL; i++)
+    {
+      g_autoptr(GVariant) still_listed = NULL;
+
+      still_listed = g_variant_lookup_value (permissions, old_apps[i],
+                                             G_VARIANT_TYPE_STRING_ARRAY);
+      if (still_listed == NULL)
+        {
+          g_autoptr(PermissionDbEntry) prev = g_steal_pointer (&new_entry);
+
+          new_entry = permission_db_entry_remove_app_permissions (prev, old_apps[i]);
+          g_ptr_array_add (changed_apps, g_strdup (old_apps[i]));
+        }
+    }
+
+  g_variant_iter_init (&iter, permissions);
+  while (g_variant_iter_loop (&iter, "{&s@as}", &app_id, &app_permissions))
+    {
+      g_autofree const char **new_perms = NULL;
+      g_autofree const char **old_perms = NULL;
+      g_autoptr(PermissionDbEntry) prev = NULL;
+
+      new_perms = g_variant_get_strv (app_permissions, NULL);
+      old_perms = permission_db_entry_list_permissions (old_entry, app_id);
+
+      if (permissions_equal (old_perms, new_perms))
+        continue;
+
+      prev = g_steal_pointer (&new_entry);
+      new_entry = permission_db_entry_set_app_permissions (prev, app_id, new_perms);
+      g_ptr_array_add (changed_apps, g_strdup (app_id));
+    }
+
+  if (changed_apps->len > 0)
+    permission_db_set_entry (db, id, new_entry);
+
+  return changed_apps;
+}
+
+/* Drop an entry the store no longer has. Call with the db lock held. */
+static GPtrArray *
+forget_entry (const char *id,
+              gboolean   *entry_removed)
+{
+  g_autoptr(PermissionDbEntry) old_entry = NULL;
+  g_autofree const char **old_apps = NULL;
+  GPtrArray *changed_apps;
+  gsize i;
+
+  changed_apps = g_ptr_array_new_with_free_func (g_free);
+  *entry_removed = FALSE;
+
+  old_entry = permission_db_lookup (db, id);
+  if (old_entry == NULL)
+    return changed_apps;
+
+  old_apps = permission_db_entry_list_apps (old_entry);
+  for (i = 0; old_apps[i] != NULL; i++)
+    g_ptr_array_add (changed_apps, g_strdup (old_apps[i]));
+
+  permission_db_set_entry (db, id, NULL);
+  *entry_removed = TRUE;
+
+  return changed_apps;
+}
+
+static void
+refresh_lookup_cb (GObject      *source_object,
+                   GAsyncResult *res,
+                   gpointer      user_data)
+{
+  g_autofree char *id = user_data;
+
+  g_autoptr(GVariant) permissions = NULL;
+  g_autoptr(GVariant) data = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GPtrArray) changed_apps = NULL;
+  gboolean entry_removed = FALSE;
+  gboolean gone = FALSE;
+  EntrySync *sync;
+  gsize i;
+
+  if (!xdg_permission_store_call_lookup_finish (XDG_PERMISSION_STORE (source_object),
+                                                &permissions, &data, res, &error))
+    {
+      g_autofree char *remote_error = g_dbus_error_get_remote_error (error);
+
+      /* Not g_error_matches(): the D-Bus name mapping for
+       * XDG_DESKTOP_PORTAL_ERROR is registered lazily, on first use of the
+       * quark, so a reply decoded before anything in this process has used
+       * that domain lands in G_IO_ERROR instead and the match fails. The wire
+       * name is there either way. */
+      gone = g_strcmp0 (remote_error, "org.freedesktop.portal.Error.NotFound") == 0;
+
+      if (!gone)
+        {
+          /* Leave our copy alone. For a revocation we have already applied it
+           * is the more restrictive of the two, and a transient bus error is
+           * not evidence that a grant is gone. */
+          g_dbus_error_strip_remote_error (error);
+          g_warning ("Failed to re-read permissions for %s: %s", id, error->message);
+        }
+    }
+
+  {
+    XDP_AUTOLOCK (db);
+
+    if (gone)
+      changed_apps = forget_entry (id, &entry_removed);
+    else if (permissions != NULL)
+      changed_apps = apply_store_permissions (id, permissions);
+
+    sync = g_hash_table_lookup (entry_sync, id);
+    if (sync != NULL)
+      {
+        sync->reading = FALSE;
+
+        if (sync->queued)
+          refresh_entry (id, sync);
+        else
+          entry_sync_release (id, sync);
+      }
+  }
+
+  /* All i/o is done now, so drop the lock so we can invalidate the fuse caches */
+  for (i = 0; changed_apps != NULL && i < changed_apps->len; i++)
+    xdp_fuse_invalidate_doc_app (id, g_ptr_array_index (changed_apps, i));
+
+  if (entry_removed)
+    xdp_fuse_invalidate_doc_app (id, NULL);
+}
+
+/* Call with the db lock held. */
+static void
+start_refresh (const char *id,
+               EntrySync  *sync)
+{
+  sync->reading = TRUE;
+  xdg_permission_store_call_lookup (permission_store, TABLE_NAME, id, NULL,
+                                    refresh_lookup_cb, g_strdup (id));
+}
+
+static void
+on_permission_store_changed (XdgPermissionStore *store,
+                             const char         *table_name,
+                             const char         *id,
+                             gboolean            deleted,
+                             GVariant           *data,
+                             GVariant           *permissions,
+                             gpointer            user_data)
+{
+  if (g_strcmp0 (table_name, TABLE_NAME) != 0)
+    return;
+
+  XDP_AUTOLOCK (db);
+
+  refresh_entry (id, entry_sync_get (id));
+}
+
+/* The store restarting is a gap in the Changed stream: whatever happened while
+ * it was away was never announced, and it comes back from whatever reached
+ * disk, which can be behind what it had already told us. Re-read everything we
+ * hold rather than guess which entries moved. */
+static void
+on_permission_store_name_owner_changed (GObject    *object,
+                                        GParamSpec *pspec,
+                                        gpointer    user_data)
+{
+  g_autofree char *owner = NULL;
+  g_auto(GStrv) ids = NULL;
+  gsize i;
+
+  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (object));
+  if (owner == NULL)
+    return;
+
+  XDP_AUTOLOCK (db);
+
+  ids = permission_db_list_ids (db);
+  for (i = 0; ids != NULL && ids[i] != NULL; i++)
+    refresh_entry (ids[i], entry_sync_get (ids[i]));
+}
+
 int
 main (int    argc,
       char **argv)
@@ -1905,6 +2261,15 @@ main (int    argc,
       g_print ("No permission store: %s", error->message);
       exit (4);
     }
+
+  entry_sync = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+
+  /* We are not the only writer of the documents table, so re-read entries the
+   * permission store tells us have changed rather than trusting our copy */
+  g_signal_connect (permission_store, "changed",
+                    G_CALLBACK (on_permission_store_changed), NULL);
+  g_signal_connect (permission_store, "notify::g-name-owner",
+                    G_CALLBACK (on_permission_store_name_owner_changed), NULL);
 
   /* We want do do our custom post-mainloop exit */
   g_dbus_connection_set_exit_on_close (session_bus, FALSE);
