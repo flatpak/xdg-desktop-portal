@@ -6,8 +6,9 @@
 import os
 import re
 import subprocess
-from typing import assert_never
+from typing import Any, assert_never
 
+import dbus
 import gi
 import pytest
 
@@ -18,19 +19,20 @@ from gi.repository import GLib, UMockdev  # noqa E402
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {"usb": {}}
 
 
 @pytest.fixture
-def usb_queries() -> str | None:
+def usb_queries() -> None:
     return None
 
 
 # Supported on host and flatpak
 # Host apps get access to all usb devices. The query has no effect.
 @pytest.fixture(params=["AppInfoHost", "AppInfoFlatpak"])
-def xdp_app_info(request, usb_queries) -> xdp.AppInfo:
+def xdp_app_info(request: xdp.Request, usb_queries: Any) -> xdp.AppInfo:
+    assert hasattr(request, "param")
     app_info_kind = request.param
 
     if app_info_kind == "AppInfoHost":
@@ -43,11 +45,11 @@ def xdp_app_info(request, usb_queries) -> xdp.AppInfo:
 
 
 @pytest.fixture
-def umockdev():
+def umockdev() -> UMockdev.Testbed:
     return UMockdev.Testbed.new()
 
 
-def umockdev_has_working_remove():
+def umockdev_has_working_remove() -> bool:
     # umockdev only generates remove events since version 0.18.4
     # https://github.com/martinpitt/umockdev/releases/tag/0.18.4
     required = (0, 18, 4)
@@ -68,8 +70,14 @@ class TestUsb:
     _num_devices = 0
 
     def generate_device(
-        self, testbed, vendor, vendor_name, product, product_name, serial
-    ):
+        self,
+        testbed: UMockdev.Testbed,
+        vendor: str,
+        vendor_name: str,
+        product: str,
+        product_name: str,
+        serial: str,
+    ) -> str:
         n = self._num_devices
         self._num_devices += 1
 
@@ -95,10 +103,10 @@ A: idVendor={vendor}
 
         return f"/sys/devices/usb{n}"
 
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         xdp.check_version(dbus_con, "Usb", 1)
 
-    def test_create_close_session(self, portals, dbus_con):
+    def test_create_close_session(self, portals: Any, dbus_con: dbus.Bus) -> None:
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         session = xdp.Session(
@@ -107,7 +115,7 @@ A: idVendor={vendor}
         )
         session.close()
 
-    def test_empty_initial_devices(self, portals, dbus_con):
+    def test_empty_initial_devices(self, portals: Any, dbus_con: dbus.Bus) -> None:
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         xdp.Session(
@@ -117,7 +125,9 @@ A: idVendor={vendor}
 
         device_events_signal_received = False
 
-        def cb_device_events(session_handle, events):
+        def cb_device_events(
+            session_handle: dbus.ObjectPath, events: dbus.Array
+        ) -> None:
             nonlocal device_events_signal_received
             device_events_signal_received = True
 
@@ -127,8 +137,13 @@ A: idVendor={vendor}
 
     @pytest.mark.parametrize("usb_queries", ["vnd:04a9", None])
     def test_initial_devices(
-        self, portals, dbus_con, xdp_app_info, usb_queries, umockdev
-    ):
+        self,
+        portals: Any,
+        dbus_con: dbus.Bus,
+        xdp_app_info: xdp.AppInfoFlatpak,
+        usb_queries: str | None,
+        umockdev: UMockdev.Testbed,
+    ) -> None:
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         self.generate_device(
@@ -152,7 +167,9 @@ A: idVendor={vendor}
         device_events_signal_received = False
         devices_received = 0
 
-        def cb_device_events(session_handle, events):
+        def cb_device_events(
+            session_handle: dbus.ObjectPath, events: dbus.Array
+        ) -> None:
             nonlocal device_events_signal_received
             nonlocal devices_received
             assert session.handle == session_handle
@@ -176,7 +193,14 @@ A: idVendor={vendor}
             assert devices_received == 1
 
     @pytest.mark.parametrize("usb_queries", ["vnd:04a9", None])
-    def test_device_add(self, portals, xdp_app_info, dbus_con, usb_queries, umockdev):
+    def test_device_add(
+        self,
+        portals: Any,
+        xdp_app_info: xdp.AppInfoFlatpak,
+        dbus_con: dbus.Bus,
+        usb_queries: Any,
+        umockdev: UMockdev.TestBed,
+    ) -> None:
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         session = xdp.Session(
@@ -188,7 +212,9 @@ A: idVendor={vendor}
         devices_received = 0
         device = None
 
-        def cb_device_events(session_handle, events):
+        def cb_device_events(
+            session_handle: dbus.ObjectPath, events: dbus.Array
+        ) -> None:
             nonlocal device_events_signal_received
             nonlocal devices_received
             nonlocal device
@@ -238,8 +264,13 @@ A: idVendor={vendor}
         not umockdev_has_working_remove(), reason="UMockdev version 0.18.4 required"
     )
     def test_device_remove(
-        self, portals, dbus_con, xdp_app_info, usb_queries, umockdev
-    ):
+        self,
+        portals: Any,
+        dbus_con: dbus.Bus,
+        xdp_app_info: xdp.AppInfoFlatpak,
+        usb_queries: Any,
+        umockdev: UMockdev.TestBed,
+    ) -> None:
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         dev_path = self.generate_device(
@@ -260,7 +291,9 @@ A: idVendor={vendor}
         devices_received = 0
         devices_removed = 0
 
-        def cb_device_events(session_handle, events):
+        def cb_device_events(
+            session_handle: dbus.ObjectPath, events: dbus.Array
+        ) -> None:
             nonlocal device_events_signal_count
             nonlocal devices_received
             nonlocal devices_removed
@@ -305,7 +338,9 @@ A: idVendor={vendor}
     @pytest.mark.parametrize(
         "template_params", [{"usb": {"filters": {"vendor": "04a9"}}}]
     )
-    def test_acquire(self, portals, dbus_con, umockdev):
+    def test_acquire(
+        self, portals: Any, dbus_con: dbus.Bus, umockdev: UMockdev.TestBed
+    ) -> None:
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         self.generate_device(
@@ -383,7 +418,14 @@ A: idVendor={vendor}
             (0, {"usb": {"filters": {"vendor": "0002", "model": "0000"}}}),
         ],
     )
-    def test_queries(self, portals, dbus_con, expected, usb_queries, umockdev):
+    def test_queries(
+        self,
+        portals: Any,
+        dbus_con: dbus.Bus,
+        expected: int,
+        usb_queries: Any,
+        umockdev: UMockdev.TestBed,
+    ) -> None:
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         for i in range(2):

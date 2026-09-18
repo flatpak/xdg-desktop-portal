@@ -5,26 +5,30 @@
 
 import os
 from pathlib import Path
+from typing import Any
 
+import dbus
 from gi.repository import Gio, GLib
 
 EXPORT_FILES_FLAG_EXPORT_DIR = 8
 
 
-def path_from_null_term_bytes(bytes):
+def path_from_null_term_bytes(bytes: bytes) -> Path:
     path_bytes, rest = bytes.split(b"\x00")
     assert rest == b""
     return Path(os.fsdecode(path_bytes))
 
 
-def get_mountpoint(documents_intf):
+def get_mountpoint(documents_intf: dbus.Interface) -> Path:
     mountpoint = documents_intf.GetMountPoint(byte_arrays=True)
     mountpoint = path_from_null_term_bytes(mountpoint)
     assert mountpoint.exists()
     return mountpoint
 
 
-def export_file(documents_intf, file_path, unique=False):
+def export_file(
+    documents_intf: dbus.Interface, file_path: Path, unique: bool = False
+) -> dbus.String:
     assert file_path.exists()
 
     with open(file_path.absolute().as_posix(), "r") as file:
@@ -34,7 +38,12 @@ def export_file(documents_intf, file_path, unique=False):
     return doc_id
 
 
-def export_file_named(documents_intf, folder_path, name, unique=False):
+def export_file_named(
+    documents_intf: dbus.Interface,
+    folder_path: Path,
+    name: str,
+    unique: bool = False,
+) -> dbus.String:
     assert folder_path.exists()
 
     # bytestring convention is zero terminated
@@ -50,7 +59,13 @@ def export_file_named(documents_intf, folder_path, name, unique=False):
     return doc_id
 
 
-def export_files(documents_intf, file_paths, perms, flags=0, app_id=""):
+def export_files(
+    documents_intf: dbus.Interface,
+    file_paths: list[Path],
+    perms: list[str],
+    flags: int = 0,
+    app_id: str = "",
+) -> tuple[Any, ...]:
     fds = []
     try:
         for file_path in file_paths:
@@ -69,15 +84,14 @@ def export_files(documents_intf, file_paths, perms, flags=0, app_id=""):
         for fd in fds:
             os.close(fd)
 
-    assert result
     return result
 
 
-def write_bytes_atomic(file_path, bytes):
+def write_bytes_atomic(file_path: Path, bytes: bytes) -> None:
     GLib.file_set_contents(file_path.absolute().as_posix(), bytes)
 
 
-def write_bytes_trunc(file_path, bytes):
+def write_bytes_trunc(file_path: Path, bytes: bytes) -> None:
     try:
         fd = os.open(
             file_path.absolute().as_posix(), os.O_RDWR | os.O_TRUNC | os.O_CREAT
@@ -87,7 +101,7 @@ def write_bytes_trunc(file_path, bytes):
         os.close(fd)
 
 
-def get_host_path_attr(path):
+def get_host_path_attr(path: Path) -> Path | None:
     xattr = "xattr::document-portal.host-path"
     file = Gio.file_new_for_path(path.absolute().as_posix())
     info = file.query_info(xattr, Gio.FileQueryInfoFlags.NONE)

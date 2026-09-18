@@ -4,6 +4,8 @@
 # This file is formatted with Python Black
 
 import signal
+import subprocess
+from typing import Any, AnyStr
 
 import dbus
 import pytest
@@ -12,22 +14,27 @@ import tests.xdp_utils as xdp
 
 
 @pytest.fixture
-def xdp_app_info():
+def xdp_app_info() -> xdp.AppInfoHost:
     return xdp.AppInfoHost()
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {"email": {"delay": 30000}}
 
 
 @pytest.fixture
-def xdg_desktop_portal_options():
+def xdg_desktop_portal_options() -> xdp.PortalProcessOptions:
     return xdp.PortalProcessOptions(capture_stderr=True)
 
 
 class TestShutdown:
-    def test_shutdown_with_inflight_call(self, portals, dbus_con, xdg_desktop_portal):
+    def test_shutdown_with_inflight_call(
+        self,
+        portals: Any,
+        dbus_con: dbus.Bus,
+        xdg_desktop_portal: subprocess.Popen[AnyStr],
+    ) -> None:
         """
         Test that the portal shuts down cleanly with an in-flight backend call.
 
