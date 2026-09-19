@@ -4,6 +4,7 @@
 # This file is formatted with Python Black
 
 import os
+import threading
 from pathlib import Path
 
 import dbus
@@ -334,6 +335,62 @@ class TestDocuments:
 
         host_path = xdp_doc.get_host_path_attr(mountpoint / doc_id / "a" / "b" / "c")
         assert host_path == base_path / "b" / "c"
+
+    def test_concurrent_operations_during_permission_check(
+        self, xdg_document_portal, dbus_con, xdp_bin_path
+    ):
+        """Verify that concurrent D-Bus requests and FUSE operations succeed
+        without deadlock while document_add_full() is checking file access
+        permissions via an external helper."""
+        documents_intf = xdp.get_document_portal_iface(dbus_con)
+        mountpoint = xdp_doc.get_mountpoint(documents_intf)
+
+        file1 = Path(os.environ["TMPDIR"]) / "test-doc-1"
+        xdp_doc.write_bytes_atomic(file1, b"doc1-content")
+        doc_id1 = xdp_doc.export_file(documents_intf, file1)
+
+        file2 = Path(os.environ["TMPDIR"]) / "test-doc-2"
+        xdp_doc.write_bytes_atomic(file2, b"doc2-content")
+
+        mock_flatpak = xdp_bin_path / "flatpak"
+        mock_flatpak.write_text("""#!/bin/sh
+export PATH="/bin:/usr/bin:$PATH"
+sleep 0.1
+echo 'read-write'
+""")
+        mock_flatpak.chmod(0o755)
+
+        concurrent_bus = dbus.SessionBus(private=True)
+        concurrent_intf = dbus.Interface(
+            concurrent_bus.get_object(
+                "org.freedesktop.portal.Documents",
+                "/org/freedesktop/portal/documents",
+            ),
+            "org.freedesktop.portal.Documents",
+        )
+
+        concurrent_result = []
+
+        def call_concurrent_ops():
+            path, _apps = concurrent_intf.Info(doc_id1)
+            fuse_content = (mountpoint / doc_id1 / file1.name).read_bytes()
+            concurrent_result.append((path, fuse_content))
+
+        thread = threading.Thread(target=call_concurrent_ops)
+
+        thread.start()
+        doc_ids, _extra = xdp_doc.export_files(
+            documents_intf,
+            [file2],
+            ["read"],
+            flags=1 << 2,
+            app_id="org.test.App",
+        )
+        thread.join()
+
+        assert doc_ids == [""]
+        assert len(concurrent_result) == 1
+        assert concurrent_result[0][1] == b"doc1-content"
 
 
 try:
