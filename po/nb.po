@@ -1,0 +1,254 @@
+# Norwegian Bokmål translation for xdg-desktop-portal.
+# Copyright (C) 2026 xdg-desktop-portal's COPYRIGHT HOLDER
+# This file is distributed under the same license as the xdg-desktop-portal package.
+# Kjartan Maraas <kmaraas@gnome.org>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal main\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2026-09-02 16:13+0000\n"
+"PO-Revision-Date: 2026-09-20 08:00+0200\n"
+"Last-Translator: Kjartan Maraas <kmaraas@gnome.org>\n"
+"Language-Team: Norwegian Bokmål <nb@li.org>\n"
+"Language: nb\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: desktop-portal/background.c:919
+#, c-format
+msgid "Allow %s to Run in the Background?"
+msgstr "Tillat at %s kjører i bakgrunnen?"
+
+#: desktop-portal/background.c:923
+#, c-format
+msgid "%s wants to be started automatically and run in the background"
+msgstr "%s ønsker å bli startet automatisk og kjøre i bakgrunnen"
+
+#: desktop-portal/background.c:925
+#, c-format
+msgid "%s wants to run in the background"
+msgstr "%s ønsker å kjøre i bakgrunnen"
+
+#: desktop-portal/background.c:926
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings"
+msgstr "Tillatelsen «kjør i bakgrunnen» kan endres når som helst i innstillingene for apper"
+
+#: desktop-portal/background.c:930
+msgid "Don't allow"
+msgstr "Ikke tillat"
+
+#: desktop-portal/background.c:931 desktop-portal/screenshot.c:261
+#: desktop-portal/wallpaper.c:174
+msgid "Allow"
+msgstr "Tillat"
+
+#: desktop-portal/camera.c:90
+#, c-format
+msgid "Allow %s to Use the Camera?"
+msgstr "La %s bruke kamera?"
+
+#: desktop-portal/camera.c:91
+#, c-format
+msgid "%s wants to access the camera"
+msgstr "%s ønsker tilgang til kamera"
+
+#: desktop-portal/camera.c:95
+msgid "Allow Apps to Use the Camera?"
+msgstr "La apper bruke kameraet?"
+
+#: desktop-portal/camera.c:96
+msgid "An app wants to access the camera"
+msgstr "En app ønsker å bruke kameraet"
+
+#: desktop-portal/camera.c:99 desktop-portal/screenshot.c:313
+#: desktop-portal/wallpaper.c:190
+msgid "This permission can be changed at any time from the privacy settings"
+msgstr "Denne tillatelsen kan endres når som helst under innstillinger for personvern"
+
+#: desktop-portal/dynamic-launcher.c:109
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr "ID for skrivebordsfil mangler .desktop suffiks: %s"
+
+#: desktop-portal/dynamic-launcher.c:120
+#, c-format
+msgid "Desktop file id is not valid"
+msgstr "Skrivebordsfilen er ikke gyldig"
+
+#: desktop-portal/dynamic-launcher.c:298
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr ""
+
+#: desktop-portal/dynamic-launcher.c:311
+#, c-format
+msgid "Desktop entry given to Install() must have exactly one group"
+msgstr ""
+
+#: desktop-portal/dynamic-launcher.c:350
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr ""
+
+#: desktop-portal/dynamic-launcher.c:393
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr ""
+
+#: desktop-portal/dynamic-launcher.c:402 desktop-portal/dynamic-launcher.c:878
+#: desktop-portal/dynamic-launcher.c:927
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr ""
+
+#: desktop-portal/dynamic-launcher.c:600
+#, c-format
+msgid "Given URI is invalid: %s"
+msgstr "Oppgitt URI er ugyldig: %s"
+
+#: desktop-portal/dynamic-launcher.c:622
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr ""
+
+#: desktop-portal/dynamic-launcher.c:629
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr ""
+
+#: desktop-portal/dynamic-launcher.c:695 desktop-portal/dynamic-launcher.c:770
+msgid "Dynamic launcher icon failed validation"
+msgstr ""
+
+#: desktop-portal/dynamic-launcher.c:788
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr ""
+
+#: desktop-portal/dynamic-launcher.c:967
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr ""
+
+#: desktop-portal/dynamic-launcher.c:990
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr ""
+
+#: desktop-portal/dynamic-launcher.c:1029
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr ""
+
+#: desktop-portal/dynamic-launcher.c:1048
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr ""
+
+#: desktop-portal/location.c:535
+msgid "Deny Access"
+msgstr "Avvis tilgang"
+
+#: desktop-portal/location.c:537
+msgid "Grant Access"
+msgstr "Gi tilgang"
+
+#: desktop-portal/location.c:543
+#, c-format
+msgid "Allow %s to Access Your Location?"
+msgstr "La %s få tilgang på din lokasjon?"
+
+#: desktop-portal/location.c:553
+#, c-format
+msgid "%s wants to use your location"
+msgstr "%s ønsker å bruke din lokasjon"
+
+#: desktop-portal/location.c:559
+msgid "Allow Apps to Access Your Location?"
+msgstr "Tillat apper å bruke din lokasjon?"
+
+#: desktop-portal/location.c:560
+msgid "An app wants to use your location"
+msgstr "En app ønsker å bruke din lokasjon"
+
+#: desktop-portal/location.c:563
+msgid "Location access can be changed at any time from the privacy settings"
+msgstr "Tilgang til lokasjon kan endres når som helst under innstillinger for personvern"
+
+#: desktop-portal/screenshot.c:259 desktop-portal/wallpaper.c:172
+msgid "Deny"
+msgstr "Avvis"
+
+#: desktop-portal/screenshot.c:285
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "La %s ta skjermdump"
+
+#: desktop-portal/screenshot.c:286
+#, c-format
+msgid "%s wants to take screenshots at any time"
+msgstr "%s ønsker å ta skjermdump når som helst"
+
+#: desktop-portal/screenshot.c:290
+#, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "La %s ta skjermdump?"
+
+#: desktop-portal/screenshot.c:291
+#, c-format
+msgid "%s wants to take a screenshot"
+msgstr "%s ønsker å ta skjermdump"
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: desktop-portal/screenshot.c:302
+msgid "Allow Apps to Take Screenshots?"
+msgstr "Tillat at apper tar skjermdump?"
+
+#: desktop-portal/screenshot.c:303
+msgid "An app wants to take screenshots at any time"
+msgstr "En app ønsker å ta skjermdump når som helst"
+
+#: desktop-portal/screenshot.c:307
+msgid "Allow to Take a Screenshot?"
+msgstr "Tillat å ta skjermdump?"
+
+#: desktop-portal/screenshot.c:308
+msgid "An app wants to take a screenshot"
+msgstr "En app ønsker å ta skjermdump"
+
+#: desktop-portal/settings.c:184 desktop-portal/settings.c:226
+msgid "Requested setting not found"
+msgstr "Fant ikke innstillingen du ba om"
+
+#: desktop-portal/usb.c:1308
+msgid "Device not available"
+msgstr "Enheten er ikke tilgjengelig"
+
+#: desktop-portal/usb.c:1322
+msgid "Not allowed"
+msgstr "Ikke tillatt"
+
+#: desktop-portal/wallpaper.c:180
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "La %s sette bakgrunner?"
+
+#: desktop-portal/wallpaper.c:181
+#, c-format
+msgid "%s wants to change the background image"
+msgstr "%s ønsker å endre bakgrunnsbildet"
+
+#: desktop-portal/wallpaper.c:186
+msgid "Allow Apps to Set Backgrounds?"
+msgstr "Tillat at apper setter bakgrunner?"
+
+#: desktop-portal/wallpaper.c:187
+msgid "An app wants to change the background image"
+msgstr "En app ønsker å endre bakgrunnsbildet"
