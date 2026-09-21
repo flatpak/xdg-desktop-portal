@@ -331,7 +331,8 @@ class DocPortal:
         try:
             with open(path) as f:
                 content = f.read()
-        except dbus.exceptions.DBusException:
+        except (dbus.exceptions.DBusException, FileNotFoundError):
+            assertFileNotExist(path)
             content = None
         doc = Doc(self, doc_id, path, content)
         self.docs[doc.id] = doc
@@ -1232,14 +1233,6 @@ class TestDocumentFuse:
             return self.parallel(run_test, 5, 3)
         self.parallel(run_test, 10, 5)
 
-
-# Running
-# ./tests/run-test.sh -n 0 tests/test_document_fuse.py::TestDocumentFuse::test_multi_thread
-# works fine, but with
-# ./tests/run-test.sh -n 0 tests/test_document_fuse.py::TestDocumentFuse
-# the `test_multi_thread` test is failing.
-# For now, let's skip the test and turn it on again when we have fixed it.
-pytest.skip("Test has a race condition which can make it fail", allow_module_level=True)
 
 try:
     xdp.ensure_fuse_supported()
