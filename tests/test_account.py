@@ -122,3 +122,24 @@ class TestAccount:
 
         # Only true if the impl.Request was closed too
         assert request.closed
+
+    @pytest.mark.parametrize(
+        "template_params",
+        ({"account": {"expect-close": True, "request-version": 2}},),
+    )
+    def test_close_request_v2(self, portals, dbus_con):
+        account_intf = xdp.get_portal_iface(dbus_con, "Account")
+
+        request = xdp.Request(dbus_con, account_intf)
+        request.schedule_close(1000)
+        options = {
+            "reason": "reason",
+        }
+        request.call(
+            "GetUserInformation",
+            window="",
+            options=options,
+        )
+
+        # Only true if the impl.Request was closed too
+        assert request.closed
