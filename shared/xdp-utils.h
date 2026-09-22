@@ -192,6 +192,10 @@ int xdp_get_portal_call_fd (GUnixFDList  *fd_list,
                             int           fd_id,
                             GError      **error);
 
+int xdp_peek_portal_call_fd (GUnixFDList  *fd_list,
+                             int           fd_id,
+                             GError      **error);
+
 gboolean xdp_copy_fd_to_lists (GUnixFDList  *fd_list_src,
                                GUnixFDList  *fd_list_dst,
                                int           fd_id,
