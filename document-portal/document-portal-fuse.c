@@ -3521,10 +3521,16 @@ xdp_fuse_flock (fuse_req_t             req,
                 int                    lock_op)
 {
   const char *op = "FLOCK";
+  XdpFile *file = (XdpFile *)fi->fh;
+  int res;
 
   g_debug ("FLOCK %" G_GINT64_MODIFIER "x", ino);
 
-  xdp_reply_err (op, req, ENOSYS);
+  res = flock (file->fd, lock_op);
+  if (res < 0)
+    return xdp_reply_err (op, req, errno);
+
+  return xdp_reply_ok (op, req);
 }
 
 static void
