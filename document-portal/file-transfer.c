@@ -130,9 +130,8 @@ lookup_transfer (const char *key)
 {
   FileTransfer *transfer;
 
-  G_LOCK (transfers);
+  XDP_AUTOLOCK (transfers);
   transfer = (FileTransfer *)g_hash_table_lookup (transfers, key);
-  G_UNLOCK (transfers);
 
   if (!transfer)
     return NULL;
