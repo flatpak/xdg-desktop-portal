@@ -22,6 +22,7 @@
 #include <gio/gio.h>
 #include <glib-unix.h>
 #include <glib/gprintf.h>
+#include <sys/file.h>
 
 #include "document-store.h"
 #include "xdp-utils.h"
@@ -135,6 +136,116 @@ typedef struct {
   ino_t ino;
   dev_t dev;
 } DevIno;
+
+/*
+ * POSIX lock proxying via OFD locks.
+ *
+ * We can't forward F_SETLK directly to the underlying fd because POSIX locks
+ * are per-process: all clients' locks would collapse into one, locks wouldn't
+ * conflict between clients, and closing one client's fd would release another
+ * client's locks.
+ *
+ * Instead we use F_OFD_SETLK, which is per-open-file-description. We maintain
+ * one dedicated lock fd per (lock_owner, file) pair. The lock_owner identifies
+ * the client process for POSIX locks or the client's open file description for
+ * OFD locks — the kernel FUSE driver sets it accordingly.
+ *
+ * Same lock_owner → same lock fd → locks merge (correct POSIX behavior).
+ * Different lock_owner → different lock fd → locks conflict.
+ *
+ * The lock fd must be a new open() (via /proc/self/fd), not a dup(), because
+ * dup() shares the open file description and closing it wouldn't release the
+ * OFD locks while the original fd is still open.
+ *
+ * Cleanup: flush is called per-close with the lock_owner. The first flush
+ * closes the lock fd, releasing all locks for that owner. Subsequent flushes
+ * for the same owner find nothing in the table. This matches POSIX semantics
+ * where closing any fd releases all the process's locks on that file.
+ */
+typedef struct {
+  uint64_t lock_owner;
+  DevIno dev_ino;
+} LockKey;
+
+static guint
+lock_key_hash (gconstpointer key)
+{
+  const LockKey *k = key;
+  return g_int64_hash (&k->lock_owner) ^
+         g_direct_hash (GSIZE_TO_POINTER (k->dev_ino.ino)) ^
+         g_direct_hash (GSIZE_TO_POINTER (k->dev_ino.dev));
+}
+
+static gboolean
+lock_key_equal (gconstpointer a,
+                gconstpointer b)
+{
+  const LockKey *ka = a;
+  const LockKey *kb = b;
+  return ka->lock_owner == kb->lock_owner &&
+         ka->dev_ino.ino == kb->dev_ino.ino &&
+         ka->dev_ino.dev == kb->dev_ino.dev;
+}
+
+static void
+lock_fd_close (gpointer data)
+{
+  close (GPOINTER_TO_INT (data));
+}
+
+static GHashTable *lock_fds; /* LockKey -> GINT_TO_POINTER(fd) */
+G_LOCK_DEFINE (lock_fds);
+
+static int
+get_lock_fd (int                    file_fd,
+             struct fuse_file_info *fi)
+{
+  struct stat st;
+  LockKey key;
+  gpointer value;
+  int lock_fd;
+  g_autofree char *proc_path = NULL;
+
+  if (fstat (file_fd, &st) < 0)
+    return -1;
+
+  key.lock_owner = fi->lock_owner;
+  key.dev_ino.dev = st.st_dev;
+  key.dev_ino.ino = st.st_ino;
+
+  XDP_AUTOLOCK (lock_fds);
+
+  if (g_hash_table_lookup_extended (lock_fds, &key, NULL, &value))
+    return GPOINTER_TO_INT (value);
+
+  proc_path = g_strdup_printf ("/proc/self/fd/%d", file_fd);
+  lock_fd = open (proc_path, O_RDWR | O_CLOEXEC);
+  if (lock_fd < 0)
+    return -1;
+
+  g_hash_table_insert (lock_fds, g_memdup2 (&key, sizeof key),
+                       GINT_TO_POINTER (lock_fd));
+  return lock_fd;
+}
+
+static void
+remove_lock_fd (int                    file_fd,
+                struct fuse_file_info *fi)
+{
+  struct stat st;
+  LockKey key;
+
+  if (fstat (file_fd, &st) < 0)
+    return;
+
+  key.lock_owner = fi->lock_owner;
+  key.dev_ino.dev = st.st_dev;
+  key.dev_ino.ino = st.st_ino;
+
+  XDP_AUTOLOCK (lock_fds);
+
+  g_hash_table_remove (lock_fds, &key);
+}
 
 typedef enum {
  XDP_DOMAIN_ROOT,
@@ -2168,9 +2279,13 @@ xdp_fuse_flush (fuse_req_t             req,
                 fuse_ino_t             ino,
                 struct fuse_file_info *fi)
 {
+  XdpFile *file = (XdpFile *)fi->fh;
   const char *op = "FLUSH";
 
   g_debug ("FLUSH %" G_GINT64_MODIFIER "x", ino);
+
+  remove_lock_fd (file->fd, fi);
+
   xdp_reply_ok (op, req);
 }
 
@@ -3362,11 +3477,16 @@ xdp_fuse_getlk (fuse_req_t             req,
 
   g_debug ("GETLK %" G_GINT64_MODIFIER "x", ino);
 
-  res = fcntl (file->fd, F_GETLK, lock);
+  int lfd = get_lock_fd (file->fd, fi);
+  if (lfd < 0)
+    return xdp_reply_err (op, req, errno);
+
+  lock->l_pid = 0;
+  res = fcntl (lfd, F_OFD_GETLK, lock);
   if (res < 0)
     return xdp_reply_err (op, req, errno);
 
-  return xdp_reply_ok (op, req);
+  fuse_reply_lock (req, lock);
 }
 
 static void
@@ -3382,7 +3502,12 @@ xdp_fuse_setlk (fuse_req_t             req,
 
   g_debug ("SETLK %" G_GINT64_MODIFIER "x", ino);
 
-  res = fcntl (file->fd, F_SETLK, lock);
+  int lfd = get_lock_fd (file->fd, fi);
+  if (lfd < 0)
+    return xdp_reply_err (op, req, errno);
+
+  lock->l_pid = 0;
+  res = fcntl (lfd, sleep ? F_OFD_SETLKW : F_OFD_SETLK, lock);
   if (res < 0)
     return xdp_reply_err (op, req, errno);
 
@@ -3603,6 +3728,7 @@ xdp_fuse_init (GError **error)
   my_gid = getgid ();
 
   all_inodes = g_hash_table_new_full (g_int64_hash, g_int64_equal, NULL, NULL);
+  lock_fds = g_hash_table_new_full (lock_key_hash, lock_key_equal, g_free, lock_fd_close);
   g_assert (open_files == NULL);
 
   root_domain = xdp_domain_new_root ();
@@ -3670,6 +3796,9 @@ xdp_fuse_init (GError **error)
   XDP_AUTOLOCK (open_files);
   while (open_files)
     xdp_file_free (open_files->data);
+
+  XDP_AUTOLOCK (lock_fds);
+  g_hash_table_remove_all (lock_fds);
 
   return TRUE;
 }

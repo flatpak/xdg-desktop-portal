@@ -92,6 +92,7 @@ tests = {
   'clipboard': {},
   'documents': {},
   'document_fuse': {},
+  'document_locking': {},
   'dynamiclauncher': {},
   'email': {},
   'filechooser': {},
