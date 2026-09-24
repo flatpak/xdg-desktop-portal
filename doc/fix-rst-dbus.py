@@ -27,7 +27,7 @@ def is_section_label(line):
     return False
 
 
-def split_sections(lines, output_prefix):
+def split_sections(lines, output_prefix, interface_name):
     """Split Properties, Methods, Signals into separate fragment files.
 
     Returns (desc_lines, found_sections)."""
@@ -58,9 +58,45 @@ def split_sections(lines, output_prefix):
         with open(fragment_path, "w") as f:
             heading_written = False
             skip_transition = False
+            skip_next = False
+            member_anchor = None
             for line in section_lines:
+                if skip_next:
+                    skip_next = False
+                    continue
                 if is_section_label(line):
                     continue
+
+                # Shorten member names
+                if line.startswith(".. _") and line[len(".. _") :].startswith(
+                    interface_name
+                ):
+                    member_anchor = line
+                    continue
+                if member_anchor:
+                    # Skip until we find the title of the member
+                    if line == "" or not line.startswith(interface_name):
+                        continue
+                    else:
+                        # Preserve the original anchor, but change the title
+                        f.write(f".. _{line.rstrip()}:\n\n")
+                        member_name_with_symbol = line.removeprefix(interface_name)
+                        member_name = (
+                            member_name_with_symbol.removeprefix("::")
+                            .removeprefix(":")
+                            .removeprefix(".")
+                        ).strip()
+
+                        # Differentiate methods from signals and properties.
+                        if member_name_with_symbol.startswith("."):
+                            member_name += "()"
+
+                        f.write(f"{member_name}\n")
+                        f.write(f"{'^' * len(member_name)}\n")
+                        skip_next = True
+                        member_anchor = None
+                        continue
+
                 # Convert ---- overline+underline to ~~~~ underline-only
                 if not heading_written and set(line.strip()) == {"-"}:
                     continue
@@ -106,6 +142,9 @@ def adjust_title(lines):
 
     lines[3] = f"{adjusted_title}\n"
 
+    # Insert interface name after stripping from title.
+    lines.insert(9, f"**{title}**")
+
 
 inputs = sys.argv[3:]
 
@@ -143,7 +182,8 @@ for file in inputs:
         lines = f.readlines()
 
     adjust_title(lines)
-    desc_lines, found_sections = split_sections(lines, output_prefix)
+
+    desc_lines, found_sections = split_sections(lines, output_prefix, interface_name)
     out = strip_description_heading(desc_lines)
 
     prefix = f"{filename_prefix}-{interface_name}"
