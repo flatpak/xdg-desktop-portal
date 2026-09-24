@@ -8,6 +8,7 @@
 # general purpose script.
 
 import os
+import re
 import sys
 
 output_dir = sys.argv[1]
@@ -86,6 +87,15 @@ def split_sections(lines, output_prefix):
 
 def adjust_title(lines):
     title = lines[3].strip()
+    suffix = ""
+
+    # An experimental interface is org.freedesktop.portal.Name.X#. The major
+    # version is not part of the name and must not go through the CamelCase
+    # split, so it is taken off here and re-added as a label.
+    experimental = re.search(r"\.(X[0-9]+)$", title)
+    if experimental:
+        title = title[: experimental.start()]
+        suffix = f" (Experimental {experimental.group(1)})"
 
     if title.startswith("org.freedesktop.portal."):
         adjusted_title = title.replace("org.freedesktop.portal.", "")
@@ -104,7 +114,7 @@ def adjust_title(lines):
     if adjusted_title not in ["OpenURI", "ScreenCast"]:
         adjusted_title = "".join(x if x.islower() else f" {x}" for x in adjusted_title)
 
-    lines[3] = f"{adjusted_title}\n"
+    lines[3] = f"{adjusted_title}{suffix}\n"
 
 
 inputs = sys.argv[3:]

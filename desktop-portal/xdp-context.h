@@ -14,6 +14,7 @@ typedef enum _XdpContextExportFlags
   XDP_CONTEXT_EXPORT_FLAGS_SKIP_AUTH = (1 << 0),
   XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD = (1 << 1),
   XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER = (1 << 2),
+  XDP_CONTEXT_EXPORT_FLAGS_EXPERIMENTAL = (1 << 3),
 } XdpContextExportFlags;
 
 #define XDP_TYPE_CONTEXT (xdp_context_get_type())

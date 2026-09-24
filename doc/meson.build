@@ -89,6 +89,7 @@ if build_documentation
     'convenience-libraries.rst',
     'design-considerations.rst',
     'documents-and-fuse.rst',
+    'experimental-portals.rst',
     'for-app-developers.rst',
     'for-contributors.rst',
     'for-desktop-developers.rst',

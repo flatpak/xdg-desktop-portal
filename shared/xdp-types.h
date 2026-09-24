@@ -30,6 +30,7 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define DESKTOP_DBUS_IFACE "org.freedesktop.portal"
 #define DESKTOP_DBUS_IMPL_IFACE "org.freedesktop.impl.portal"
 #define DESKTOP_DBUS_PATH "/org/freedesktop/portal/desktop"
+#define DESKTOP_EXPERIMENTAL_DBUS_PATH DESKTOP_DBUS_PATH "/experimental"
 
 #define ACCESS_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Access"
 
