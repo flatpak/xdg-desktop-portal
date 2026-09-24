@@ -85,11 +85,11 @@ RUN git clone --depth 1 https://gitlab.gnome.org/GNOME/glib.git -b "2.88.0" && \
     cd - && \
     rm -rf glib
 
-# We need libdex 1.1 which is not in the ubuntu-latest repos yet
+# We need libdex 1.2 which is not in the ubuntu-latest repos yet
 RUN apt install -y --no-install-recommends liburing-dev
 RUN git clone https://gitlab.gnome.org/GNOME/libdex.git && \
     cd libdex && \
-    git checkout c81ea8719a4b257f2fd3fec34b6e16859400eed8 && \
+    git checkout 1.2.0 && \
     meson setup build --prefix=/usr --libdir="lib/$(gcc -print-multiarch)" \
       -Dgdbus=enabled -D introspection=disabled -Dvapi=false && \
     meson install -C build && \
