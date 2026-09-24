@@ -7,7 +7,6 @@
 #include "xdp-app-info-registry.h"
 
 #include "xdp-app-info.h"
-#include "xdp-dex.h"
 
 struct _XdpAppInfoRegistry
 {

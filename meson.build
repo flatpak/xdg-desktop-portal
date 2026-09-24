@@ -168,19 +168,12 @@ gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
 umockdev_dep = dependency('umockdev-1.0', required: get_option('tests'))
 libglnx_dep = dependency('libglnx')
 gvdb_dep = dependency('gvdb')
-libdex_dep = dependency('libdex-1', version: '>=1.1')
+libdex_dep = dependency('libdex-1', version: '>=1.2')
 
 libdex_codegen_ext = libdex_dep.get_variable('gdbus_codegen_extension', default_value: '')
 if libdex_codegen_ext == ''
   error('libdex needs to be build with gdbus support enabled')
 endif
-
-have = cc.has_function(
-  'dex_scheduler_spawnv',
-  prefix: '''#include <libdex.h>''',
-  dependencies: libdex_dep
-)
-config_h.set10('HAVE_DEX_SCHEDULER_SPAWNV', have)
 
 gst_inspect = find_program('gst-inspect-1.0', required: false)
 if gst_inspect.found()

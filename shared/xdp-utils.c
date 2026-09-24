@@ -18,7 +18,6 @@
 #include <sys/ioctl.h>
 #include <sys/random.h>
 
-#include "xdp-dex.h"
 #include "xdp-types.h"
 
 #if HAVE_PIDFD_OPEN
