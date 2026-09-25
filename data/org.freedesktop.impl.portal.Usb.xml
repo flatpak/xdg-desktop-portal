@@ -35,7 +35,7 @@
         access options for each device the app wants to acquire.
         The supported keys in the information vardict are the same as the
         keys in the @devices vardict of
-        :ref:`org.freedesktop.portal.Usb.EnumerateDevices`.
+        :ref:`org.freedesktop.portal.Usb.EnumerateDevices <org.freedesktop.portal.Usb.EnumerateDevices>`.
 
         The supported keys in the access options vardict are:
 

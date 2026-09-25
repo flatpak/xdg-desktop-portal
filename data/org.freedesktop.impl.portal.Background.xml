@@ -90,7 +90,8 @@
       RunningApplicationsChanged:
 
       This signal gets emitted when applications change their state
-      and it is worth calling GetAppState again.
+      and it is worth calling
+      :ref:`org.freedesktop.impl.portal.Background.GetAppState` again.
     -->
     <signal name="RunningApplicationsChanged">
     </signal>

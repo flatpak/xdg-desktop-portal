@@ -28,8 +28,8 @@
       in the POSIX mode bits in the fuse filesystem.
 
       The D-Bus interface for the document portal is available under the
-      bus name org.freedesktop.portal.Documents and the object path
-      /org/freedesktop/portal/documents.
+      bus name ``org.freedesktop.portal.Documents`` and the object path
+      ``/org/freedesktop/portal/documents``.
 
       This documentation describes version 5 of this interface.
   -->

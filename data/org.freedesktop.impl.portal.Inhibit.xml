@@ -24,7 +24,7 @@
         Inhibits session status changes. As a side-effect of this call,
         a :ref:`org.freedesktop.impl.portal.Request` object is exported on the
         object path @handle. To end the inhibition, call
-        :ref:`org.freedesktop.impl.portal.Request.Close` on that object.
+        :ref:`Request.Close() <org.freedesktop.impl.portal.Request.Close>` on that object.
 
         The @flags determine what changes are inhibited:
 
@@ -57,7 +57,8 @@
         @response: the result of the operation (0 == success)
 
         Creates a monitoring session. While this session is
-        active, the caller will receive StateChanged signals
+        active, the caller will receive
+        :ref:`org.freedesktop.impl.portal.Inhibit::StateChanged` signals
         with updates on the session state.
     -->
     <method name="CreateMonitor">
@@ -73,13 +74,15 @@
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @state: Vardict with information about the session state
 
-        The StateChanged signal is sent to active monitoring sessions when
+        The :ref:`org.freedesktop.impl.portal.Inhibit::StateChanged` signal is
+        sent to active monitoring sessions when
         the session state changes.
 
         When the session state changes to 'Query End', clients with active monitoring
         sessions are expected to respond by calling
         :ref:`org.freedesktop.impl.portal.Inhibit.QueryEndResponse` within a second
-        of receiving the StateChanged signal.
+        of receiving the :ref:`org.freedesktop.impl.portal.Inhibit::StateChanged`
+        signal.
 
         The following information may get returned in the @state vardict:
 
@@ -107,7 +110,8 @@
 
         Acknowledges that the caller received the
         :ref:`org.freedesktop.impl.portal.Inhibit::StateChanged`
-        signal. This method should be called within one second of receiving a StateChanged
+        signal. This method should be called within one second of receiving a
+        :ref:`org.freedesktop.impl.portal.Inhibit::StateChanged`
         signal with the 'Query End' state.
     -->
     <method name="QueryEndResponse">

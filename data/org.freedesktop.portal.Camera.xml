@@ -27,8 +27,10 @@
           object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
-        Following the :ref:`org.freedesktop.portal.Request::Response` signal, if
-        granted, :ref:`org.freedesktop.portal.Camera.OpenPipeWireRemote` can be used to
+        Following the
+        :ref:`Request::Response <org.freedesktop.portal.Request::Response>`
+        signal, if granted,
+        :ref:`org.freedesktop.portal.Camera.OpenPipeWireRemote` can be used to
         open a PipeWire remote.
     -->
     <method name="AccessCamera">

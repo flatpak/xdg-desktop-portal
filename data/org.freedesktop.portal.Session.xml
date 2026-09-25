@@ -17,7 +17,7 @@
       The duration of the session is defined by the interface that creates it.
       For convenience, the interface contains a method
       :ref:`org.freedesktop.portal.Session.Close`, and a signal
-      #org.freedesktop.portal.Session::Closed. Whether it is allowed to directly
+      :ref:`org.freedesktop.portal.Session::Closed`. Whether it is allowed to directly
       call :ref:`org.freedesktop.portal.Session.Close` depends on the interface.
 
       The handle of a session will be of the form

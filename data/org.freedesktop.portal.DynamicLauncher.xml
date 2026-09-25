@@ -106,7 +106,7 @@
         * ``launcher_type`` (``u``)
 
           The type of launcher being created. For supported values see the
-          #org.freedesktop.portal.DynamicLauncher:SupportedLauncherTypes property.
+          :ref:`org.freedesktop.portal.DynamicLauncher:SupportedLauncherTypes` property.
           Defaults to "Application".
 
         * ``target`` (``s``)

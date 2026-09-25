@@ -30,7 +30,7 @@
       <https://gitlab.freedesktop.org/wayland/wayland-protocols/-/blob/main/staging/xdg-activation/xdg-activation-v1.xml>`_
       and an application-defined ``target`` is passed when activating the action.
       Other actions are activated by sending the
-      #org.freedesktop.portal.Notification::ActionInvoked signal
+      :ref:`org.freedesktop.portal.Notification::ActionInvoked` signal
       to the application.
 
       This documentation describes version 2 of this interface.
@@ -290,7 +290,7 @@
               The user response (``s``) will be placed as the second value
               in the parameter array of exported actions.
               For non-exported actions it will be placed as the third value
-              in the parameter array of #org.freedesktop.portal.Notification::ActionInvoked.
+              in the parameter array of :ref:`org.freedesktop.portal.Notification::ActionInvoked`.
 
           * ``alarm.ringing``
 

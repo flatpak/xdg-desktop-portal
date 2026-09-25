@@ -15,7 +15,7 @@
       user interaction related to the method call.
 
       The portal indicates that a portal request interaction is over by
-      emitting the #org.freedesktop.portal.Request::Response signal on the
+      emitting the :ref:`org.freedesktop.portal.Request::Response` signal on the
       Request object.
 
       The application can abort the interaction by calling
@@ -50,7 +50,8 @@
         Closes the portal request to which this object refers and ends all
         related user interaction (dialogs, etc).
 
-        A Response signal will not be emitted in this case.
+        A :ref:`org.freedesktop.portal.Request::Response` signal will not be
+        emitted in this case.
     -->
     <method name="Close">
     </method>

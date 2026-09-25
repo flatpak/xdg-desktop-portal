@@ -18,7 +18,7 @@
         @app_id: App ID of the application
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @name: The default name for the launcher
-        @icon_v: A #GBytesIcon as returned by g_icon_serialize()
+        @icon_v: A #GBytesIcon as returned by ``g_icon_serialize()``
         @options: Vardict with optional further information
         @response: Numeric response (0 == success)
         @results: Vardict with the results of the call
@@ -35,7 +35,8 @@
         * ``launcher_type`` (``u``)
 
           The type of launcher being created. For supported values see the
-          SupportedLauncherTypes property. Defaults to "Application".
+          :ref:`org.freedesktop.impl.portal.DynamicLauncher:SupportedLauncherTypes`
+          property. Defaults to "Application".
 
         * ``target`` (``s``)
 
@@ -86,9 +87,9 @@
         The @response returned by this method is used to determine whether to
         give an install token to the caller, which can be used to avoid the need
         for a confirmation dialog; the token can be passed to the
-        :ref:`org.freedesktop.portal.DynamicLauncher.Install` method just as if it
+        :ref:`org.freedesktop.portal.DynamicLauncher.Install <org.freedesktop.portal.DynamicLauncher.Install>` method just as if it
         were acquired via the
-        :ref:`org.freedesktop.portal.DynamicLauncher.PrepareInstall` method.
+        :ref:`org.freedesktop.portal.DynamicLauncher.PrepareInstall <org.freedesktop.portal.DynamicLauncher.PrepareInstall>` method.
 
         It is up to the portal implementation to decide whether this method is
         allowed based on the @app_id of the caller.

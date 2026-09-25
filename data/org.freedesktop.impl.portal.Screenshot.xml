@@ -48,7 +48,8 @@
         * ``target`` (``u``)
 
           The screenshot target. It is a single target value, not a bitmask, and
-          must be one of the targets advertised in AvailableTargets. If this option
+          must be one of the targets advertised in
+          :ref:`org.freedesktop.impl.portal.Screenshot:AvailableTargets`. If this option
           is omitted, the backend should preserve the previous Screenshot
           behavior. Available targets are:
 
