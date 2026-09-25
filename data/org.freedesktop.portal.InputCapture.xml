@@ -20,17 +20,22 @@
       Session lifecycle
       ~~~~~~~~~~~~~~~~~
 
-      An input capture session is created with ``CreateSession2()``. The
-      session must then be started with ``Start()``, which typically
+      An input capture session is created with
+      :ref:`org.freedesktop.portal.InputCapture.CreateSession2`. The
+      session must then be started with
+      :ref:`org.freedesktop.portal.InputCapture.Start`, which typically
       presents a dialog to the user. Optionally,
-      :ref:`org.freedesktop.portal.Clipboard.RequestClipboard` can be
-      called before starting to enable clipboard sharing.
+      :ref:`Clipboard.RequestClipboard() <org.freedesktop.portal.Clipboard.RequestClipboard>`
+      can be called before starting to enable clipboard sharing.
 
       After starting, the application connects to EIS via
-      ``ConnectToEIS()``, retrieves the available screen zones with
-      ``GetZones()``, and sets up pointer barriers with
-      ``SetPointerBarriers()``. Finally, ``Enable()`` arms the session
-      for capture.
+      :ref:`org.freedesktop.portal.InputCapture.ConnectToEIS`, retrieves the
+      available screen zones with
+      :ref:`org.freedesktop.portal.InputCapture.GetZones`, and sets up pointer
+      barriers with
+      :ref:`org.freedesktop.portal.InputCapture.SetPointerBarriers`. Finally,
+      :ref:`org.freedesktop.portal.InputCapture.Enable` arms the session for
+      capture.
 
       Enabled and active states
       ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -40,12 +45,14 @@
       - **Enabled:** The application has requested that input should be
         captured when certain conditions are met, but no input events
         are being delivered yet. The application controls this state
-        via ``Enable()`` and ``Disable()``.
+        via :ref:`org.freedesktop.portal.InputCapture.Enable` and
+        :ref:`org.freedesktop.portal.InputCapture.Disable`.
 
       - **Active:** Input events are being delivered to the application.
         Only the compositor decides when to enter this state. The
-        ``Activated`` signal is emitted when capture starts, and
-        ``Deactivated`` when it stops.
+        :ref:`org.freedesktop.portal.InputCapture::Activated` signal is emitted
+        when capture starts, and
+        :ref:`org.freedesktop.portal.InputCapture::Deactivated` when it stops.
 
       The compositor is always in control of input capturing and may
       filter events or stop capturing at any time. There is currently no
@@ -59,10 +66,11 @@
       screen zones that trigger when the cursor moves across them.
 
       Zones represent logical screen areas available to the session and
-      are retrieved with ``GetZones()``. Each set of zones has a unique
+      are retrieved with :ref:`org.freedesktop.portal.InputCapture.GetZones`.
+      Each set of zones has a unique
       ``zone_set`` ID. When zones change (e.g. a monitor is unplugged),
-      the ``ZonesChanged`` signal is emitted and the application must
-      re-request zones and re-establish barriers.
+      the :ref:`org.freedesktop.portal.InputCapture::ZonesChanged` signal is
+      emitted and the application must re-request zones and re-establish barriers.
 
       Pointer barriers must be placed at the outside boundary of zones
       and must be fully contained within one zone.
@@ -72,9 +80,11 @@
 
       The InputCapture portal manages when input should be captured. The
       transport of actual input events is handled by libei via the
-      ``ConnectToEIS()`` method. The EIS connection persists across
-      ``Enable()``/``Disable()`` cycles and only needs to be set up once
-      per session.
+      :ref:`org.freedesktop.portal.InputCapture.ConnectToEIS` method. The EIS
+      connection persists across
+      :ref:`org.freedesktop.portal.InputCapture.Enable` /
+      :ref:`org.freedesktop.portal.InputCapture.Disable` cycles and only needs
+      to be set up once per session.
 
       .. include:: doc-org.freedesktop.portal.InputCapture.properties.rst
 
@@ -90,12 +100,14 @@
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         This method was deprecated in version 2 of this interface, see
-        CreateSession2 instead.
+        :ref:`org.freedesktop.portal.InputCapture.CreateSession2` instead.
 
         Create an input capture session. A successfully created session can at
-        any time be closed using :ref:`org.freedesktop.portal.Session.Close`, or may
+        any time be closed using
+        :ref:`Session.Close() <org.freedesktop.portal.Session.Close>`, or may
         at any time be closed by the portal implementation, which will be
-        signalled via :ref:`org.freedesktop.portal.Session::Closed`.
+        signalled via
+        :ref:`Session::Closed <org.freedesktop.portal.Session::Closed>`.
 
         Supported keys in the @options vardict include:
 
@@ -113,10 +125,12 @@
 
         * ``capabilities`` (``u``)
 
-          Bitmask of requested capabilities, see the SupportedCapabilities property.
-          This value is required and must not be zero.
+          Bitmask of requested capabilities, see the
+          :ref:`org.freedesktop.portal.InputCapture:SupportedCapabilities`
+          property. This value is required and must not be zero.
 
-        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+        The following results get returned via the
+        :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal:
 
         * ``session_handle`` (``o``)
 
@@ -128,7 +142,9 @@
 
           The capabilities available to this session. This is always a
           subset of the requested capabilities.
-          See the SupportedCapabilities property for details. Note that
+          See the
+          :ref:`org.freedesktop.portal.InputCapture:SupportedCapabilities`
+          property for details. Note that
           while a capability may be available to a session, there is no
           guarantee a device with that capability is currently available
           or if one does become available that it will trigger input capture.
@@ -148,18 +164,22 @@
     <!--
         CreateSession2:
         @options: Vardict with optional further information
-        @session_handle: Object path for the session.
+        @results: Vardict with the results of the call
 
         Create an input capture session. A successfully created session can at
-        any time be closed using :ref:`org.freedesktop.portal.Session.Close`, or may
+        any time be closed using
+        :ref:`Session::Close() <org.freedesktop.portal.Session.Close>`, or may
         at any time be closed by the portal implementation, which will be
-        signalled via :ref:`org.freedesktop.portal.Session::Closed`.
+        signalled via
+        :ref:`Session::Closed <org.freedesktop.portal.Session::Closed>`.
 
-        The session must be started with :ref:`org.freedesktop.portal.InputCapture.Start`
+        The session must be started with
+        :ref:`org.freedesktop.portal.InputCapture.Start`
         before using methods in this interface which take a session.
 
         To capture clipboard content, you can call
-        :ref:`org.freedesktop.portal.Clipboard.RequestClipboard`. When clipboard
+        :ref:`Clipboard.RequestClipboard() <org.freedesktop.portal.Clipboard.RequestClipboard>`.
+        When clipboard
         access has been granted (see ``clipboard_enabled`` in
         :ref:`org.freedesktop.portal.InputCapture.Start`), the clipboard may be
         accessed, but only when the session is active. See
@@ -202,8 +222,11 @@
         presenting a dialog letting the user decide whether they want to allow the
         input of the session to be captured, and what capabilities to support.
 
-        This method may only be called once on a session previously created with CreateSession2.
-        Sessions created by the deprecated CreateSession are immediately started.
+        This method may only be called once on a session previously created with
+        :ref:`org.freedesktop.portal.InputCapture.CreateSession2`.
+        Sessions created by the deprecated
+        :ref:`org.freedesktop.portal.InputCapture.CreateSession` are immediately
+        started.
 
         Supported keys in the @options vardict include:
 
@@ -215,7 +238,9 @@
 
         * ``capabilities`` (``u``)
 
-          Bitmask of requested capabilities, see the SupportedCapabilities property.
+          Bitmask of requested capabilities, see the
+          :ref:`org.freedesktop.portal.InputCapture:SupportedCapabilities`
+          property.
           This value is required and must not be zero.
 
         * ``restore_token`` (``s``)
@@ -242,21 +267,24 @@
           - ``2``: Permissions persist until explicitly revoked
 
           If the permission for the session to persist is granted, a restore token will
-          be returned via the :ref:`org.freedesktop.portal.Request::Response` signal of the
-          start method used to start the session.
+          be returned via the
+          :ref:`Request::Response <org.freedesktop.portal.Request::Response>`
+          signal of the start method used to start the session.
 
           This option was added in version 2 of this interface.
 
-        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+        The following results get returned via the :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal:
 
         * ``capabilities`` (``u``)
 
           The capabilities available to this session. This is always a
           subset of the requested capabilities.
-          See the SupportedCapabilities property for details. Note that
-          while a capability may be available to a session, there is no
-          guarantee a device with that capability is currently available
-          or if one does become available that it will trigger input capture.
+          See the
+          :ref:`org.freedesktop.portal.InputCapture:SupportedCapabilities`
+          property for details. Note that while a capability may be
+          available to a session, there is no guarantee a device with
+          that capability is currently available or if one does become
+          available that it will trigger input capture.
 
           It is best to view this set as a negative confirmation - a
           capability that was requested but is missing is an indication that
@@ -272,7 +300,8 @@
 
           The restore token. This token is a single use token that can later
           be used to restore a session. See
-          :ref:`org.freedesktop.portal.RemoteDesktop.SelectDevices` for details.
+          :ref:`RemoteDesktop.SelectDevices() <org.freedesktop.portal.RemoteDesktop.SelectDevices>`
+          for details.
 
           This response option was added in version 2 of this interface.
 
@@ -302,15 +331,16 @@
         "Region".
 
         If the zones change (e.g. a monitor is unplugged), the
-        #org.freedesktop.portal.InputCapture::ZonesChanged signal is emitted
-        and the application should re-request the current zones to update its
-        internal state.
+        :ref:`org.freedesktop.portal.InputCapture::ZonesChanged` signal is
+        emitted and the application should re-request the current zones to
+        update its internal state.
 
         Note that zones are session-specific, there is no guarantee that two
         applications see the same screen zones. An empty zone list implies
         that no pointer barriers can be set.
 
-        Whenever the application calls GetZones, the current
+        Whenever the application calls
+        :ref:`org.freedesktop.portal.InputCapture.GetZones`, the current
         ``zone_set`` ID is returned that references the current set of zones. To
         establish a pointer barrier, the application must pass this ID to
         :ref:`org.freedesktop.portal.InputCapture.SetPointerBarriers`. A mismatch of
@@ -323,7 +353,7 @@
         the ``zone_set`` ID by a sensible amount to allow for
         wrapping detection.
 
-        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+        The following results get returned via the :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal:
 
         * ``zones`` (``a(uuii)``)
 
@@ -406,7 +436,7 @@
         * ``barrier_id`` (``u``)
 
           The non-zero ID of this barrier. This ID is used in the
-          #org.freedesktop.portal.InputCapture::Activated signal to inform
+          :ref:`org.freedesktop.portal.InputCapture::Activated` signal to inform
           which barrier triggered input capture.
 
         * ``position`` (``(iiii)``)
@@ -415,7 +445,7 @@
           pointer barrier must have y1 == y2, a vertical pointer barrier
           must have x1 == x2. Diagonal pointer barriers are not supported.
 
-        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+        The following results get returned via the :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal:
 
         * ``failed_barriers`` (``au``)
 
@@ -440,7 +470,7 @@
         Enable input capturing. This does not immediately trigger capture, it
         merely enables the capturing to be triggered at some future point
         (e.g. by the cursor moving across a barrier). If and when that happens,
-        the #org.freedesktop.portal.InputCapture::Activated signal is emitted.
+        the :ref:`org.freedesktop.portal.InputCapture::Activated` signal is emitted.
     -->
     <method name="Enable">
       <arg type="o" name="session_handle" direction="in"/>
@@ -454,15 +484,16 @@
         @options: Vardict with optional further information
 
         Disable input capturing. No
-        #org.freedesktop.portal.InputCapture::Disabled signal will be emitted.
+        :ref:`org.freedesktop.portal.InputCapture::Disabled` signal will be
+        emitted.
 
         If input capturing is currently ongoing, no
-        #org.freedesktop.portal.InputCapture::Deactivated signal will be
+        :ref:`org.freedesktop.portal.InputCapture::Deactivated` signal will be
         emitted.
 
         Due to the asynchronous nature of this protocol,
-        #org.freedesktop.portal.InputCapture::Deactivated
-        and/or #org.freedesktop.portal.InputCapture::Disabled signals may
+        :ref:`org.freedesktop.portal.InputCapture::Deactivated`
+        and/or :ref:`org.freedesktop.portal.InputCapture::Disabled` signals may
         nevertheless be received by the application after a call to
         :ref:`org.freedesktop.portal.InputCapture.Disable`.
 
@@ -481,19 +512,21 @@
         @options: Vardict with optional further information
 
         Release any ongoing input capture. No
-        #org.freedesktop.portal.InputCapture::Deactivated signal will be emitted.
+        :ref:`org.freedesktop.portal.InputCapture::Deactivated` signal will be
+        emitted.
 
         Due to the asynchronous nature of this protocol, a
-        #org.freedesktop.portal.InputCapture::Deactivated
-        signal may
+        :ref:`org.freedesktop.portal.InputCapture::Deactivated` signal may
         nevertheless be received by the application after a call to
         :ref:`org.freedesktop.portal.InputCapture.Release`.
 
         The ``activation_id`` provided in the @options vardict specifies which
         currently ongoing input capture should be terminated. The asynchronous
         nature of this portal allows for an input capture to be Deactivated and
-        a new input capture to be Activated before the client requests the
-        Release for the previous input capture.
+        a new input capture to be
+        :ref:`org.freedesktop.portal.InputCapture::Activated` before the client
+        requests the :ref:`org.freedesktop.portal.InputCapture.Release` for the
+        previous input capture.
 
         A compositor should ignore a
         :ref:`org.freedesktop.portal.InputCapture.Release` request for a no longer active
@@ -504,7 +537,7 @@
         * ``activation_id`` (``u``)
 
           The same ``activation_id`` number as in the
-          #org.freedesktop.portal.InputCapture::Activated signal.
+          :ref:`org.freedesktop.portal.InputCapture::Activated` signal.
 
         * ``cursor_position`` (``(dd)``)
 
@@ -551,7 +584,7 @@
 
         The Disabled signal is emitted when the application will no longer
         receive captured input. If input capturing is currently ongoing, the
-        #org.freedesktop.portal.InputCapture::Deactivated signal is emitted
+        :ref:`org.freedesktop.portal.InputCapture::Deactivated` signal is emitted
         before this signal.
 
         Applications must call :ref:`org.freedesktop.portal.InputCapture.Enable` to
@@ -568,7 +601,8 @@
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
 
-        The Activated signal is emitted when input capture starts and input events
+        The :ref:`org.freedesktop.portal.InputCapture::Activated` signal is
+        emitted when input capture starts and input events
         are about to be sent to the application.
 
         This signal is only emitted after a prior call
@@ -641,7 +675,7 @@
         * ``activation_id`` (``u``)
 
             The same ``activation_id`` number as in the corresponding
-            #org.freedesktop.portal.InputCapture::Activated signal.
+            :ref:`org.freedesktop.portal.InputCapture::Activated` signal.
     -->
     <signal name="Deactivated">
       <arg type="o" name="session_handle" direction="out"/>
@@ -654,15 +688,15 @@
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
 
-        The ZonesChanged signal is emitted when the set of zones
+        The :ref:`org.freedesktop.portal.InputCapture::ZonesChanged` signal is emitted when the set of zones
         available **to this session** change. An application should immediately
         call :ref:`org.freedesktop.portal.InputCapture.GetZones` to update its state
         of the zones followed by
         :ref:`org.freedesktop.portal.InputCapture.SetPointerBarriers` to re-establish
         the pointer barriers.
 
-        The ZonesChanged signal includes the ``zone_set`` ID of the set of zones
-        invalidated, see #org.freedesktop.portal.InputCapture.GetZones().
+        The :ref:`org.freedesktop.portal.InputCapture::ZonesChanged` signal includes the ``zone_set`` ID of the set of zones
+        invalidated, see :ref:`org.freedesktop.portal.InputCapture.GetZones`.
         Due to the asynchronous nature of this protocol, the ``zone_set`` ID may
         identify a set of zones that the application has never (or not yet) seen.
         Applications must be able to handle unknown ``zone_set`` IDs. In particular,

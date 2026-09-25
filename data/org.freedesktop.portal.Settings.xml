@@ -82,8 +82,10 @@
 
       Reads a single value. Returns an error on any unknown namespace or key.
 
-      Deprecated, use ReadOne instead. The value argument was intended to have
-      the value inside one layer of variant as it is in ReadOne, for example
+      Deprecated, use
+      :ref:`org.freedesktop.portal.Settings.ReadOne` instead. The value argument
+      was intended to have the value inside one layer of variant as it is in
+      :ref:`org.freedesktop.portal.Settings.ReadOne`, for example
       `&lt;string "hello"&gt;` in GVariant text notation; but it is actually
       returned inside two layers of variant, for example
       `&lt;&lt;string "hello"&gt;&gt;`.

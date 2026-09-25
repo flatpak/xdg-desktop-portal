@@ -21,8 +21,8 @@
       All global shortcuts are bound to a session, and all sessions are bound to
       the application that created them.
 
-      The #org.freedesktop.portal.GlobalShortcuts::Activated and
-      #org.freedesktop.portal.GlobalShortcuts::Deactivated signals are emitted,
+      The :ref:`org.freedesktop.portal.GlobalShortcuts::Activated` and
+      :ref:`org.freedesktop.portal.GlobalShortcuts::Deactivated` signals are emitted,
       respectively, whenever a shortcut is activated and deactivated.
 
       This documentation describes version 2 of this interface.
@@ -46,15 +46,15 @@
         * ``session_handle_token`` (``s``)
 
           A string that will be used as the last element of the session handle. Must be a valid
-          object path element. See the org.freedesktop.portal.Session documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
           more information about the session handle.
 
-        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+        The following results get returned via the :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal:
 
         * ``session_handle`` (``s``)
 
           The session handle. An object path for the
-          org.freedesktop.portal.Session object representing the created
+          :ref:`org.freedesktop.portal.Session` object representing the created
           session.
 
           .. note::
@@ -101,7 +101,9 @@
           :ref:`org.freedesktop.portal.Request` documentation for more
           information about the @handle.
 
-        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+        .. _bind-shortcuts-response:
+
+        The following results get returned via the :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal:
 
         * ``shortcuts`` (``a(sa{sv})``)
 
@@ -112,7 +114,7 @@
           the keys in the @shortcuts variable of this method.
 
         Each element of the @shortcuts array returned by the
-        :ref:`org.freedesktop.portal.Request::Response` signal is a tuple composed of
+        :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal is a tuple composed of
         a shortcut ID, and a vardict with the following keys:
 
         * ``description`` (``s``)
@@ -153,15 +155,15 @@
           :ref:`org.freedesktop.portal.Request` documentation for more
           information about the @handle.
 
-        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+        The following results get returned via the :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal:
 
         * ``shortcuts`` (``a(sa{sv})``)
 
           A list of shortcuts.
 
-          See the :ref:`org.freedesktop.portal.Request::Response` signal of the
-          :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts` method for
-          the list of supported properties of shortcuts.
+          See the
+          :ref:`BindShortcuts() response properties <bind-shortcuts-response>`
+          for the list of supported properties of ``shortcuts``.
     -->
     <method name="ListShortcuts">
       <arg type="o" name="session_handle" direction="in"/>
@@ -248,9 +250,9 @@
 
         Indicates that the information associated with some of the shortcuts has changed.
 
-        See the :ref:`org.freedesktop.portal.Request::Response` signal of the
-        :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts` method for the
-        list of supported properties of shortcuts.
+        See the
+        :ref:`BindShortcuts() response properties <bind-shortcuts-response>`
+        for the list of supported properties of @shortcuts.
     -->
     <signal name="ShortcutsChanged">
       <arg type="o" name="session_handle" direction="out"/>

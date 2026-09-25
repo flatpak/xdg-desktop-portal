@@ -10,7 +10,7 @@
       @short_description: Portal for accessing GameMode
 
       Interface for accessing GameMode from within the sandbox. It
-      is analogous to the com.feralinteractive.GameMode interface
+      is analogous to the ``com.feralinteractive.GameMode`` interface
       and will proxy requests there, but with additional permission
       checking and PID mapping. The latter is necessary in the case
       that the sandbox has PID namespace isolation enabled. See the man
@@ -20,7 +20,7 @@
       separate process IDs (PID) within two different namespaces
       that both identify same process. One ID from the PID namespace
       inside the sandbox and one ID from the host PID namespace.
-      Since org.freedesktop.portal.GameMode expects pids from the host
+      Since #org.freedesktop.portal.GameMode expects pids from the host
       PID namespace but programs inside the sandbox can only know PID
       from the sandbox namespace, process IDs need to be translated from
       the portal to the host namespace. The portal will do that transparently
@@ -99,7 +99,7 @@
           isolation, the @pid will be translated to the respective host PID.
 
           The @result will be one of:
-          
+
           - `0` if the game with @pid was successfully un-registered
           - `-1` if the request was rejected by GameMode
       -->

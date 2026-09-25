@@ -9,7 +9,7 @@
        org.freedesktop.portal.FileTransfer:
        @short_description: Portal for transferring files between apps
 
-       The #org.freedesktop.portal.FileTransfer portal operates as a middle-man
+       The :ref:`org.freedesktop.portal.FileTransfer` portal operates as a middle-man
        between apps when transferring files via drag-and-drop or copy-paste,
        taking care of the necessary exporting of files in the document portal.
 
@@ -136,10 +136,12 @@
 
     <!--
         TransferClosed:
-        @key: key returned by StartTransfer
+        @key: key returned by :ref:`org.freedesktop.portal.FileTransfer.StartTransfer`
 
-        The TransferClosed signal is emitted to the caller of StartTransfer
-        when the transfer is closed.
+        The :ref:`org.freedesktop.portal.FileTransfer::TransferClosed` signal is
+        emitted to the caller of
+        :ref:`org.freedesktop.portal.FileTransfer.StartTransfer` when the
+        transfer is closed.
     -->
     <signal name="TransferClosed">
       <arg type="s" name="key"/>

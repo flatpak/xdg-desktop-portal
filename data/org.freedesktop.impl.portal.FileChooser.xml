@@ -51,22 +51,22 @@
         * ``filters`` (``a(sa(us))``)
 
           A list of serialized file filters.
-          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile <org.freedesktop.portal.FileChooser.OpenFile>` for details.
 
         * ``current_filter`` (``(sa(us))``)
 
           Request that this filter be set by default at dialog creation.
-          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile <org.freedesktop.portal.FileChooser.OpenFile>` for details.
 
         * ``choices`` (``a(ssa(ss)s)``)
 
           A list of serialized combo boxes.
-          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile <org.freedesktop.portal.FileChooser.OpenFile>` for details.
 
         * ``current_folder`` (``ay``)
 
           A suggested folder to open the files from.
-          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile <org.freedesktop.portal.FileChooser.OpenFile>` for details.
 
         The following results get returned via the @results vardict:
 
@@ -78,12 +78,12 @@
         * ``choices`` (``a(ss)``)
 
           An array of pairs of strings, corresponding to the passed-in choices.
-          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile <org.freedesktop.portal.FileChooser.OpenFile>` for details.
 
         * ``current_filter`` (``(sa(us))``)
 
           The filter that was selected.
-          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile <org.freedesktop.portal.FileChooser.OpenFile>` for details.
 
         * ``writable`` (``b``)
 
@@ -125,17 +125,17 @@
         * ``filters`` (``a(sa(us))``)
 
           A list of serialized file filters.
-          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile <org.freedesktop.portal.FileChooser.OpenFile>` for details.
 
         * ``current_filter`` (``(sa(us))``)
 
           Request that this filter be set by default at dialog creation.
-          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile <org.freedesktop.portal.FileChooser.OpenFile>` for details.
 
         * ``choices`` (``a(ssa(ss)s)``)
 
           A list of serialized combo boxes.
-          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile <org.freedesktop.portal.FileChooser.OpenFile>` for details.
 
         * ``current_name`` (``s``)
 
@@ -159,12 +159,12 @@
         * ``choices`` (``a(ss)``)
 
           An array of pairs of strings, corresponding to the passed-in choices.
-          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile <org.freedesktop.portal.FileChooser.OpenFile>` for details.
 
         * ``current_filter`` (``(sa(us))``)
 
           The filter that was selected.
-          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile <org.freedesktop.portal.FileChooser.OpenFile>` for details.
     -->
     <method name="SaveFile">
       <arg type="o" name="handle" direction="in"/>
@@ -207,7 +207,7 @@
         * ``choices`` (``a(ssa(ss)s)``)
 
           List of serialized combo boxes.
-          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile <org.freedesktop.portal.FileChooser.OpenFile>` for details.
 
         * ``current_folder`` (``ay``)
 
@@ -233,7 +233,7 @@
         * ``choices`` (``a(ss)``)
 
           An array of pairs of strings, corresponding to the passed-in choices.
-          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile <org.freedesktop.portal.FileChooser.OpenFile>` for details.
     -->
     <method name="SaveFiles">
       <arg type="o" name="handle" direction="in"/>

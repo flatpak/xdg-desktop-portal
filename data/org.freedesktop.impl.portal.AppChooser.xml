@@ -89,9 +89,12 @@
         @handle: the request handle
         @choices: App IDs of applications to let the user choose from
 
-        This method can be called between the time of a ChooseApplication call
-        and receiving the Response signal, to update the list of applications
-        that are offered by the backend.
+        This method can be called between the time of a
+        :ref:`org.freedesktop.impl.portal.AppChooser.ChooseApplication` call
+        and receiving the
+        :ref:`Request::Response <org.freedesktop.portal.Request::Response>`
+        signal, to update the list of applications that are offered by the
+        backend.
     -->
     <method name="UpdateChoices">
       <arg type="o" name="handle" direction="in"/>

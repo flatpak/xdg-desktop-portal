@@ -16,10 +16,13 @@
       Session lifecycle
       ~~~~~~~~~~~~~~~~~
 
-      A remote desktop session is created with ``CreateSession()``. The
-      application then calls ``SelectDevices()`` to choose which device
-      types to remote control (keyboard, pointer, touchscreen). Calling
-      ``Start()`` presents a dialog to the user and, upon success, returns
+      A remote desktop session is created with
+      :ref:`org.freedesktop.portal.RemoteDesktop.CreateSession`. The
+      application then calls
+      :ref:`org.freedesktop.portal.RemoteDesktop.SelectDevices` to choose which
+      device types to remote control (keyboard, pointer, touchscreen). Calling
+      :ref:`org.freedesktop.portal.RemoteDesktop.Start` presents a dialog to the
+      user and, upon success, returns
       the set of devices granted.
 
       Cross-portal integration
@@ -28,13 +31,17 @@
       A remote desktop session can be used with other portals by passing
       the session created here to their methods:
 
-      - :ref:`org.freedesktop.portal.ScreenCast`: Call ``SelectSources()``
-        and ``OpenPipeWireRemote()`` with the remote desktop session to
-        capture screen content alongside input control. The session must
+      - :ref:`org.freedesktop.portal.ScreenCast`: Call
+        :ref:`ScreenCast.SelectSources() <org.freedesktop.portal.ScreenCast.SelectSources>`
+        and
+        :ref:`ScreenCast.OpenPipeWireRemote() <org.freedesktop.portal.ScreenCast.OpenPipeWireRemote>`
+        with the remote desktop session to capture screen content alongside
+        input control. The session must
         be started and stopped through this portal.
 
       - :ref:`org.freedesktop.portal.Clipboard`: Call
-        ``RequestClipboard()`` before starting the session to enable
+        :ref:`Clipboard.RequestClipboard() <org.freedesktop.portal.Clipboard.RequestClipboard>`
+        before starting the session to enable
         clipboard sharing.
 
       Input methods
@@ -43,25 +50,27 @@
       There are two ways to send input events to the remote desktop
       session:
 
-      - **EIS (recommended):** Call ``ConnectToEIS()`` after starting the
-        session to obtain a file descriptor for a libei sender context.
+      - **EIS (recommended):** Call
+        :ref:`org.freedesktop.portal.RemoteDesktop.ConnectToEIS` after starting
+        the session to obtain a file descriptor for a libei sender context.
         Input events are sent via the EI protocol. Once an EIS connection
         is established, the ``Notify*`` D-Bus methods must not be used.
 
       - **D-Bus Notify methods:** Use the various ``Notify*`` methods
-        (``NotifyPointerMotion()``, ``NotifyKeyboardKeycode()``, etc.) to
-        send input events over D-Bus.
+        (:ref:`org.freedesktop.portal.RemoteDesktop.NotifyPointerMotion`,
+        :ref:`org.freedesktop.portal.RemoteDesktop.NotifyKeyboardKeycode`, etc.)
+        to send input events over D-Bus.
 
       Session persistence
       ~~~~~~~~~~~~~~~~~~~
 
       Remote desktop sessions support persistence using the
       ``persist_mode`` and ``restore_token`` options in
-      ``SelectDevices()``. Persistence for combined remote desktop and
-      screen cast sessions is managed exclusively through this portal; the
-      persistence options in
-      :ref:`org.freedesktop.portal.ScreenCast.SelectSources` must not be
-      used with a remote desktop session.
+      :ref:`org.freedesktop.portal.RemoteDesktop.SelectDevices`. Persistence for
+      combined remote desktop and screen cast sessions is managed exclusively
+      through this portal; the persistence options in
+      :ref:`ScreenCast.SelectSources() <org.freedesktop.portal.ScreenCast.SelectSources>`
+      must not be used with a remote desktop session.
 
       .. include:: doc-org.freedesktop.portal.RemoteDesktop.properties.rst
 
@@ -83,14 +92,20 @@
         A remote desktop session may only be started and stopped with this interface,
         but you can use the :ref:`org.freedesktop.portal.Session` object created with this
         method together with certain methods on the :ref:`org.freedesktop.portal.ScreenCast` and
-        :ref:`org.freedesktop.portal.Clipboard` interfaces. Specifically, you can call
-        :ref:`org.freedesktop.portal.ScreenCast.SelectSources` to also get screen content,
-        and :ref:`org.freedesktop.portal.ScreenCast.OpenPipeWireRemote` to acquire a file
-        descriptor for a PipeWire remote. See :ref:`org.freedesktop.portal.ScreenCast` for
-        more information on how to use those methods. To capture clipboard content,
-        you can call :ref:`org.freedesktop.portal.Clipboard.RequestClipboard`. See
-        :ref:`org.freedesktop.portal.Clipboard` for more information on the clipboard
-        integration.
+        :ref:`org.freedesktop.portal.Clipboard` interfaces.
+
+      I  Specifically, you can call
+        :ref:`ScreenCast.SelectSources() <org.freedesktop.portal.ScreenCast.SelectSources>`
+        to also get screen content, and
+        :ref:`ScreenCast.OpenPipeWireRemote() <org.freedesktop.portal.ScreenCast.OpenPipeWireRemote>`
+        to acquire a file descriptor for a PipeWire remote.
+        See :ref:`org.freedesktop.portal.ScreenCast` for more information on how
+        to use those methods.
+
+        To capture clipboard content, you can call
+        :ref:`Clipboard.RequestClipboard() <org.freedesktop.portal.Clipboard.RequestClipboard>`.
+        See :ref:`org.freedesktop.portal.Clipboard` for more information on the
+        clipboard integration.
 
         Supported keys in the @options vardict include:
 
@@ -106,7 +121,7 @@
           object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
           more information about the session handle.
 
-        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+        The following results get returned via the :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal:
 
         * ``session_handle`` (``s``)
 
@@ -168,12 +183,13 @@
           - ``2``: Permissions persist until explicitly revoked
 
           If the permission for the session to persist is granted, a restore token will
-          be returned via the :ref:`org.freedesktop.portal.Request::Response` signal of the
+          be returned via the :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal of the
           start method used to start the session.
 
           This option was added in version 2 of this interface.
 
-        For available device types, see the AvailableDeviceTypes property.
+        For available device types, see the
+        :ref:`org.freedesktop.portal.RemoteDesktop:AvailableDeviceTypes` property.
     -->
     <method name="SelectDevices">
       <arg type="o" name="session_handle" direction="in"/>
@@ -202,7 +218,7 @@
           more information about the @handle.
 
         The following results get returned via the
-        :ref:`org.freedesktop.portal.Request::Response` signal:
+        :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal:
 
         * ``devices`` (``u``)
 
@@ -218,7 +234,9 @@
 
           An array of PipeWire streams. Each stream consists of a PipeWire
           node ID (the first element in the tuple, and a Vardict of
-          properties. See :ref:`org.freedesktop.portal.ScreenCast.Start` for details.
+          properties. See
+          :ref:`ScreenCast.Start() <org.freedesktop.portal.ScreenCast.Start>`
+          for details.
 
         * ``restore_token`` (``s``)
 
@@ -229,8 +247,8 @@
           This response option was added in version 2 of this interface.
 
         If a screen cast source was selected, the results of the
-        :ref:`org.freedesktop.portal.ScreenCast.Start` response signal may be
-        included.
+        :ref:`ScreenCast.Start() <org.freedesktop.portal.ScreenCast.Start>`
+        response signal may be included.
     -->
     <method name="Start">
       <arg type="o" name="session_handle" direction="in"/>
@@ -484,12 +502,14 @@
         This method must be called after :ref:`org.freedesktop.portal.RemoteDesktop.Start`
 
         Once an EIS connection is established, input events must be sent exclusively via
-        the EIS connection. Any events submitted via NotifyPointerMotion,
-        NotifyKeyboardKeycode and other Notify* methods will return an error.
+        the EIS connection. Any events submitted via
+        :ref:`org.freedesktop.portal.RemoteDesktop.NotifyPointerMotion`,
+        :ref:`org.freedesktop.portal.RemoteDesktop.NotifyKeyboardKeycode` and
+        other ``Notify*`` methods will return an error.
 
         To see how to pair a PipeWire stream with a libei device region, see the
         documentation for the ``mapping_id`` stream property in
-        :ref:`org.freedesktop.portal.ScreenCast.Start`.
+        :ref:`ScreenCast.Start() <org.freedesktop.portal.ScreenCast.Start>`.
 
         This method was added in version 2 of this interface.
     -->
