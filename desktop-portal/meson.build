@@ -99,6 +99,7 @@ xdg_desktop_portal_sources = files(
   'xdp-session.c',
   'xdp-session-dex.c',
   'xdp-session-persistence.c',
+  'xdp-wp.c',
 )
 
 xdg_desktop_portal_sources += [
@@ -139,6 +140,7 @@ endif
 xdg_desktop_portal_deps = common_deps + [
   geoclue_dep,
   pipewire_dep,
+  wireplumber_dep,
   xdp_utils_deps,
 ]
 
