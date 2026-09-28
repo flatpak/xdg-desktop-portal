@@ -56,6 +56,17 @@
 
       Unknown values should be treated as ``0`` (no preference).
 
+    * ``org.freedesktop.proxy`` ``proxy-mode`` (``u``)
+
+      Indicates the system's preferred reduced proxy usage. For more details,
+      refer to the :ref:`org.freedesktop.portal.ProxyResolver` interface.
+      Supported values are:
+
+        * ``0``: No proxy
+        * ``1``: Proxy lookup required
+
+      Unknown values should be treated as ``1`` (proxy lookup required).
+
     This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.Settings">
