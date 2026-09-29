@@ -96,6 +96,7 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define PRINT_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Print"
 
 #define PROXY_RESOLVER_DBUS_IFACE DESKTOP_DBUS_IFACE ".ProxyResolver"
+#define PROXY_RESOLVER_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".ProxyResolver"
 
 #define REALTIME_DBUS_IFACE DESKTOP_DBUS_IFACE ".Realtime"
 #define REALTIME_PERMISSION_TABLE "realtime"

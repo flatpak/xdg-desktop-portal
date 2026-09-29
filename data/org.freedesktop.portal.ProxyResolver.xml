@@ -14,7 +14,7 @@
       user interaction. Applications are expected to use this interface indirectly,
       via a library API such as the GLib GProxyResolver interface.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.ProxyResolver">
     <!--
@@ -31,6 +31,66 @@
       <arg type="s" name="uri" direction="in"/>
       <arg type="as" name="proxies" direction="out"/>
     </method>
+    <!--
+        LookupMultiple:
+        @uris: A list of URIs, each URI is as described in RFC 3986, of the destination to connect to
+        @proxies: List of a list of proxy URIs
+
+        Behaves similarly to :ref:`org.freedesktop.portal.ProxyResolver.Lookup`,
+        but operates on multiple URIs at once.
+
+        This method was added in version 2 of this interface.
+    -->
+    <method name="LookupMultiple">
+      <arg type="as" name="uri" direction="in"/>
+      <arg type="aas" name="proxies" direction="out"/>
+    </method>
+    <!--
+        ConfigureProxy:
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @options: Vardict with optional further information
+
+        Request showing a configuration UI so the user is able to configure the system proxy.
+
+        Supported keys in the @options vardict include:
+
+        * ``activation_token`` (``s``)
+
+          A token that can be used to activate the configuration window.
+
+        * ``autoconfig_url`` (``s``)
+
+          A URL that provides proxy configuration values.
+
+        This method was added in version 2 of this interface.
+    -->
+    <method name="ConfigureProxy">
+      <arg type="s" name="parent_window" direction="in" />
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+    </method>
+    <!--
+        ProxySettingsChanged:
+
+        Emitted when the system's underlying proxy settings change.
+
+        Clients should use this alongside the ref:`org.freedesktop.portal.ProxyResolver.IsCacheable`
+        property to know whether they need to rebuild their caches for the
+        system's proxy settings.
+
+        This signal was added in version 2 of this interface.
+    -->
+    <signal name="ProxySettingsChanged"></signal>
+    <!--
+        IsCacheable:
+
+        Clients can use this to know whether they're able to cache the results
+        returned by :ref:`org.freedesktop.portal.ProxyResolver.Lookup` and
+        :ref:`org.freedesktop.portal.ProxyResolver.LookupMultiple`.
+
+        This property was added in version 2 of this interface.
+    -->
+    <property name="IsCacheable" type="b" access="read"/>
     <property name="version" type="u" access="read"/>
   </interface>
 </node>
