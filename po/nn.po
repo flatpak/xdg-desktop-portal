@@ -1,0 +1,262 @@
+# Norwegian Nynorsk translation for xdg-desktop-portal.
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+# Roy-Magne Mo <rmo@sunnmore.net>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal main\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-07 13:57+0200\n"
+"PO-Revision-Date: 2026-09-29 12:00+0200\n"
+"Last-Translator: Roy-Magne Mo <rmo@sunnmore.net>\n"
+"Language-Team: Norwegian Nynorsk <nn@li.org>\n"
+"Language: nn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+
+#: src/background.c:941
+#, c-format
+msgid "Allow %s to Run in the Background?"
+msgstr "Tillate at %s køyrer i bakgrunnen?"
+
+#: src/background.c:945
+#, c-format
+msgid "%s wants to be started automatically and run in the background"
+msgstr "%s vil startast automatisk og køyre i bakgrunnen"
+
+#: src/background.c:947
+#, c-format
+msgid "%s wants to run in the background"
+msgstr "%s vil køyre i bakgrunnen"
+
+#: src/background.c:948
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings"
+msgstr ""
+"Løyvet til å «køyre i bakgrunnen» kan endrast når som helst i innstillingane"
+" for appen"
+
+#: src/background.c:952
+msgid "Don't allow"
+msgstr "Ikkje tillat"
+
+#: src/background.c:953 src/screenshot.c:275 src/wallpaper.c:192
+msgid "Allow"
+msgstr "Tillat"
+
+#: src/camera.c:105
+#, c-format
+msgid "Allow %s to Use the Camera?"
+msgstr "Tillate at %s brukar kameraet?"
+
+#: src/camera.c:106
+#, c-format
+msgid "%s wants to access the camera"
+msgstr "%s vil ha tilgang til kameraet"
+
+#: src/camera.c:110
+msgid "Allow Apps to Use the Camera?"
+msgstr "Tillate at appar brukar kameraet?"
+
+#: src/camera.c:111
+msgid "An app wants to access the camera"
+msgstr "Ein app vil ha tilgang til kameraet"
+
+#: src/camera.c:114 src/screenshot.c:327 src/wallpaper.c:208
+msgid "This permission can be changed at any time from the privacy settings"
+msgstr "Dette løyvet kan endrast når som helst i personverninnstillingane"
+
+#: src/dynamic-launcher.c:127
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr "ID-en til skrivebordsfila manglar filendinga .desktop: %s"
+
+#: src/dynamic-launcher.c:138
+#, c-format
+msgid "Desktop file id is not valid"
+msgstr "ID-en til skrivebordsfila er ugyldig"
+
+#: src/dynamic-launcher.c:316
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr ""
+"Skrivebordsoppføringa som vart gjeven til Install(), er ikkje ei gyldig "
+"nøkkelfil"
+
+#: src/dynamic-launcher.c:329
+#, c-format
+msgid "Desktop entry given to Install() must have exactly one group"
+msgstr ""
+"Skrivebordsoppføringa som vart gjeven til Install(), må ha nøyaktig éi "
+"gruppe"
+
+#: src/dynamic-launcher.c:367
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr "Tokenet som vart gjeve, er ugyldig: %s"
+
+#: src/dynamic-launcher.c:410
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr "Skrivebordsoppføringa som vart gjeven til Install(), er ugyldig"
+
+#: src/dynamic-launcher.c:419 src/dynamic-launcher.c:879
+#: src/dynamic-launcher.c:928
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr "Skrivebordsfila er større enn maksimalstorleiken (%d): %s"
+
+#: src/dynamic-launcher.c:603
+#, c-format
+msgid "Given URI is invalid: %s"
+msgstr "URI-en som vart gjeven, er ugyldig: %s"
+
+#: src/dynamic-launcher.c:625
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr "Ugyldig type programstartar: %x"
+
+#: src/dynamic-launcher.c:632
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr "Typen programstartar vert ikkje støtta: %x"
+
+#: src/dynamic-launcher.c:698 src/dynamic-launcher.c:773
+msgid "Dynamic launcher icon failed validation"
+msgstr ""
+"Ikonet til den dynamiske programstartaren gjekk ikkje gjennom valideringa"
+
+#: src/dynamic-launcher.c:789
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr "RequestInstallToken() er ikkje tillate for app-ID-en %s"
+
+#: src/dynamic-launcher.c:968
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr "Ikonet til skrivebordsfila «%s» ligg på ein ukjend stad"
+
+#: src/dynamic-launcher.c:991
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr "Klarte ikkje serialisere ikonet til skrivebordsfila «%s»"
+
+#: src/dynamic-launcher.c:1030
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr "Det finst ingen dynamisk programstartar med ID-en «%s»"
+
+#: src/dynamic-launcher.c:1049
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr ""
+"Klarte ikkje opprette GDesktopAppInfo for programstartaren med ID-en «%s»"
+
+#: src/location.c:555
+msgid "Deny Access"
+msgstr "Avslå tilgang"
+
+#: src/location.c:557
+msgid "Grant Access"
+msgstr "Gje tilgang"
+
+#: src/location.c:563
+#, c-format
+msgid "Allow %s to Access Your Location?"
+msgstr "Tillate at %s får tilgang til posisjonen din?"
+
+#: src/location.c:573
+#, c-format
+msgid "%s wants to use your location"
+msgstr "%s vil bruke posisjonen din"
+
+#: src/location.c:579
+msgid "Allow Apps to Access Your Location?"
+msgstr "Tillate at appar får tilgang til posisjonen din?"
+
+#: src/location.c:580
+msgid "An app wants to use your location"
+msgstr "Ein app vil bruke posisjonen din"
+
+#: src/location.c:583
+msgid "Location access can be changed at any time from the privacy settings"
+msgstr ""
+"Posisjonstilgangen kan endrast når som helst i personverninnstillingane"
+
+#: src/screenshot.c:273 src/wallpaper.c:190
+msgid "Deny"
+msgstr "Avvis"
+
+#: src/screenshot.c:299
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Tillate at %s tek skjermbilete?"
+
+#: src/screenshot.c:300
+#, c-format
+msgid "%s wants to take screenshots at any time"
+msgstr "%s vil ta skjermbilete når som helst"
+
+#: src/screenshot.c:304
+#, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "Tillate at %s tek eit skjermbilete?"
+
+#: src/screenshot.c:305
+#, c-format
+msgid "%s wants to take a screenshot"
+msgstr "%s vil ta eit skjermbilete"
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: src/screenshot.c:316
+msgid "Allow Apps to Take Screenshots?"
+msgstr "Tillate at appar tek skjermbilete?"
+
+#: src/screenshot.c:317
+msgid "An app wants to take screenshots at any time"
+msgstr "Ein app vil ta skjermbilete når som helst"
+
+#: src/screenshot.c:321
+msgid "Allow to Take a Screenshot?"
+msgstr "Tillate at det vert teke eit skjermbilete?"
+
+#: src/screenshot.c:322
+msgid "An app wants to take a screenshot"
+msgstr "Ein app vil ta eit skjermbilete"
+
+#: src/settings.c:196 src/settings.c:235
+msgid "Requested setting not found"
+msgstr "Fann ikkje den førespurde innstillinga"
+
+#: src/usb.c:1333
+msgid "Device not available"
+msgstr "Eininga er ikkje tilgjengeleg"
+
+#: src/usb.c:1347
+msgid "Not allowed"
+msgstr "Ikkje tillate"
+
+#: src/wallpaper.c:198
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "Tillate at %s set bakgrunnsbilete?"
+
+#: src/wallpaper.c:199
+#, c-format
+msgid "%s wants to change the background image"
+msgstr "%s vil endre bakgrunnsbiletet"
+
+#: src/wallpaper.c:204
+msgid "Allow Apps to Set Backgrounds?"
+msgstr "Tillate at appar set bakgrunnsbilete?"
+
+#: src/wallpaper.c:205
+msgid "An app wants to change the background image"
+msgstr "Ein app vil endre bakgrunnsbiletet"
