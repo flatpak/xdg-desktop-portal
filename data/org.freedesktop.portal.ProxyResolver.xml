@@ -12,7 +12,12 @@
       The ProxyResolver interface provides network proxy information to sandboxed
       applications. It is not a portal in the strict sense, since it does not involve
       user interaction. Applications are expected to use this interface indirectly,
-      via a library API such as the GLib GProxyResolver interface.
+      via a library API such as the GLib GProxyResolver interface or libproxy,
+      to help prevent errors in utilizing this portal.
+
+      Applications can determine if the system proxy should be used by checking
+      the ``proxy-mode`` setting under the ``org.freedesktop.proxy`` namespace
+      on the Settings portal.
 
       This documentation describes version 1 of this interface.
   -->
