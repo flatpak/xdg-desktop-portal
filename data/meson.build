@@ -62,6 +62,7 @@ portal_impl_sources = files(
   'org.freedesktop.impl.portal.Notification.xml',
   'org.freedesktop.impl.portal.PermissionStore.xml',
   'org.freedesktop.impl.portal.Print.xml',
+  'org.freedesktop.impl.portal.ProxyResolver.xml',
   'org.freedesktop.impl.portal.RemoteDesktop.xml',
   'org.freedesktop.impl.portal.Request.xml',
   'org.freedesktop.impl.portal.ScreenCast.xml',
