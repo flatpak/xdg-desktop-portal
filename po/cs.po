@@ -2,20 +2,21 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 #
+# SPDX-FileCopyrightText: 2026 Jan Papez (honyczek)
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-07 13:57+0200\n"
-"PO-Revision-Date: 2025-11-23 14:26+0100\n"
-"Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
+"PO-Revision-Date: 2026-09-23 22:03+0200\n"
+"Last-Translator: Jan Papez (honyczek) <honyczek@centrum.cz>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Poedit 3.8\n"
+"X-Generator: Lokalize 26.08.1\n"
 
 #: src/background.c:941
 #, c-format
@@ -72,82 +73,82 @@ msgstr "Toto oprávnění můžete kdykoliv změnit v nastavení soukromí"
 #: src/dynamic-launcher.c:127
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
-msgstr ""
+msgstr "Identifikátor souboru desktop postrádá příponu .desktop: %s"
 
 #: src/dynamic-launcher.c:138
 #, c-format
 msgid "Desktop file id is not valid"
-msgstr ""
+msgstr "Neplatný identifikátor souboru desktop"
 
 #: src/dynamic-launcher.c:316
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
-msgstr ""
+msgstr "Položka desktop předaná funkci Install() není platným souborem klíče"
 
 #: src/dynamic-launcher.c:329
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
-msgstr ""
+msgstr "Položka desktop předaná funkci Install() musí mít přesně jednu skupinu"
 
 #: src/dynamic-launcher.c:367
 #, c-format
 msgid "Token given is invalid: %s"
-msgstr ""
+msgstr "Zadaný token je neplatný: %s"
 
 #: src/dynamic-launcher.c:410
 #, c-format
 msgid "Desktop entry given to Install() not valid"
-msgstr ""
+msgstr "Položka desktop předaná funkci Install() je neplatná"
 
 #: src/dynamic-launcher.c:419 src/dynamic-launcher.c:879
 #: src/dynamic-launcher.c:928
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
-msgstr ""
+msgstr "Souboru desktop překračuje maximální velikost (%d): %s"
 
 #: src/dynamic-launcher.c:603
 #, c-format
 msgid "Given URI is invalid: %s"
-msgstr ""
+msgstr "Zadaná adresa URI je neplatná: %s"
 
 #: src/dynamic-launcher.c:625
 #, c-format
 msgid "Invalid launcher type: %x"
-msgstr ""
+msgstr "Neplatný typ spouštěče: %x"
 
 #: src/dynamic-launcher.c:632
 #, c-format
 msgid "Unsupported launcher type: %x"
-msgstr ""
+msgstr "Nepodporovaný typ spouštěče: %x"
 
 #: src/dynamic-launcher.c:698 src/dynamic-launcher.c:773
 msgid "Dynamic launcher icon failed validation"
-msgstr ""
+msgstr "Selhalo ověření dynamické ikony spouštěče"
 
 #: src/dynamic-launcher.c:789
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
-msgstr ""
+msgstr "RequestInstallToken() není pro identifikátor aplikace %s povolený"
 
 #: src/dynamic-launcher.c:968
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
-msgstr ""
+msgstr "Cesta k ikoně souboru desktop '%s' nebyla rozpoznána"
 
 #: src/dynamic-launcher.c:991
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
-msgstr ""
+msgstr "Ikona souboru desktop '%s' selhala při serializaci"
 
 #: src/dynamic-launcher.c:1030
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
-msgstr ""
+msgstr "Neexistuje žádný dynamický spouštěč s identifikátorem '%s'"
 
 #: src/dynamic-launcher.c:1049
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
-msgstr ""
+msgstr "Vytvoření GDesktopAppInfo pro spouštěč s identifikátorem '%s' selhalo"
 
 #: src/location.c:555
 msgid "Deny Access"
