@@ -17,6 +17,19 @@
 
       This documentation describes version 1 of this interface.
 
+      Device filtering
+      ~~~~~~~~~~~~~~~~
+
+      Sandboxed apps must declare which USB devices they support ahead of
+      time. This information is read by the XDG Desktop Portal and used to
+      determine which USB devices will be exposed to requesting apps.
+
+      How to configure device filtering depends on the sandbox technology.
+      For Flatpak, see the `USB Portal documentation
+      <https://docs.flatpak.org/en/latest/sandbox-permissions.html#usb-portal>`_.
+
+      Outside of a sandbox, all devices are assumed to be allowed.
+
       Device identifiers
       ~~~~~~~~~~~~~~~~~~
 
