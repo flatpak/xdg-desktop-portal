@@ -17,6 +17,23 @@
 
       This documentation describes version 1 of this interface.
 
+      Device filtering
+      ~~~~~~~~~~~~~~~~
+
+      Sandboxed apps must declare which USB devices they support ahead of
+      time. This information is read by the XDG Desktop Portal and used to
+      determine which USB devices will be exposed to requesting apps. On
+      Flatpak, these enumerable and hidden devices are set by the
+      "\-\-usb" and "\-\-nousb" arguments against ``flatpak build-finish``
+      and ``flatpak run``. Neither "\-\-devices=all" nor "\-\-device=usb"
+      do influence the portal.
+
+      Hiding a device always take precedence over making them enumerable,
+      even when a blanket permission ("\-\-usb=all") is set.
+
+      However out of the sandbox we assume all devices are allowed as there
+      is no restriction that can prevent seeing anything.
+
       Device identifiers
       ~~~~~~~~~~~~~~~~~~
 
