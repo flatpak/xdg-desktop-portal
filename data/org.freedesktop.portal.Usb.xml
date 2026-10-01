@@ -25,8 +25,9 @@
       determine which USB devices will be exposed to requesting apps. On
       Flatpak, these enumerable and hidden devices are set by the
       "\-\-usb" and "\-\-nousb" arguments against ``flatpak build-finish``
-      and ``flatpak run``. Neither "\-\-devices=all" nor "\-\-device=usb"
-      do influence the portal.
+      and ``flatpak run``, or as permissions inside of `finish-args` in the app's
+      Flatpak manifest. Neither "\-\-devices=all" nor "\-\-device=usb" do 
+      influence the portal.
 
       Hiding a device always take precedence over making them enumerable,
       even when a blanket permission ("\-\-usb=all") is set.
