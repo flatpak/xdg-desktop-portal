@@ -23,8 +23,8 @@
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Inhibits a session status changes. To remove the inhibition,
-        call :ref:`org.freedesktop.portal.Request.Close` on the returned
-        handle.
+        call :ref:`Request.Close() <org.freedesktop.portal.Request.Close>` on
+        the returned handle.
 
         The @flags determine what changes are inhibited:
 
@@ -60,13 +60,14 @@
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Creates a monitoring session. While this session is
-        active, the caller will receive StateChanged signals
-        with updates on the session state.
+        active, the caller will receive
+        :ref:`org.freedesktop.portal.Inhibit::StateChanged` signals with
+        updates on the session state.
 
         A successfully created session can at any time be closed using
-        org.freedesktop.portal.Session::Close, or may at any time be closed
-        by the portal implementation, which will be signalled via
-        :ref:`org.freedesktop.portal.Session::Closed`.
+        :ref:`Session.Close() <org.freedesktop.portal.Session.Close>`, or may at
+        any time be closed by the portal implementation, which will be signalled
+        via :ref:`Session::Closed <org.freedesktop.portal.Session::Closed>`.
 
         Supported keys in the @options vardict include:
 
@@ -82,7 +83,8 @@
           object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
           more information about the session handle.
 
-        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+        The following results get returned via the
+        :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal:
 
         * ``session_handle`` (``s``)
 
@@ -108,14 +110,16 @@
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @state: Vardict with information about the session state
 
-        The StateChanged signal is sent to active monitoring sessions when
-        the session state changes.
+        The :ref:`org.freedesktop.portal.Inhibit::StateChanged` signal is sent
+        to active monitoring sessions when the session state changes.
 
         When the session state changes to 'Query End', clients with active monitoring
         sessions are expected to respond by calling
         :ref:`org.freedesktop.portal.Inhibit.QueryEndResponse` within a second
-        of receiving the StateChanged signal. They may call :ref:`org.freedesktop.portal.Inhibit.Inhibit`
-        first to inhibit logout, to prevent the session from proceeding to the Ending state.
+        of receiving the :ref:`org.freedesktop.portal.Inhibit::StateChanged`
+        signal. They may call :ref:`org.freedesktop.portal.Inhibit.Inhibit`
+        first to inhibit logout, to prevent the session from proceeding to the
+        Ending state.
 
         The following information may get returned in the @state vardict:
 
@@ -143,9 +147,10 @@
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
 
         Acknowledges that the caller received the
-        :ref:`org.freedesktop.portal.Inhibit::StateChanged`
-        signal. This method should be called within one second of receiving a StateChanged
-        signal with the 'Query End' state.
+        :ref:`org.freedesktop.portal.Inhibit::StateChanged` signal.
+        This method should be called within one second of receiving a
+        :ref:`org.freedesktop.portal.Inhibit::StateChanged` signal with the
+        'Query End' state.
 
         This method was added in version 3 of this interface.
     -->

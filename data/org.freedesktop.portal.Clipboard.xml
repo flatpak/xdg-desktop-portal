@@ -23,10 +23,11 @@
       Setting up clipboard access
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      To use the clipboard, call ``RequestClipboard()`` on a session
+      To use the clipboard, call :ref:`org.freedesktop.portal.Clipboard.RequestClipboard` on a session
       created by a compatible portal before the session is started.
       Whether clipboard access was granted is reported in the
-      ``clipboard_enabled`` result of the session's ``Start()`` response.
+      ``clipboard_enabled`` result of the session's
+      ``Start()`` response.
 
       Note that other portals may place restrictions on when it is
       possible to interact with the clipboard. For input capture sessions,
@@ -38,21 +39,25 @@
       The clipboard uses a MIME type-based ownership and transfer model:
 
       - An owner advertises available formats by calling
-        ``SetSelection()`` with a list of MIME types.
+        :ref:`org.freedesktop.portal.Clipboard.SetSelection` with a list of MIME types.
 
-      - The ``SelectionOwnerChanged`` signal notifies all participants
-        when the clipboard owner changes, including the list of available
-        MIME types.
+      - The :ref:`org.freedesktop.portal.Clipboard::SelectionOwnerChanged`
+        signal notifies all participants when the clipboard owner changes,
+        including the list of available MIME types.
 
-      - To read clipboard content, call ``SelectionRead()`` with the
+      - To read clipboard content, call
+        :ref:`org.freedesktop.portal.Clipboard.SelectionRead` with the
         desired MIME type. A file descriptor for reading the data is
         returned.
 
       - When another participant requests data from this session's
-        clipboard, the ``SelectionTransfer`` signal is emitted with a
-        MIME type and a serial number. The session must call
-        ``SelectionWrite()`` with that serial to obtain a file descriptor
-        for writing the data, and call ``SelectionWriteDone()`` when the
+        clipboard, the
+        :ref:`org.freedesktop.portal.Clipboard::SelectionTransfer` signal is
+        emitted with a MIME type and a serial number. The session must call
+        :ref:`org.freedesktop.portal.Clipboard.SelectionWrite` with that serial
+        to obtain a file descriptor
+        for writing the data, and call
+        :ref:`org.freedesktop.portal.Clipboard.SelectionWriteDone` when the
         transfer is complete or has failed.
 
       Files can be transferred through the clipboard using the
@@ -66,7 +71,7 @@
       .. include:: doc-org.freedesktop.portal.Clipboard.signals.rst
   -->
   <interface name="org.freedesktop.portal.Clipboard">
-    <!-- 
+    <!--
         RequestClipboard:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
@@ -92,7 +97,7 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
     </method>
-    <!-- 
+    <!--
         SetSelection:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
@@ -122,7 +127,7 @@
         @serial: The serial of the request where this answer is directed towards
         @fd: A UnixFD handle to the contents of the selection being written to
 
-        Answer to #org.freedesktop.portal.Clipboard::SelectionTransfer
+        Answer to :ref:`org.freedesktop.portal.Clipboard::SelectionTransfer`
         signal. Transfers the clipboard content for the given @serial to
         the method callee via a file descriptor.
         It is the Callee that creates the file descriptor.
@@ -135,7 +140,7 @@
       <arg type="u" name="serial" direction="in"/>
       <arg type="h" name="fd" direction="out"/>
     </method>
-    <!-- 
+    <!--
         SelectionWriteDone:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @serial: The serial of the request where this answer is directed to
@@ -151,7 +156,7 @@
       <arg type="u" name="serial" direction="in"/>
       <arg type="b" name="success" direction="in"/>
     </method>
-    <!-- 
+    <!--
         SelectionRead:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @mime_type: The MIME type string of the requested format
@@ -170,7 +175,7 @@
       <arg type="s" name="mime_type" direction="in"/>
       <arg type="h" name="fd" direction="out"/>
     </method>
-    <!-- 
+    <!--
         SelectionOwnerChanged:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
@@ -194,22 +199,22 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="out"/>
     </signal>
-    <!-- 
+    <!--
         SelectionTransfer:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @mime_type: The mime-type string of the requested format
         @serial: The serial used to track this transfer, to which the answer of this request must use
 
-        Notifies the session of a request for clipboard content of the given mime type.  The 
-        callee provides a serial to track the request, which any 
+        Notifies the session of a request for clipboard content of the given mime type.  The
+        callee provides a serial to track the request, which any
         :ref:`org.freedesktop.portal.Clipboard.SelectionWrite` responses must use.
 
         Once the caller is done handling the
-        #org.freedesktop.portal.Clipboard::SelectionTransfer request,
+        :ref:`org.freedesktop.portal.Clipboard::SelectionTransfer` request,
         they must call
         :ref:`org.freedesktop.portal.Clipboard.SelectionWriteDone`
-        with the corresponding request's serial
-        and whether the request completed successfully. If the request is not handled, the caller should
+        with the corresponding request's serial and whether the request
+        completed successfully. If the request is not handled, the caller should
         respond by setting ``success`` to 'false'.
 
         Caller will only be notified if clipboard access was given after starting the session.

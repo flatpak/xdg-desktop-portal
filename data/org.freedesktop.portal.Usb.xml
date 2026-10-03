@@ -45,12 +45,13 @@
 
       There are two ways for apps to learn about devices:
 
-      - Apps can call the ``EnumerateDevices()`` method, which gives a snapshot
-        of the current devices to the app.
+      - Apps can call the :ref:`org.freedesktop.portal.Usb.EnumerateDevices`
+        method, which gives a snapshot of the current devices to the app.
 
-      - Apps can create a device monitoring session with ``CreateSession()``
-        which sends the list of available devices on creation, and also
-        notifies the app about connected and disconnected devices.
+      - Apps can create a device monitoring session with
+        :ref:`org.freedesktop.portal.Usb.CreateSession` which sends the list of
+        available devices on creation, and also notifies the app about connected
+        and disconnected devices.
 
       Only devices that the app is allowed to see are reported in both
       cases.
@@ -62,15 +63,17 @@
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       Once an app has determined which devices it wants to access, the app
-      can call the ``AcquireDevices()`` method. This method may prompt a dialog
-      for the user to allow or deny the app from accessing specific devices.
+      can call the :ref:`org.freedesktop.portal.Usb.AcquireDevices` method. This
+      method may prompt a dialog for the user to allow or deny the app from
+      accessing specific devices.
 
       If permission is granted, xdg-desktop-portal tries to open the device
       file on the behalf of the requesting app, and pass the file
       descriptor down. [#usb-logind]_
 
-      The caller must then call ``FinishAcquireDevices()`` until it indicates it
-      is finished. It is only necessary to call it more than once if there
+      The caller must then call
+      :ref:`org.freedesktop.portal.Usb.FinishAcquireDevices` until it indicates
+      it is finished. It is only necessary to call it more than once if there
       are too many file descriptors to return. This is a D-Bus
       limitation. Check the ``finished`` return argument.
 
@@ -134,10 +137,8 @@
 
     <!--
         EnumerateDevices:
-        @options: Vardict with optional further information. There is currently
-        no option supported.
-        @devices: An array of tuples containing a device ID and a device
-        information vardict.
+        @options: Vardict with optional further information. There is currently no option supported.
+        @devices: An array of tuples containing a device ID and a device information vardict.
 
         Enumerates all connected USB devices that this application has permission
         to see.
@@ -187,8 +188,8 @@
 
         Request to acquire (i.e. open) the given device nodes. The
         process of acquiring is finished by calling
-        `FinishAcquireDevices` after the request emitted a `Success`
-        response.
+        :ref:`org.freedesktop.portal.Usb.FinishAcquireDevices` after the request
+        emitted a `Success` response.
 
         Each element of the @devices array contains the device ID, and an
         access option vardict with the following keys:
@@ -206,8 +207,8 @@
           object path element. See the :ref:`org.freedesktop.portal.Request` documentation
           for more information about the @handle.
 
-        The :ref:`org.freedesktop.portal.Request::Response` signal is emitted
-        without any extra information.
+        The :ref:`Request::Response <org.freedesktop.portal.Request::Response>`
+        signal is emitted without any extra information.
      -->
     <method name="AcquireDevices">
       <arg type="s" name="parent_window" direction="in"/>
@@ -228,10 +229,12 @@
         Retrieves the file descriptors of the devices requested during
         :ref:`org.freedesktop.portal.Usb.AcquireDevices`. The file
         descriptors remain usable until the underlying device is
-        removed, they are released with `ReleaseDevices`, the D-Bus
+        removed, they are released with
+        :ref:`org.freedesktop.portal.Usb.ReleaseDevices`, the D-Bus
         connection is closed, or the portal revokes the file
         descriptor which can happen at any point. Devices which are
-        not needed anymore should be passed to `ReleaseDevices`.
+        not needed anymore should be passed to
+        :ref:`org.freedesktop.portal.Usb.ReleaseDevices`.
 
         If not all devices could be sent, @finished will be false and
         :ref:`org.freedesktop.portal.Usb.FinishAcquireDevices` must be called again

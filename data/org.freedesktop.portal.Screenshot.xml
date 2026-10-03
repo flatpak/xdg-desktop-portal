@@ -60,7 +60,7 @@
 
           This option was added in version 3 of this interface.
 
-        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response`
+        The following results get returned via the :ref:`Request::Response <org.freedesktop.portal.Request::Response>`
         signal:
 
         * ``uri`` (``s``)
@@ -89,7 +89,7 @@
           object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
-        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+        The following results get returned via the :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal:
 
         * ``color`` (``(ddd)``)
 

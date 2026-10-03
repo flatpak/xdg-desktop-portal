@@ -13,7 +13,7 @@
       The Clipboard portal allows sessions to access the clipboard.
   -->
   <interface name="org.freedesktop.impl.portal.Clipboard">
-    <!-- 
+    <!--
         RequestClipboard:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
@@ -39,7 +39,7 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
     </method>
-    <!-- 
+    <!--
         SetSelection:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
@@ -69,7 +69,7 @@
         @serial: The serial of the request where this answer is directed towards
         @fd: A UnixFD handle to the contents of the selection being written to
 
-        Answer to #org.freedesktop.impl.portal.Clipboard::SelectionTransfer
+        Answer to :ref:`org.freedesktop.impl.portal.Clipboard::SelectionTransfer`
         signal. Transfers the clipboard content for the given @serial to
         the method callee via a file descriptor.
         It is the Callee that creates the file descriptor.
@@ -82,7 +82,7 @@
       <arg type="u" name="serial" direction="in"/>
       <arg type="h" name="fd" direction="out"/>
     </method>
-    <!-- 
+    <!--
         SelectionWriteDone:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @serial: The serial of the request where this answer is directed to
@@ -98,7 +98,7 @@
       <arg type="u" name="serial" direction="in"/>
       <arg type="b" name="success" direction="in"/>
     </method>
-    <!-- 
+    <!--
         SelectionRead:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @mime_type: The mime-type string of the requested format
@@ -116,7 +116,7 @@
       <arg type="s" name="mime_type" direction="in"/>
       <arg type="h" name="fd" direction="out"/>
     </method>
-    <!-- 
+    <!--
         SelectionOwnerChanged:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
@@ -141,20 +141,20 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="out"/>
     </signal>
-    <!-- 
+    <!--
         SelectionTransfer:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @mime_type: The mime-type string of the requested format
         @serial: The serial used to track this transfer, to which the answer of this request must use
 
-        Notifies the session of a request for clipboard content of the given mime type.  The 
-        callee provides a serial to track the request, which any 
-        :ref:`org.freedesktop.portal.Clipboard.SelectionWrite` responses must use.
+        Notifies the session of a request for clipboard content of the given mime type.  The
+        callee provides a serial to track the request, which any
+        :ref:`org.freedesktop.portal.Clipboard.SelectionWrite <org.freedesktop.portal.Clipboard.SelectionWrite>` responses must use.
 
         Once the caller is done handling the
-        #org.freedesktop.impl.portal.Clipboard::SelectionTransfer
+        :ref:`org.freedesktop.impl.portal.Clipboard::SelectionTransfer`
         request, they must call
-        :ref:`org.freedesktop.portal.Clipboard.SelectionWriteDone`
+        :ref:`org.freedesktop.portal.Clipboard.SelectionWriteDone <org.freedesktop.portal.Clipboard.SelectionWriteDone>`
         with the corresponding request's serial
         and whether the request completed successfully. If the request is not handled, the caller should
         respond by setting ``success`` to 'false'.

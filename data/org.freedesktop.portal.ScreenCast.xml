@@ -17,11 +17,15 @@
       ~~~~~~~~~~~~~~~~~
 
       A screen cast session goes through several stages. First, a session
-      is created with ``CreateSession()``. Then, the application configures
-      what to record using ``SelectSources()``, which can only be called
-      once per session. Calling ``Start()`` typically presents a dialog to
+      is created with :ref:`org.freedesktop.portal.ScreenCast.CreateSession`.
+      Then, the application configures
+      what to record using :ref:`org.freedesktop.portal.ScreenCast.SelectSources`,
+      which can only be called once per session.
+      Calling :ref:`org.freedesktop.portal.ScreenCast.Start` typically
+      presents a dialog to
       the user and, upon success, returns the list of PipeWire streams.
-      Finally, ``OpenPipeWireRemote()`` provides a file descriptor to the
+      Finally, :ref:`org.freedesktop.portal.ScreenCast.OpenPipeWireRemote`
+      provides a file descriptor to the
       PipeWire remote where the streams are available.
 
       Session persistence
@@ -29,10 +33,11 @@
 
       Screen cast sessions can be made persistent so that the user does
       not need to re-select sources every time. The ``persist_mode`` and
-      ``restore_token`` options in ``SelectSources()`` control this
-      behavior.
+      ``restore_token`` options in :ref:`org.freedesktop.portal.ScreenCast.SelectSources`
+      control this behavior.
 
-      When a session is restored, the ``Start()`` method returns a new
+      When a session is restored, the
+      :ref:`org.freedesktop.portal.ScreenCast.Start` method returns a new
       restore token. Restore tokens are single-use: each new session
       must use the token from the previous one.
 
@@ -42,9 +47,9 @@
       PipeWire streams
       ~~~~~~~~~~~~~~~~
 
-      The ``Start()`` response contains an array of PipeWire streams. Each
-      stream has a node ID and a properties dictionary with metadata such
-      as position, size, and source type.
+      The :ref:`org.freedesktop.portal.ScreenCast.Start` response contains an
+      array of PipeWire streams. Each stream has a node ID and a properties
+      dictionary with metadata such as position, size, and source type.
 
       Since version 6 of this interface, the node ID in the stream tuple
       is deprecated for stream targeting. Consumers should prefer the
@@ -65,9 +70,11 @@
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Create a screen cast session. A successfully created session can at
-        any time be closed using :ref:`org.freedesktop.portal.Session.Close`, or may
+        any time be closed using
+        :ref:`Session.Close() <org.freedesktop.portal.Session.Close>`, or may
         at any time be closed by the portal implementation, which will be
-        signalled via :ref:`org.freedesktop.portal.Session::Closed`.
+        signalled via
+        :ref:`Session::Closed <org.freedesktop.portal.Session::Closed>`.
 
         Supported keys in the @options vardict include:
 
@@ -83,7 +90,7 @@
           object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
           more information about the session handle.
 
-        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+        The following results get returned via the :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal:
 
         * ``session_handle`` (``s``)
 
@@ -171,12 +178,13 @@
           :ref:`org.freedesktop.portal.RemoteDesktop` interface.
 
           If the permission for the session to persist is granted, a restore token will
-          be returned via the :ref:`org.freedesktop.portal.Request::Response` signal of the
+          be returned via the :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal of the
           :ref:`org.freedesktop.portal.ScreenCast.Start` method.
 
           This option was added in version 4 of this interface.
 
-        For available source types, see the AvailableSourceTypes property.
+        For available source types, see the
+        :ref:`org.freedesktop.portal.ScreenCast:AvailableSourceTypes` property.
     -->
     <method name="SelectSources">
       <arg type="o" name="session_handle" direction="in"/>
@@ -208,7 +216,7 @@
           more information about the @handle.
 
         The following results get returned via the
-        :ref:`org.freedesktop.portal.Request::Response` signal:
+        :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal:
 
         * ``streams`` (``a(ua{sv})``)
 
@@ -259,7 +267,8 @@
           * ``source_type`` (``u``)
 
             The type of the content which is being screen casted.
-            For available source types, see the AvailableSourceTypes property.
+            For available source types, see the
+            :ref:`org.freedesktop.portal.ScreenCast:AvailableSourceTypes` property.
             This property was added in version 3 of this interface.
 
           * ``mapping_id`` (``s``)

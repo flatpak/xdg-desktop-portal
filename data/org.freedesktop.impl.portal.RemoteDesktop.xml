@@ -27,7 +27,7 @@
 
         A remote desktop session is used to allow remote controlling a desktop
         session. It can also be used together with a screen cast session (see
-        org.freedesktop.portal.ScreenCast), but may only be started and stopped
+        :ref:`org.freedesktop.portal.ScreenCast`), but may only be started and stopped
         with this interface.
 
         There are currently no supported keys in the @results vardict.
@@ -85,11 +85,11 @@
 
           If the permission for the session to persist is granted, ``restore_data``
           will be returned in the @results of the
-          #org.freedesktop.impl.portal.RemoteDesktop.Start method.
+          :ref:`org.freedesktop.impl.portal.RemoteDesktop.Start` method.
 
           This option was added in version 2 of this interface.
 
-        For available device types, see the AvailableDeviceTypes property.
+        For available device types, see the :ref:`org.freedesktop.impl.portal.RemoteDesktop:AvailableDeviceTypes` property.
     -->
     <method name="SelectDevices">
       <arg type="o" name="handle" direction="in"/>
@@ -119,7 +119,8 @@
         * ``devices`` (``u``)
 
           The device types that can be used for remote control. See the
-          AvailableDeviceTypes property.
+          :ref:`org.freedesktop.impl.portal.RemoteDesktop:AvailableDeviceTypes`
+          property.
 
         * ``clipboard_enabled`` (``b``)
 
@@ -131,13 +132,13 @@
         * ``streams`` (``a(ua{sv})``)
 
           Equivalent to the streams entry documented in
-          :ref:`org.freedesktop.impl.portal.ScreenCast.Start`.
+          :ref:`ScreenCast.Start() <org.freedesktop.impl.portal.ScreenCast.Start>`.
 
         * ``restore_data`` (``(suv)``)
 
           The data to restore for a future session with a ``persist_mode`` other than 0.
-          See the #org.freedesktop.impl.portal.RemoteDesktop.SelectDevices method for
-          more details.
+          See the :ref:`org.freedesktop.impl.portal.RemoteDesktop.SelectDevices`
+          method for more details.
 
           This option was added in version 2 of this interface.
     -->
@@ -181,7 +182,7 @@
         Notify about a new absolute pointer motion event. The (x, y) position
         represents the new pointer position in the streams logical coordinate
         space (see the ``logical_size`` stream property in
-        :ref:`org.freedesktop.portal.ScreenCast`).
+        :ref:`org.freedesktop.portal.ScreenCast <org.freedesktop.portal.ScreenCast>`).
     -->
     <method name="NotifyPointerMotionAbsolute">
       <arg type="o" name="session_handle" direction="in"/>
@@ -325,7 +326,7 @@
         Notify about a new touch down event. The (x, y) position
         represents the new touch point position in the streams logical
         coordinate space (see the ``logical_size`` stream property in
-        :ref:`org.freedesktop.portal.ScreenCast`).
+        :ref:`org.freedesktop.portal.ScreenCast <org.freedesktop.portal.ScreenCast>`).
     -->
     <method name="NotifyTouchDown">
       <arg type="o" name="session_handle" direction="in"/>
@@ -351,7 +352,7 @@
         Notify about a new touch motion event. The (x, y) position
         represents where the touch point position in the streams logical
         coordinate space moved (see the ``logical_size`` stream property in
-        :ref:`org.freedesktop.portal.ScreenCast`).
+        :ref:`org.freedesktop.portal.ScreenCast <org.freedesktop.portal.ScreenCast>`).
     -->
     <method name="NotifyTouchMotion">
       <arg type="o" name="session_handle" direction="in"/>

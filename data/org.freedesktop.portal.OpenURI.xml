@@ -157,7 +157,8 @@
         @options: Vardict with optional further information
         @supported: True if the URI scheme is supported
 
-        Checks if OpenURI supports the protocol scheme @scheme.
+        Checks if :ref:`org.freedesktop.portal.OpenURI.OpenURI` supports the
+        protocol scheme @scheme.
 
         The @options vardict currently has no supported entries.
 

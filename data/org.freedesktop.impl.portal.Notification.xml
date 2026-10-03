@@ -30,7 +30,7 @@
         to animate replacing the notification instead of updating it.
 
         The format of the @notification is the same as for
-        :ref:`org.freedesktop.portal.Notification.AddNotification`.
+        :ref:`org.freedesktop.portal.Notification.AddNotification <org.freedesktop.portal.Notification.AddNotification>`.
 
         Since version 2, the icon property never uses the ``bytes`` option.
     -->
@@ -59,8 +59,8 @@
         Some properties in :ref:`org.freedesktop.impl.portal.Notification.AddNotification`
         may have options advertised by the notification server.
 
-        The format is the same as for ``SupportedOptions`` property of
-        :ref:`org.freedesktop.portal.Notification`.
+        The format is the same as for :ref:`org.freedesktop.portal.Notification:SupportedOptions` property of
+        :ref:`org.freedesktop.portal.Notification <org.freedesktop.portal.Notification>`.
     -->
     <property name="SupportedOptions" type="a{sv}" access="read">
       <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
