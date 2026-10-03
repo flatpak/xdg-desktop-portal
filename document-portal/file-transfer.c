@@ -352,8 +352,6 @@ add_files (GDBusMethodInvocation *invocation,
   GUnixFDList *fd_list;
   g_autoptr(GVariantIter) iter = NULL;
   int fd_id;
-  const int *fds;
-  int n_fds;
 
   g_variant_get (parameters, "(&sah@a{sv})", &key, &iter, &options);
 
@@ -390,9 +388,7 @@ add_files (GDBusMethodInvocation *invocation,
       return;
     }
 
-  fds = g_unix_fd_list_peek_fds (fd_list, &n_fds);
-
-  g_debug ("add %d files to file transfer owned by '%s' (%s)", n_fds,
+  g_debug ("add files to file transfer owned by '%s' (%s)",
            xdp_app_info_get_id (transfer->app_info),
            transfer->sender);
 
@@ -404,10 +400,8 @@ add_files (GDBusMethodInvocation *invocation,
       struct stat st_buf;
       struct stat parent_st_buf;
 
-      if (fd_id < n_fds)
-        fd = fds[fd_id];
-
-      if (fd == -1)
+      fd = xdp_peek_portal_call_fd (fd_list, fd_id, NULL);
+      if (fd < 0)
         {
           g_dbus_method_invocation_return_error (invocation,
                                                  G_DBUS_ERROR,

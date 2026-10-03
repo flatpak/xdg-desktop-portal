@@ -589,6 +589,7 @@ portal_add (GDBusMethodInvocation *invocation,
   GDBusMessage *message;
   GUnixFDList *fd_list;
   g_autoptr(GError) error = NULL;
+  g_autofd int fd = -1;
   g_auto(GStrv) ids = NULL;
 
   g_variant_get (parameters, "(hbb)", &fd_id, &reuse_existing, &persistent);
@@ -601,25 +602,34 @@ portal_add (GDBusMethodInvocation *invocation,
   message = g_dbus_method_invocation_get_message (invocation);
   fd_list = g_dbus_message_get_unix_fd_list (message);
 
-  if (fd_list != NULL)
+  if (fd_list == NULL)
     {
-      int fds_len;
-      const int *fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
-      if (fd_id < fds_len)
-        {
-          int fd = fds[fd_id];
-
-          ids = document_add_full (&fd, NULL, NULL, &flags, 1, app_info, "", 0, &error);
-        }
-    }
-
-  if (ids == NULL)
-    {
-      g_dbus_method_invocation_take_error (invocation, g_steal_pointer (&error));
+      g_dbus_method_invocation_return_error (g_steal_pointer (&invocation),
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             "No fds passed");
       return;
     }
 
-  g_dbus_method_invocation_return_value (invocation, g_variant_new ("(s)", ids[0]));
+  fd = xdp_get_portal_call_fd (fd_list, fd_id, &error);
+  if (fd < 0)
+    {
+      g_dbus_method_invocation_take_error (g_steal_pointer (&invocation),
+                                           g_steal_pointer (&error));
+      return;
+    }
+
+  ids = document_add_full (&fd, NULL, NULL, &flags, 1, app_info, "", 0, &error);
+
+  if (ids == NULL)
+    {
+      g_dbus_method_invocation_take_error (g_steal_pointer (&invocation),
+                                           g_steal_pointer (&error));
+      return;
+    }
+
+  g_dbus_method_invocation_return_value (g_steal_pointer (&invocation),
+                                         g_variant_new ("(s)", ids[0]));
 }
 
 /* out =>
@@ -785,9 +795,6 @@ portal_add_full (GDBusMethodInvocation *invocation,
   g_auto(GStrv) ids = NULL;
   g_autoptr(GError) error = NULL;
   GVariantBuilder builder;
-  int fds_len;
-  int i;
-  const int *fds;
 
   g_variant_get (parameters, "(@ahu&s^a&s)",
                  &array, &flags, &target_app_id, &permissions);
@@ -819,28 +826,27 @@ portal_add_full (GDBusMethodInvocation *invocation,
   n_args = g_variant_n_children (array);
   fd = g_new (int, n_args);
   documents_flags = g_new (DocumentAddFullFlags, n_args);
+
   message = g_dbus_method_invocation_get_message (invocation);
   fd_list = g_dbus_message_get_unix_fd_list (message);
 
   if (fd_list == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "No fds passed");
       return;
     }
 
-  fds_len = 0;
-  fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
-  for (i = 0; i < n_args; i++)
+  for (size_t i = 0; i < n_args; i++)
     {
       int fd_id;
+
       documents_flags[i] = flags;
       g_variant_get_child (array, i, "h", &fd_id);
-      if (fd_id < fds_len)
-        fd[i] = fds[fd_id];
-      else
-        fd[i] = -1;
+
+      fd[i] = xdp_peek_portal_call_fd (fd_list, fd_id, NULL);
     }
 
   ids = document_add_full (fd, NULL, NULL, documents_flags, n_args, app_info, target_app_id, target_perms, &error);
@@ -1078,9 +1084,8 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   const char *app_id = xdp_app_info_get_id (app_info);
   GDBusMessage *message;
   GUnixFDList *fd_list;
-  int parent_fd_id, parent_fd, fds_len;
+  int parent_fd_id, parent_fd;
   g_autofree char *parent_path = NULL;
-  const int *fds = NULL;
   struct stat parent_st_buf;
   g_autoptr(GBytes) handle = NULL;
   gboolean reuse_existing, persistent, as_needed_by_app;
@@ -1142,11 +1147,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
 
   parent_fd = -1;
   if (fd_list != NULL)
-    {
-      fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
-      if (parent_fd_id < fds_len)
-        parent_fd = fds[parent_fd_id];
-    }
+    parent_fd = xdp_peek_portal_call_fd (fd_list, parent_fd_id, NULL);
 
   if (!xdp_is_valid_filename (filename))
     {
@@ -1242,8 +1243,7 @@ portal_add_named (GDBusMethodInvocation *invocation,
   GDBusMessage *message;
   GUnixFDList *fd_list;
   g_autofree char *id = NULL;
-  int parent_fd_id, parent_fd, fds_len;
-  const int *fds;
+  int parent_fd_id, parent_fd;
   g_autofree char *parent_path = NULL;
   g_autofree char *path = NULL;
   struct stat parent_st_buf;
@@ -1270,11 +1270,7 @@ portal_add_named (GDBusMethodInvocation *invocation,
 
   parent_fd = -1;
   if (fd_list != NULL)
-    {
-      fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
-      if (parent_fd_id < fds_len)
-        parent_fd = fds[parent_fd_id];
-    }
+    parent_fd = xdp_peek_portal_call_fd (fd_list, parent_fd_id, NULL);
 
   if (!xdp_is_valid_filename (filename))
     {
