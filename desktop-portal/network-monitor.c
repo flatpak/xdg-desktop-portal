@@ -23,6 +23,8 @@ struct _NetworkMonitor
   XdpDbusNetworkMonitorSkeleton parent_instance;
 
   GNetworkMonitor *monitor;
+
+  guint emit_source_id;
 };
 
 struct _NetworkMonitorClass
@@ -183,7 +185,7 @@ handle_can_reach (XdpDbusNetworkMonitor *object,
       g_autoptr(GSocketConnectable) address = NULL;
 
       address = g_network_address_new (hostname, port);
-      g_network_monitor_can_reach_async (nm->monitor, address, NULL, can_reach_done, g_object_ref (invocation)); 
+      g_network_monitor_can_reach_async (nm->monitor, address, NULL, can_reach_done, g_object_ref (invocation));
     }
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -200,13 +202,22 @@ network_monitor_iface_init (XdpDbusNetworkMonitorIface *iface)
 }
 
 static void
-on_network_changed (GObject  *object,
-                    gboolean  network_available,
-                    gpointer  user_data)
+emit_changed (gpointer user_data)
 {
   NetworkMonitor *nm = user_data;
 
   xdp_dbus_network_monitor_emit_changed (XDP_DBUS_NETWORK_MONITOR (nm));
+
+  nm->emit_source_id = 0;
+}
+
+static void
+schedule_emit_changed (NetworkMonitor *nm)
+{
+  if (nm->emit_source_id > 0)
+    return;
+
+  nm->emit_source_id = g_idle_add_once (emit_changed, nm);
 }
 
 static void
@@ -215,6 +226,7 @@ network_monitor_dispose (GObject *object)
   NetworkMonitor *network_monitor = (NetworkMonitor *) object;
 
   g_clear_object (&network_monitor->monitor);
+  g_clear_handle_id (&network_monitor->emit_source_id, g_source_remove);
 
   G_OBJECT_CLASS (network_monitor_parent_class)->dispose (object);
 }
@@ -242,9 +254,24 @@ network_monitor_new (void)
   network_monitor->monitor = g_network_monitor_get_default ();
 
   g_signal_connect_object (network_monitor->monitor, "network-changed",
-                           G_CALLBACK (on_network_changed),
+                           G_CALLBACK (schedule_emit_changed),
                            network_monitor,
-                           G_CONNECT_DEFAULT);
+                           G_CONNECT_SWAPPED);
+
+  g_signal_connect_object (network_monitor->monitor, "notify::connectivity",
+                           G_CALLBACK (schedule_emit_changed),
+                           network_monitor,
+                           G_CONNECT_SWAPPED);
+
+  g_signal_connect_object (network_monitor->monitor, "notify::network-available",
+                           G_CALLBACK (schedule_emit_changed),
+                           network_monitor,
+                           G_CONNECT_SWAPPED);
+
+  g_signal_connect_object (network_monitor->monitor, "notify::network-metered",
+                           G_CALLBACK (schedule_emit_changed),
+                           network_monitor,
+                           G_CONNECT_SWAPPED);
 
   xdp_dbus_network_monitor_set_version (XDP_DBUS_NETWORK_MONITOR (network_monitor), 3);
 
