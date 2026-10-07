@@ -17,10 +17,10 @@ DexFuture * xdp_request_dex_new (XdpContext             *context,
                                  XdpAppInfo             *app_info,
                                  GDBusInterfaceSkeleton *skeleton,
                                  GDBusProxy             *proxy_impl,
+                                 unsigned int            impl_request_version,
                                  GVariant               *arg_options);
 
-gboolean xdp_request_dex_export (XdpRequestDex  *request,
-                                 GError        **error);
+DexFuture * xdp_request_dex_export (XdpRequestDex *request);
 
 void xdp_request_dex_emit_response (XdpRequestDex                *request,
                                     XdgDesktopPortalResponseEnum  response,
