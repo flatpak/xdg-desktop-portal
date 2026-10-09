@@ -10,10 +10,12 @@
 #include "background.h"
 #include "camera.h"
 #include "clipboard.h"
+#include "credential.h"
 #include "dynamic-launcher.h"
 #include "email.h"
 #include "file-chooser.h"
 #include "gamemode.h"
+#include "glib.h"
 #include "global-shortcuts.h"
 #include "inhibit.h"
 #include "input-capture.h"
@@ -72,6 +74,8 @@ struct _XdpContext
 
   GCancellable *cancellable;
   GPtrArray *pending_inits; /* DexFuture */
+
+  GHashTable *experimental_portals; /* char *portal_name set */
 };
 
 G_DEFINE_FINAL_TYPE (XdpContext,
@@ -130,6 +134,8 @@ xdp_context_dispose (GObject *object)
       g_mutex_clear (&context->registered_object_paths_lock);
     }
 
+  g_clear_pointer (&context->experimental_portals, g_hash_table_unref);
+
   G_OBJECT_CLASS (xdp_context_parent_class)->dispose (object);
 }
 
@@ -169,6 +175,8 @@ xdp_context_new (gboolean opt_verbose)
   context->registered_object_paths =
     g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
   g_mutex_init (&context->registered_object_paths_lock);
+
+  context->experimental_portals = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
 
   return context;
 }
@@ -361,6 +369,13 @@ xdp_context_get_portal (XdpContext *context,
   return g_hash_table_lookup (context->exported_portals, interface);
 }
 
+gboolean
+xdp_context_is_experimental_portal_enabled (XdpContext *context,
+                                            const char *portal_name)
+{
+  return g_hash_table_contains (context->experimental_portals, portal_name);
+}
+
 static void
 on_peer_disconnect (const char *name,
                     gpointer    user_data)
@@ -417,6 +432,17 @@ xdp_context_register (XdpContext       *context,
   XdpImplConfig *lockdown_impl_config;
   XdpImplConfig *access_impl_config;
   GQuark portal_errors G_GNUC_UNUSED;
+
+  /* Read experimental portals */
+  {
+    const char *experimental_portal_env = g_getenv ("XDG_DESKTOP_PORTAL_ENABLE_EXPERIMENTAL");
+    if (experimental_portal_env != NULL)
+      {
+        g_auto (GStrv) portals = g_strsplit (experimental_portal_env, ",", 0);
+        for (size_t i = 0; portals[i] != NULL; i++)
+            g_hash_table_add (context->experimental_portals, g_strdup (portals[i]));
+      }
+  }
 
   /* make sure errors are registered */
   portal_errors = XDG_DESKTOP_PORTAL_ERROR;
@@ -500,6 +526,11 @@ xdp_context_register (XdpContext       *context,
   init_remote_desktop (context);
   init_clipboard (context);
   init_input_capture (context);
+  if (xdp_context_is_experimental_portal_enabled (context, "Credential"))
+    {
+      g_info ("Enabling experimental Credential portal");
+      init_portal_in_fiber(context, init_credential);
+    }
 #if HAVE_GUDEV
   init_usb (context);
 #endif
