@@ -11,4 +11,5 @@
 G_DECLARE_FINAL_TYPE (XdpWpPermissionManager, xdp_wp_permission_manager, XDP_WP, PERMISSION_MANAGER, GObject);
 
 XdpWpPermissionManager * xdp_wp_permission_manager_new (WpCore          *core,
+                                                        WpObjectManager *camera_manager,
                                                         GDBusConnection *connection);
