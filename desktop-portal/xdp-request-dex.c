@@ -157,11 +157,31 @@ typedef struct _RequestImplProxyCreateData {
   XdpAppInfo *app_info;
   GDBusInterfaceSkeleton *skeleton;
   char *id;
+  gulong peer_disconnect_handler;
+  gboolean peer_disconnected;
 } RequestImplProxyCreateData;
+
+static void
+on_pending_peer_disconnect (XdpContext *context,
+                            const char *peer,
+                            gpointer    user_data)
+{
+  RequestImplProxyCreateData *data = user_data;
+
+  if (g_strcmp0 (xdp_app_info_get_sender (data->app_info), peer) == 0)
+    data->peer_disconnected = TRUE;
+}
 
 static void
 request_impl_proxy_create_data_free (RequestImplProxyCreateData *data)
 {
+  if (data->context != NULL)
+    {
+      g_clear_signal_handler (&data->peer_disconnect_handler, data->context);
+      if (data->id != NULL)
+        xdp_context_unclaim_object_path (data->context, data->id);
+    }
+
   g_clear_object (&data->app_info);
   g_clear_object (&data->skeleton);
   g_clear_pointer (&data->id, g_free);
@@ -199,6 +219,13 @@ on_impl_request_proxy_created (DexFuture *future,
 
   impl_request = dex_await_object (dex_ref (future), NULL);
   g_assert (impl_request);
+
+  g_clear_signal_handler (&data->peer_disconnect_handler, data->context);
+  if (data->peer_disconnected)
+    return dex_future_new_for_error (
+      g_error_new_literal (G_IO_ERROR,
+                           G_IO_ERROR_CANCELLED,
+                           "Caller disconnected"));
 
   request = g_object_new (XDP_TYPE_REQUEST_DEX, NULL);
   request->context = g_steal_pointer (&data->context);
@@ -272,6 +299,10 @@ xdp_request_dex_new (XdpContext             *context,
   data->app_info = g_object_ref (app_info);
   data->skeleton = g_object_ref (skeleton);
   data->id = g_steal_pointer (&id);
+  data->peer_disconnect_handler =
+    g_signal_connect (context, "peer-disconnect",
+                      G_CALLBACK (on_pending_peer_disconnect),
+                      data);
 
   future = dex_future_then (future,
                             on_impl_request_proxy_created,
