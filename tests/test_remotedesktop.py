@@ -133,8 +133,10 @@ class TestRemoteDesktop:
                 xdp.DBUS_TIMEOUT * (10 if xdp.is_valgrind() else 1) / 1000
             )
             xdp.wait_for(
-                lambda: all(session.closed for session in sessions)
-                or time.monotonic() >= deadline
+                lambda: (
+                    all(session.closed for session in sessions)
+                    or time.monotonic() >= deadline
+                )
             )
             assert all(session.closed for session in sessions), (
                 "Backend owner loss did not close every public session"
