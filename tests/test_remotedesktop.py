@@ -3,10 +3,12 @@
 #
 # This file is formatted with Python Black
 
+import os
 import socket
 from typing import Any
 
 import dbus
+import dbusmock
 import pytest
 
 import tests.xdp_utils as xdp
@@ -93,6 +95,67 @@ class TestRemoteDesktop:
 
         # Now expect the backend to close it
         xdp.wait_for(lambda: session.closed)
+
+    @pytest.mark.parametrize("replacement", (False, True))
+    def test_backend_owner_loss_closes_sessions(
+        self, portals, dbus_con, templates, xdg_desktop_portal, replacement
+    ):
+        remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
+        backend_name = "org.freedesktop.impl.portal.Test"
+        sessions = []
+        for index in range(2):
+            request = xdp.Request(dbus_con, remotedesktop_intf)
+            response = request.call(
+                "CreateSession",
+                options={"session_handle_token": f"backend_loss{index}"},
+            )
+            assert response and response.response == 0
+            sessions.append(xdp.Session.from_response(dbus_con, response))
+
+        replacement_con = None
+        try:
+            if replacement:
+                # Queue the next owner so there is no intermediate unowned
+                # state when the backend disconnects.
+                replacement_con = dbus.bus.BusConnection(
+                    os.environ["DBUS_SESSION_BUS_ADDRESS"]
+                )
+                assert (
+                    replacement_con.request_name(backend_name, 0)
+                    == dbus.bus.REQUEST_NAME_REPLY_IN_QUEUE
+                )
+
+            backend = templates[dbusmock.BusType.SESSION][backend_name]
+            backend.process.kill()
+            backend.process.wait(timeout=5)
+            xdp.wait_for(lambda: all(session.closed for session in sessions))
+            assert all(session.error is None for session in sessions)
+
+            if replacement_con:
+                assert (
+                    dbus_con.get_name_owner(backend_name)
+                    == replacement_con.get_unique_name()
+                )
+            else:
+                assert not dbus_con.name_has_owner(backend_name)
+
+            xdp.wait(50)
+            assert xdg_desktop_portal.poll() is None
+            for session in sessions:
+                request = xdp.Request(dbus_con, remotedesktop_intf)
+                with pytest.raises(dbus.exceptions.DBusException) as excinfo:
+                    request.call(
+                        "SelectDevices",
+                        session_handle=session.handle,
+                        options={"types": dbus.UInt32(3)},
+                    )
+                assert (
+                    excinfo.value.get_dbus_name()
+                    == "org.freedesktop.DBus.Error.AccessDenied"
+                )
+        finally:
+            if replacement_con:
+                replacement_con.close()
 
     def test_connect_to_eis(self, portals, dbus_con):
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
