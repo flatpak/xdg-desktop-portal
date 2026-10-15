@@ -29,6 +29,7 @@ typedef struct _XdpSession
   GDBusConnection *connection;
 
   char *impl_dbus_name;
+  char *impl_name_owner;
   GDBusConnection *impl_connection;
   XdpDbusImplSession *impl_session;
 } XdpSession;
