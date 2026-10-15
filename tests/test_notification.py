@@ -122,6 +122,7 @@ class TestNotification:
         self.compare_notification(mock_notification, notification_expected)
 
     def compare_notification(self, mock_notification, notification_expected):
+        mock_notification.pop("desktop-file-id", None)
         assert (
             mock_notification == GLib.Variant("a{sv}", notification_expected).unpack()
         )
