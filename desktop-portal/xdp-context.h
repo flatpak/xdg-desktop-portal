@@ -52,3 +52,6 @@ gboolean xdp_context_claim_object_path (XdpContext *context,
 
 void xdp_context_unclaim_object_path (XdpContext *context,
                                       const char *object_path);
+
+gboolean xdp_context_is_experimental_portal_enabled (XdpContext *context,
+                                                     const char *portal_name);

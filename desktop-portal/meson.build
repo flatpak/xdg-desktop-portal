@@ -74,7 +74,7 @@ else
 endif
 
 xdp_method_info_built_sources = configure_file(
-  command: [find_program('generate-method-info.py'), portal_sources],
+  command: [find_program('generate-method-info.py'), portal_sources, portal_experimental_sources],
   capture: true,
   output: 'xdp-method-info-generated.c',
 )
