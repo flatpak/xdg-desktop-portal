@@ -9,12 +9,13 @@
       org.freedesktop.portal.ProxyResolver:
       @short_description: Portal for querying proxy information
 
-      The ProxyResolver interface provides network proxy information to sandboxed
-      applications. It is not a portal in the strict sense, since it does not involve
-      user interaction. Applications are expected to use this interface indirectly,
-      via a library API such as the GLib GProxyResolver interface.
+      The ProxyResolver interface provides network proxy information to
+      sandboxed applications. It is not a portal in the strict sense, since it
+      does not involve user interaction. Applications are expected to use this
+      interface indirectly, via a library API such as the GLib GProxyResolver
+      interface.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.ProxyResolver">
     <!--
@@ -31,6 +32,55 @@
       <arg type="s" name="uri" direction="in"/>
       <arg type="as" name="proxies" direction="out"/>
     </method>
+    <!--
+        LookupMultiple:
+        @uris: A list of URIs, each URI is as described in RFC 3986, of the destination to connect to
+        @proxies: List of a list of proxy URIs
+
+        Behaves similarly to :ref:`org.freedesktop.portal.ProxyResolver.Lookup`,
+        but operates on multiple URIs at once. Clients should use this method
+        if they batch their URI lookups or otherwise want to quickly build a
+        cache of proxy results.
+
+        This method will error if usage is attempted while
+        :ref:`org.freedesktop.portal.ProxyResolver.ProxyMode` is set to a
+        non-cacheable mode.
+
+        This method was added in version 2 of this interface.
+    -->
+    <method name="LookupMultiple">
+      <arg type="as" name="uri" direction="in"/>
+      <arg type="aas" name="proxies" direction="out"/>
+    </method>
+    <!--
+        ProxySettingsChanged:
+
+        Emitted when the system's underlying proxy settings change.
+
+        Clients should use this alongside the ref:`org.freedesktop.portal.ProxyResolver.ProxyMode`
+        property to know whether they need to rebuild their caches for the
+        system's proxy settings.
+
+        This signal was added in version 2 of this interface.
+    -->
+    <signal name="ProxySettingsChanged"></signal>
+    <!--
+        ProxyMode:
+
+        Indicates the system's preferred reduced proxy usage.
+        Supported values are:
+
+        * ``0``: No proxy
+        * ``1``: Proxy results not cacheable
+        * ``2``: Proxy results cacheable by URL
+        * ``3``: Proxy results cacheable by protocol
+
+        A client should use the ProxyResolver portal for any value that is not
+        ``0``. Clients should treat unknown values as ``1``.
+
+        This property was added in version 2 of this interface.
+    -->
+    <property name="ProxyMode" type="u" access="read"/>
     <property name="version" type="u" access="read"/>
   </interface>
 </node>
