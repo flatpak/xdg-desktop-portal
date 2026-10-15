@@ -24,5 +24,10 @@ more complex parts of XDG Desktop Portal.
    building-and-running
    pull-requests
    merge-requirements
+   api-design
+   coding-style
+   coding-patterns
+   security-model
+   testing
    architecture
    experimental-portals
