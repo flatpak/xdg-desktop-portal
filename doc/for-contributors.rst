@@ -25,3 +25,4 @@ more complex parts of XDG Desktop Portal.
    pull-requests
    merge-requirements
    architecture
+   experimental-portals

@@ -43,10 +43,16 @@ if build_documentation
   foreach i: portal_sources
     all_interfaces_xml += i
   endforeach
+  foreach i: portal_experimental_sources
+    all_interfaces_xml += i
+  endforeach
   foreach i: portal_host_sources
     all_interfaces_xml += i
   endforeach
   foreach i: portal_impl_sources
+    all_interfaces_xml += i
+  endforeach
+  foreach i: portal_experimental_impl_sources
     all_interfaces_xml += i
   endforeach
   foreach i: background_monitor_sources
@@ -89,6 +95,7 @@ if build_documentation
     'convenience-libraries.rst',
     'design-considerations.rst',
     'documents-and-fuse.rst',
+    'experimental-portals.rst',
     'for-app-developers.rst',
     'for-contributors.rst',
     'for-desktop-developers.rst',
