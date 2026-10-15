@@ -33,6 +33,10 @@
 
       A client who started a session vanishing from the D-Bus is equivalent to
       closing all active sessions made by said client.
+
+      A session provided by a backend also closes when that backend's D-Bus
+      name owner disappears or changes. The Closed signal is emitted in this
+      case; the session does not resume if the backend is restarted.
   -->
   <interface name="org.freedesktop.portal.Session">
 
