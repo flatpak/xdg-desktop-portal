@@ -371,7 +371,7 @@ gboolean
 xdp_context_is_experimental_portal_enabled (XdpContext *context,
                                             const char *portal_name)
 {
-  return g_hash_table_contains (context->exported_portals, portal_name);
+  return g_hash_table_contains (context->experimental_portals, portal_name);
 }
 
 static void

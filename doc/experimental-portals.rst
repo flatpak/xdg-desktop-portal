@@ -45,9 +45,9 @@ install and configure an appropriate backend in order for the frontend to
 become available.
 
 Additionally, experimental portals are subject to a feature flag, expressed by
-the ``XDG_CREDENTIAL_PORTAL_ENABLE_EXPERIMENTAL`` environment variable, which
+the ``XDG_DESKTOP_PORTAL_ENABLE_EXPERIMENTAL`` environment variable, which
 should contain a comma-separated list of portal names, (e.g.
-``XDG_CREDENTIAL_PORTAL_ENABLE_EXPERIMENTAL=Foo,Bar2``). xdg-desktop-portal will
+``XDG_DESKTOP_PORTAL_ENABLE_EXPERIMENTAL=Foo,Bar2``). xdg-desktop-portal will
 check this at startup to determine whether to start the experimental portal.
 
 Stable Promotion
