@@ -43,6 +43,7 @@ typedef struct _XdpAppInfoPrivate
   char *instance;
 
   /* app info */
+  char *desktop_file_id;
   GDesktopAppInfo *gappinfo;
 
   /* calling process */
@@ -99,6 +100,11 @@ xdp_app_info_initable_init (GInitable     *initable,
   priv->gappinfo =
     XDP_APP_INFO_GET_CLASS (app_info)->create_gappinfo (app_info);
 
+  if (priv->gappinfo)
+    priv->desktop_file_id = g_strdup (g_app_info_get_id (G_APP_INFO (priv->gappinfo)));
+  else if (priv->id && priv->id[0] != '\0')
+    priv->desktop_file_id = g_strconcat (priv->id, ".desktop", NULL);
+
   if ((priv->flags & XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO) && !priv->gappinfo)
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
@@ -144,6 +150,7 @@ xdp_app_info_dispose (GObject *object)
   g_clear_pointer (&priv->engine, g_free);
   g_clear_pointer (&priv->id, g_free);
   g_clear_pointer (&priv->instance, g_free);
+  g_clear_pointer (&priv->desktop_file_id, g_free);
   g_clear_object (&priv->gappinfo);
   g_clear_pointer (&priv->sender, g_free);
 
@@ -525,6 +532,18 @@ xdp_app_info_get_sender (XdpAppInfo *app_info)
   priv = xdp_app_info_get_instance_private (app_info);
 
   return priv->sender;
+}
+
+const char *
+xdp_app_info_get_desktop_file_id (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv;
+
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  priv = xdp_app_info_get_instance_private (app_info);
+
+  return priv->desktop_file_id;
 }
 
 GDesktopAppInfo *
