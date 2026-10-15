@@ -799,7 +799,7 @@ enable_autostart_sync (XdpAppInfo          *app_info,
       return FALSE;
     }
 
-  file = g_strconcat (appid, ".desktop", NULL);
+  file = g_strdup (xdp_app_info_get_desktop_file_id (app_info));
   dir = g_build_filename (g_get_user_config_dir (), "autostart", NULL);
   path = g_build_filename (dir, file, NULL);
 
