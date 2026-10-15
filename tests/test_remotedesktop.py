@@ -5,6 +5,7 @@
 
 import os
 import socket
+import time
 from typing import Any
 
 import dbus
@@ -128,7 +129,16 @@ class TestRemoteDesktop:
             backend = templates[dbusmock.BusType.SESSION][backend_name]
             backend.process.kill()
             backend.process.wait(timeout=5)
-            xdp.wait_for(lambda: all(session.closed for session in sessions))
+            deadline = time.monotonic() + (
+                xdp.DBUS_TIMEOUT * (10 if xdp.is_valgrind() else 1) / 1000
+            )
+            xdp.wait_for(
+                lambda: all(session.closed for session in sessions)
+                or time.monotonic() >= deadline
+            )
+            assert all(session.closed for session in sessions), (
+                "Backend owner loss did not close every public session"
+            )
             assert all(session.error is None for session in sessions)
 
             if replacement_con:
