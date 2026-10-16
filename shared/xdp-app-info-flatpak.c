@@ -565,7 +565,8 @@ load_bwrap_info (const char  *instance,
 }
 
 static int
-get_bwrap_pidfd (const char  *instance,
+get_bwrap_pidfd (int          caller_pidfd,
+                 const char  *instance,
                  GError     **error)
 {
   g_autoptr(JsonNode) root = NULL;
@@ -585,6 +586,9 @@ get_bwrap_pidfd (const char  *instance,
 
   pid = get_bwrap_child_pid (root, error);
   if (pid == 0)
+    return -1;
+
+  if (caller_pidfd >= 0 && xdp_pidfd_to_pid (caller_pidfd, error) < 0)
     return -1;
 
   if (!xdp_pid_to_pidfd (pid, &fd, error))
@@ -834,7 +838,7 @@ xdp_app_info_flatpak_new (const char  *sender,
    * instead. This is okay because it has the same namespaces as the calling
    * process.
    */
-  bwrap_pidfd = get_bwrap_pidfd (instance, &local_error);
+  bwrap_pidfd = get_bwrap_pidfd (*pidfd, instance, &local_error);
   if (bwrap_pidfd == -1)
     {
       if (!g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED))
@@ -845,8 +849,6 @@ xdp_app_info_flatpak_new (const char  *sender,
 
       g_info ("Pidfds not supported by the kernel");
     }
-
-  /* TODO: we can use pidfd to make sure we didn't race for sure */
 
   flags |= XDP_APP_INFO_FLAG_SUPPORTS_OPATH;
   if (has_network)
