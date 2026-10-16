@@ -154,6 +154,9 @@ gboolean xdp_pid_to_pidfd (pid_t    pid,
                            int     *pidfd_out,
                            GError **error);
 
+pid_t xdp_pidfd_to_pid (int      pidfd,
+                        GError **error);
+
 gboolean xdp_pidfds_to_pids (const int  *pidfds,
                              pid_t      *pids,
                              gint        count,
