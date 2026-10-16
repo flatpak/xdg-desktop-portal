@@ -501,26 +501,6 @@ xdp_app_info_flatpak_init (XdpAppInfoFlatpak *app_info_flatpak)
 {
 }
 
-static int
-open_pid_fd (int      proc_fd,
-             pid_t    pid,
-             GError **error)
-{
-  char buf[20] = {0, };
-  int fd;
-
-  snprintf (buf, sizeof(buf), "%u", (guint) pid);
-
-  fd = openat (proc_fd, buf, O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
-
-  if (fd == -1)
-    g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
-                 "Could not to open '/proc/pid/%u': %s", (guint) pid,
-                 g_strerror (errno));
-
-  return fd;
-}
-
 static pid_t
 get_bwrap_child_pid (JsonNode  *root,
                      GError   **error)
@@ -585,11 +565,11 @@ load_bwrap_info (const char  *instance,
 }
 
 static int
-get_bwrap_pidfd (const char  *instance,
+get_bwrap_pidfd (int          caller_pidfd,
+                 const char  *instance,
                  GError     **error)
 {
   g_autoptr(JsonNode) root = NULL;
-  DIR *proc;
   g_autofd int fd = -1;
   pid_t pid;
 
@@ -608,16 +588,11 @@ get_bwrap_pidfd (const char  *instance,
   if (pid == 0)
     return -1;
 
-  proc = opendir ("/proc");
-  if (proc == NULL)
-    {
-      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
-                   "Could not open '%s': %s", "/proc", g_strerror (errno));
-      return -1;
-    }
+  if (caller_pidfd >= 0 && xdp_pidfd_to_pid (caller_pidfd, error) < 0)
+    return -1;
 
-  fd = open_pid_fd (dirfd (proc), pid, error);
-  closedir (proc);
+  if (!xdp_pid_to_pidfd (pid, &fd, error))
+    return -1;
 
   return g_steal_fd (&fd);
 }
@@ -863,11 +838,17 @@ xdp_app_info_flatpak_new (const char  *sender,
    * instead. This is okay because it has the same namespaces as the calling
    * process.
    */
-  bwrap_pidfd = get_bwrap_pidfd (instance, error);
+  bwrap_pidfd = get_bwrap_pidfd (*pidfd, instance, &local_error);
   if (bwrap_pidfd == -1)
-    return NULL;
+    {
+      if (!g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED))
+        {
+          g_propagate_error (error, g_steal_pointer (&local_error));
+          return NULL;
+        }
 
-  /* TODO: we can use pidfd to make sure we didn't race for sure */
+      g_info ("Pidfds not supported by the kernel");
+    }
 
   flags |= XDP_APP_INFO_FLAG_SUPPORTS_OPATH;
   if (has_network)
