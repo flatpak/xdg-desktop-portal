@@ -154,6 +154,21 @@ gboolean xdp_pid_to_pidfd (pid_t    pid,
                            int     *pidfd_out,
                            GError **error);
 
+/**
+ * xdp_pidfd_to_pid:
+ * @pidfd: The fd for the process to find
+ * @error: (nullable): return location for a #GError
+ *
+ * Attempts to find the process id referenced by
+ * the given @pidfd. This specifically also returns an
+ * error if the process referenced by the @pidfd has died.
+ *
+ * Returns: A #pid_t with the corresponding pid, or -1 on
+ * error.
+ */
+pid_t xdp_pidfd_to_pid (int      pidfd,
+                        GError **error);
+
 gboolean xdp_pidfds_to_pids (const int  *pidfds,
                              pid_t      *pids,
                              gint        count,
