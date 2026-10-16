@@ -37,6 +37,9 @@ class Response(NamedTuple):
     results: dict
 
 
+type AsyncCallback = Callable[tuple[str, str], None]
+
+
 class ImplRequest:
     """
     Implementation of an ``org.freedesktop.impl.portal.Request`` object exposed
@@ -55,9 +58,9 @@ class ImplRequest:
         busname: str,
         handle: str,
         logger: logging.Logger,
-        cb_success: Callable,
-        cb_error: Callable,
-    ):
+        cb_success: AsyncCallback,
+        cb_error: AsyncCallback,
+    ) -> None:
         self.mock = mock
         bus = mock.connection
         proxy = bus.get_object(busname, handle)
