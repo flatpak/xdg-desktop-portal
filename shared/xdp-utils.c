@@ -1033,6 +1033,19 @@ open_fdinfo_dir (GError **error)
   return fd;
 }
 
+pid_t
+xdp_pidfd_to_pid (int      pidfd,
+                  GError **error)
+{
+  g_autofd int fdinfo = -1;
+
+  fdinfo = open_fdinfo_dir (error);
+  if (fdinfo == -1)
+    return -1;
+
+  return pidfd_to_pid (fdinfo, pidfd, error);
+}
+
 gboolean
 xdp_pidfds_to_pids (const int  *pidfds,
                     pid_t      *pids,
