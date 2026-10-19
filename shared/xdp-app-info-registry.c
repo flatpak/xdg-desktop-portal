@@ -399,3 +399,19 @@ xdp_app_info_registry_ensure_future (XdpAppInfoRegistry    *registry,
 
   return queue_work (registry, sender, g_steal_pointer (&data));
 }
+
+gboolean
+xdp_app_info_registry_contains (XdpAppInfoRegistry *registry,
+                                XdpAppInfo         *app_info)
+{
+  const char *sender = xdp_app_info_get_sender (app_info);
+  XdpAppInfo *registered;
+  gboolean contains;
+
+  g_mutex_lock (&registry->app_infos_lock);
+  registered = g_hash_table_lookup (registry->app_infos, sender);
+  contains = registered == app_info;
+  g_mutex_unlock (&registry->app_infos_lock);
+
+  return contains;
+}
