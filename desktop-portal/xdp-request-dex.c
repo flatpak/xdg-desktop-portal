@@ -103,7 +103,7 @@ xdp_request_dex_dispose (GObject *object)
                                        XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                        NULL);
 
-      xdp_dbus_impl_request_call_close (request->impl_request, NULL, NULL, NULL),
+      xdp_dbus_impl_request_call_close (request->impl_request, NULL, NULL, NULL);
 
       g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
       request->exported = FALSE;
@@ -180,7 +180,7 @@ on_app_info_removed (XdpAppInfoRegistry *registry,
   if (!request->exported)
     return;
 
-  xdp_dbus_impl_request_call_close (request->impl_request, NULL, NULL, NULL),
+  xdp_dbus_impl_request_call_close (request->impl_request, NULL, NULL, NULL);
 
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
   request->exported = FALSE;
