@@ -6,6 +6,7 @@
 
 #include "xdp-request-dex.h"
 
+#include "xdp-app-info-registry.h"
 #include "xdp-app-info.h"
 #include "xdp-context.h"
 #include "xdp-impl-dbus.h"
@@ -167,13 +168,13 @@ request_impl_proxy_create_data_free (RequestImplProxyCreateData *data)
 }
 
 static void
-on_peer_disconnect (XdpContext *context,
-                    const char *peer,
-                    gpointer    user_data)
+on_app_info_removed (XdpAppInfoRegistry *registry,
+                     XdpAppInfo         *app_info,
+                     gpointer            user_data)
 {
   XdpRequestDex *request = XDP_REQUEST_DEX (user_data);
 
-  if (g_strcmp0 (xdp_app_info_get_sender (request->app_info), peer) != 0)
+  if (app_info != request->app_info)
     return;
 
   if (!request->exported)
@@ -190,9 +191,10 @@ on_impl_request_proxy_created (DexFuture *future,
                                gpointer   user_data)
 {
   RequestImplProxyCreateData *data = user_data;
+  XdpAppInfoRegistry *registry =
+    xdp_context_get_app_info_registry (data->context);
   g_autoptr(XdpRequestDex) request = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  g_autoptr(GError) error = NULL;
 
   impl_request = dex_await_object (dex_ref (future), NULL);
   g_assert (impl_request);
@@ -203,10 +205,17 @@ on_impl_request_proxy_created (DexFuture *future,
   request->impl_request = g_steal_pointer (&impl_request);
   request->skeleton = g_steal_pointer (&data->skeleton);
   request->claim = g_steal_pointer (&data->claim);
-  g_signal_connect_object (request->context, "peer-disconnect",
-                           G_CALLBACK (on_peer_disconnect),
+  g_signal_connect_object (registry, "removed",
+                           G_CALLBACK (on_app_info_removed),
                            request,
                            G_CONNECT_DEFAULT);
+
+  if (!xdp_app_info_registry_contains (registry, request->app_info))
+    {
+      return dex_future_new_for_error (g_error_new_literal (G_IO_ERROR,
+                                                            G_IO_ERROR_CANCELLED,
+                                                            "Caller disconnected"));
+    }
 
   dex_dbus_interface_skeleton_set_flags (DEX_DBUS_INTERFACE_SKELETON (request),
                                          DEX_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_FIBER);
