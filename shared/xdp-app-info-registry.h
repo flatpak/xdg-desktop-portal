@@ -28,3 +28,6 @@ DexFuture * xdp_app_info_registry_insert_future (XdpAppInfoRegistry    *registry
 DexFuture * xdp_app_info_registry_delete_future (XdpAppInfoRegistry *registry,
                                                  const char         *sender);
 
+gboolean xdp_app_info_registry_contains (XdpAppInfoRegistry *registry,
+                                         XdpAppInfo         *app_info);
+
