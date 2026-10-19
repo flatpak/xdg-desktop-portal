@@ -338,18 +338,6 @@ xdp_app_info_registry_delete_future (XdpAppInfoRegistry *registry,
 
   G_MUTEX_AUTO_LOCK (&registry->channels_lock, locker);
 
-  /* Shortcut if we have no active channel (i.e. no in-flight changes) */
-  if (!g_hash_table_contains (registry->channels, sender))
-    {
-      gboolean removed;
-
-      g_mutex_lock (&registry->app_infos_lock);
-      removed = g_hash_table_remove (registry->app_infos, sender);
-      g_mutex_unlock (&registry->app_infos_lock);
-
-      return dex_future_new_for_boolean (removed);
-    }
-
   data = g_new0 (QueueData, 1);
   data->kind = QUEUE_DATA_KIND_DELETE;
   data->sender = g_strdup (sender);
@@ -365,21 +353,6 @@ xdp_app_info_registry_ensure_future (XdpAppInfoRegistry    *registry,
   const char *sender = g_dbus_method_invocation_get_sender (invocation);
 
   G_MUTEX_AUTO_LOCK (&registry->channels_lock, locker);
-
-  /* Shortcut if we have no active channel (i.e. no in-flight changes) */
-  if (!g_hash_table_contains (registry->channels, sender))
-    {
-      XdpAppInfo *existing;
-
-      g_mutex_lock (&registry->app_infos_lock);
-      existing = g_hash_table_lookup (registry->app_infos, sender);
-      if (existing)
-        g_object_ref (existing);
-      g_mutex_unlock (&registry->app_infos_lock);
-
-      if (existing)
-        return dex_future_new_take_object (existing);
-    }
 
   data = g_new0 (QueueData, 1);
   data->kind = QUEUE_DATA_KIND_ENSURE;
