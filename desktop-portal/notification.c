@@ -170,8 +170,9 @@ G_DEFINE_TYPE_WITH_CODE (Notification, notification,
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Notification, g_object_unref)
 
 static void
-on_app_info_destroyed (XdpAppInfo *app_info,
-                       gpointer    user_data)
+on_app_info_removed (XdpAppInfoRegistry *registry,
+                     XdpAppInfo         *app_info,
+                     gpointer            user_data)
 {
   Notification *notification = user_data;
   const char *sender_app_id;
@@ -217,14 +218,6 @@ add_done (GObject *source,
       g_hash_table_insert (notification->active,
                            pair_copy (&p),
                            g_strdup (call_data->sender));
-
-      g_signal_handlers_disconnect_by_data (call_data->app_info,
-                                            notification);
-      g_signal_connect_object (call_data->app_info,
-                               "destroyed",
-                               G_CALLBACK (on_app_info_destroyed),
-                               notification,
-                               G_CONNECT_DEFAULT);
     }
 }
 
@@ -1269,6 +1262,7 @@ static Notification *
 notification_new (XdpContext              *context,
                   XdpDbusImplNotification *impl)
 {
+  XdpAppInfoRegistry *registry = xdp_context_get_app_info_registry (context);
   Notification *notification = NULL;
 
   notification = g_object_new (notification_get_type (), NULL);
@@ -1293,6 +1287,11 @@ notification_new (XdpContext              *context,
 
   g_signal_connect_object (notification->impl, "action-invoked",
                            G_CALLBACK (action_invoked_cb),
+                           notification,
+                           G_CONNECT_DEFAULT);
+
+  g_signal_connect_object (registry, "removed",
+                           G_CALLBACK (on_app_info_removed),
                            notification,
                            G_CONNECT_DEFAULT);
 
