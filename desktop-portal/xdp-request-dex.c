@@ -70,7 +70,6 @@ xdp_request_dex_handle_close (XdpDbusRequest        *object,
 
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
   request->exported = FALSE;
-  g_clear_pointer (&request->claim, xdp_object_path_claim_unref);
 
   dex_await (xdp_dbus_impl_request_call_close_future (request->impl_request),
              &error);
@@ -107,9 +106,9 @@ xdp_request_dex_dispose (GObject *object)
 
       g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
       request->exported = FALSE;
-      g_clear_pointer (&request->claim, xdp_object_path_claim_unref);
     }
 
+  g_clear_pointer (&request->claim, xdp_object_path_claim_unref);
   g_clear_object (&request->app_info);
   g_clear_object (&request->impl_request);
   g_clear_object (&request->skeleton);
@@ -184,7 +183,6 @@ on_peer_disconnect (XdpContext *context,
 
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
   request->exported = FALSE;
-  g_clear_pointer (&request->claim, xdp_object_path_claim_unref);
 }
 
 static DexFuture *

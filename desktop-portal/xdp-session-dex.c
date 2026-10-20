@@ -80,7 +80,6 @@ xdp_session_dex_handle_close (XdpDbusSession        *object,
 
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (session));
   session->exported = FALSE;
-  g_clear_pointer (&session->claim, xdp_object_path_claim_unref);
 
   dex_await (xdp_dbus_impl_session_call_close_future (session->impl_session),
              &error);
@@ -160,7 +159,6 @@ on_peer_disconnect (XdpContext *context,
 
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (session));
   session->exported = FALSE;
-  g_clear_pointer (&session->claim, xdp_object_path_claim_unref);
 
   xdp_dbus_impl_session_call_close (session->impl_session, NULL, NULL, NULL);
   xdp_session_dex_emit_closed (session);
@@ -182,7 +180,6 @@ on_impl_closed (XdpDbusImplSession *object,
 
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (session));
   session->exported = FALSE;
-  g_clear_pointer (&session->claim, xdp_object_path_claim_unref);
 
   xdp_session_dex_emit_closed (session);
 }
