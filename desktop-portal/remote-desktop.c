@@ -322,7 +322,7 @@ create_session_done (GObject *source_object,
     }
 
   g_variant_builder_add (&results_builder, "{sv}",
-                         "session_handle", g_variant_new_string (session->id));
+                         "session_handle", g_variant_new_string (xdp_session_get_object_path (session)));
 
 out:
   if (request->exported)
@@ -385,7 +385,7 @@ handle_create_session (XdpDbusRemoteDesktop *object,
 
   xdp_dbus_impl_remote_desktop_call_create_session (remote_desktop->impl,
                                                     request->id,
-                                                    session->id,
+                                                    xdp_session_get_object_path (session),
                                                     xdp_app_info_get_id (request->app_info),
                                                     options,
                                                     NULL,
@@ -918,7 +918,7 @@ handle_notify_pointer_motion (XdpDbusRemoteDesktop *object,
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   xdp_dbus_impl_remote_desktop_call_notify_pointer_motion (remote_desktop->impl,
-                                                           session->id,
+                                                           xdp_session_get_object_path (session),
                                                            options,
                                                            dx, dy,
                                                            NULL, NULL, NULL);
@@ -987,7 +987,7 @@ handle_notify_pointer_motion_absolute (XdpDbusRemoteDesktop *object,
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   xdp_dbus_impl_remote_desktop_call_notify_pointer_motion_absolute (remote_desktop->impl,
-                                                                    session->id,
+                                                                    xdp_session_get_object_path (session),
                                                                     options,
                                                                     stream,
                                                                     x, y,
@@ -1047,7 +1047,7 @@ handle_notify_pointer_button (XdpDbusRemoteDesktop *object,
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   xdp_dbus_impl_remote_desktop_call_notify_pointer_button (remote_desktop->impl,
-                                                           session->id,
+                                                           xdp_session_get_object_path (session),
                                                            options,
                                                            button,
                                                            state,
@@ -1111,7 +1111,7 @@ handle_notify_pointer_axis (XdpDbusRemoteDesktop *object,
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   xdp_dbus_impl_remote_desktop_call_notify_pointer_axis (remote_desktop->impl,
-                                                         session->id,
+                                                         xdp_session_get_object_path (session),
                                                          options,
                                                          dx, dy,
                                                          NULL, NULL, NULL);
@@ -1169,7 +1169,7 @@ handle_notify_pointer_axis_discrete (XdpDbusRemoteDesktop *object,
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   xdp_dbus_impl_remote_desktop_call_notify_pointer_axis_discrete (remote_desktop->impl,
-                                                                  session->id,
+                                                                  xdp_session_get_object_path (session),
                                                                   options,
                                                                   axis,
                                                                   steps,
@@ -1228,7 +1228,7 @@ handle_notify_keyboard_keycode (XdpDbusRemoteDesktop *object,
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   xdp_dbus_impl_remote_desktop_call_notify_keyboard_keycode (remote_desktop->impl,
-                                                             session->id,
+                                                             xdp_session_get_object_path (session),
                                                              options,
                                                              keycode,
                                                              state,
@@ -1287,7 +1287,7 @@ handle_notify_keyboard_keysym (XdpDbusRemoteDesktop *object,
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   xdp_dbus_impl_remote_desktop_call_notify_keyboard_keysym (remote_desktop->impl,
-                                                            session->id,
+                                                            xdp_session_get_object_path (session),
                                                             options,
                                                             keysym,
                                                             state,
@@ -1357,7 +1357,7 @@ handle_notify_touch_down (XdpDbusRemoteDesktop *object,
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   xdp_dbus_impl_remote_desktop_call_notify_touch_down (remote_desktop->impl,
-                                                       session->id,
+                                                       xdp_session_get_object_path (session),
                                                        options,
                                                        stream,
                                                        slot,
@@ -1428,7 +1428,7 @@ handle_notify_touch_motion (XdpDbusRemoteDesktop *object,
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   xdp_dbus_impl_remote_desktop_call_notify_touch_motion (remote_desktop->impl,
-                                                         session->id,
+                                                         xdp_session_get_object_path (session),
                                                          options,
                                                          stream,
                                                          slot,
@@ -1487,7 +1487,7 @@ handle_notify_touch_up (XdpDbusRemoteDesktop *object,
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   xdp_dbus_impl_remote_desktop_call_notify_touch_up (remote_desktop->impl,
-                                                     session->id,
+                                                     xdp_session_get_object_path (session),
                                                      options,
                                                      slot,
                                                      NULL, NULL, NULL);

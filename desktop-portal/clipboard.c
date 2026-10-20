@@ -139,7 +139,7 @@ handle_request_clipboard (XdpDbusClipboard *object,
     }
 
   xdp_dbus_impl_clipboard_call_request_clipboard (clipboard->impl,
-                                                  session->id,
+                                                  xdp_session_get_object_path (session),
                                                   arg_options,
                                                   NULL, NULL, NULL);
 

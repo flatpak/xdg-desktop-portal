@@ -244,7 +244,7 @@ create_session_done (GObject *source_object,
     }
 
   g_variant_builder_add (&results_builder, "{sv}",
-                         "session_handle", g_variant_new_string (session->id));
+                         "session_handle", g_variant_new_string (xdp_session_get_object_path (session)));
 
 out:
   if (request->exported)
@@ -310,7 +310,7 @@ handle_create_session (XdpDbusScreenCast *object,
 
   xdp_dbus_impl_screen_cast_call_create_session (screen_cast->impl,
                                                  request->id,
-                                                 session->id,
+                                                 xdp_session_get_object_path (session),
                                                  xdp_app_info_get_id (request->app_info),
                                                  options,
                                                  NULL,

@@ -119,7 +119,7 @@ location_session_close (XdpSession *session)
   if (loc_session->client)
     geoclue_client_call_stop (loc_session->client, NULL, NULL, NULL);
 
-  g_debug ("location session '%s' closed", session->id);
+  g_debug ("location session '%s' closed", xdp_session_get_object_path (session));
 }
 
 static void
@@ -161,7 +161,7 @@ location_session_new (Location               *location,
                             NULL);
 
   if (session)
-    g_debug ("location session '%s' created", session->id);
+    g_debug ("location session '%s' created", xdp_session_get_object_path (session));
 
   return (LocationSession*)session;
 }
@@ -205,7 +205,7 @@ on_location_updated (GeoclueClient *client,
                                       DESKTOP_DBUS_PATH,
                                       LOCATION_DBUS_IFACE,
                                       "LocationUpdated",
-                                      g_variant_new ("(o@a{sv})", session->id, dict),
+                                      g_variant_new ("(o@a{sv})", xdp_session_get_object_path (session), dict),
                                       &error))
     {
       g_warning ("Failed to emit LocationUpdated signal: %s", error->message);
@@ -253,9 +253,9 @@ location_session_start (LocationSession *loc_session)
       return FALSE;
     }
 
-  g_debug ("location session '%s', GeoClue client '%s'", ((XdpSession*)loc_session)->id, client_id);
+  g_debug ("location session '%s', GeoClue client '%s'", xdp_session_get_object_path (XDP_SESSION (loc_session)), client_id);
   g_debug ("location session '%s', distance-threshold %d, time-threshold %d, accuracy %s",
-           XDP_SESSION (loc_session)->id,
+           xdp_session_get_object_path (XDP_SESSION (loc_session)),
            loc_session->distance_threshold,
            loc_session->time_threshold,
            gclue_accuracy_level_to_string (loc_session->accuracy));
@@ -283,7 +283,7 @@ location_session_start (LocationSession *loc_session)
   g_debug ("GeoClue client '%s' started", client_id);
 
   loc_session->state = LOCATION_SESSION_STATE_STARTED;
-  g_debug ("location session '%s' started", ((XdpSession*)loc_session)->id);
+  g_debug ("location session '%s' started", xdp_session_get_object_path (XDP_SESSION (loc_session)));
 
   return TRUE;
 }
@@ -472,11 +472,11 @@ handle_create_session (XdpDbusLocation *object,
     }
   else
     {
-      g_debug ("CreateSession new session '%s'",  session->id);
+      g_debug ("CreateSession new session '%s'",  xdp_session_get_object_path (session));
       xdp_session_register (session);
     }
 
-  xdp_dbus_location_complete_create_session (object, invocation, session->id);
+  xdp_dbus_location_complete_create_session (object, invocation, xdp_session_get_object_path (session));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }

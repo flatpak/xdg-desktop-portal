@@ -303,7 +303,7 @@ handle_create_session (XdpDbusInputCapture   *object,
     {
       xdp_dbus_impl_input_capture_call_create_session (input_capture->impl,
                                                        request->id,
-                                                       session->id,
+                                                       xdp_session_get_object_path (session),
                                                        session->app_id,
                                                        arg_parent_window,
                                                        options,
@@ -318,7 +318,7 @@ handle_create_session (XdpDbusInputCapture   *object,
       g_autoptr(GVariant) results = NULL;
 
       if (!xdp_dbus_impl_input_capture_call_create_session2_sync (input_capture->impl,
-                                                                  session->id,
+                                                                  xdp_session_get_object_path (session),
                                                                   session->app_id,
                                                                   g_variant_builder_end (&empty_options_builder),
                                                                   &results,
@@ -332,7 +332,7 @@ handle_create_session (XdpDbusInputCapture   *object,
 
       xdp_dbus_impl_input_capture_call_start (input_capture->impl,
                                               request->id,
-                                              session->id,
+                                              xdp_session_get_object_path (session),
                                               session->app_id,
                                               arg_parent_window,
                                               options,
@@ -394,7 +394,7 @@ handle_create_session2 (XdpDbusInputCapture   *object,
     }
 
   if (!xdp_dbus_impl_input_capture_call_create_session2_sync (input_capture->impl,
-                                                              session->id,
+                                                              xdp_session_get_object_path (session),
                                                               session->app_id,
                                                               options,
                                                               &results,
@@ -416,7 +416,7 @@ handle_create_session2 (XdpDbusInputCapture   *object,
   xdp_session_register (session);
 
   g_variant_builder_add (&results_builder, "{sv}",
-                         "session_handle", g_variant_new_object_path (session->id));
+                         "session_handle", g_variant_new_object_path (xdp_session_get_object_path (session)));
   xdp_dbus_input_capture_complete_create_session2 (object,
                                                    invocation,
                                                    g_variant_builder_end (&results_builder));
@@ -496,7 +496,7 @@ start_done (GObject      *source_object,
       input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_STARTED;
 
       g_variant_builder_add (&results_builder, "{sv}",
-                             "session_handle", g_variant_new_object_path (session->id));
+                             "session_handle", g_variant_new_object_path (xdp_session_get_object_path (session)));
 
       if (!g_variant_lookup (results, "capabilities", "u", &capabilities))
         {

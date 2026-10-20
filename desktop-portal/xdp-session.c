@@ -110,7 +110,7 @@ xdp_session_export (XdpSession  *session,
 {
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (session),
                                          session->connection,
-                                         session->id,
+                                         xdp_session_get_object_path (session),
                                          error))
     return FALSE;
 
@@ -138,7 +138,7 @@ void
 xdp_session_register (XdpSession *session)
 {
   G_LOCK (sessions);
-  g_hash_table_insert (sessions, session->id, session);
+  g_hash_table_insert (sessions, (char *) xdp_session_get_object_path (session), session);
   G_UNLOCK (sessions);
 }
 
@@ -146,7 +146,7 @@ static void
 xdp_session_unregister (XdpSession *session)
 {
   G_LOCK (sessions);
-  g_hash_table_remove (sessions, session->id);
+  g_hash_table_remove (sessions, xdp_session_get_object_path (session));
   G_UNLOCK (sessions);
 }
 
@@ -166,7 +166,7 @@ xdp_session_close (XdpSession *session,
 
       g_dbus_connection_emit_signal (session->connection,
                                      session->sender,
-                                     session->id,
+                                     xdp_session_get_object_path (session),
                                      DESKTOP_DBUS_IFACE ".Session",
                                      "Closed",
                                      g_variant_new ("(@a{sv})", g_variant_builder_end (&details_builder)),
@@ -455,7 +455,7 @@ xdp_session_finalize (GObject *object)
 {
   XdpSession *session = XDP_SESSION (object);
 
-  g_assert (!session->id || !g_hash_table_lookup (sessions, session->id));
+  g_assert (!session->id || !g_hash_table_lookup (sessions, xdp_session_get_object_path (session)));
 
   g_free (session->sender);
   g_clear_object (&session->connection);
