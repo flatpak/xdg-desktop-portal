@@ -82,5 +82,7 @@ void xdp_session_register (XdpSession *session);
 gboolean xdp_session_export (XdpSession  *session,
                              GError     **error);
 
+const char * xdp_session_get_object_path (XdpSession *session);
+
 void xdp_session_close (XdpSession *session,
                         gboolean    notify_close);
