@@ -303,7 +303,7 @@ xdp_request_export (XdpRequest      *request,
 
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (request),
                                          connection,
-                                         request->id,
+                                         xdp_request_get_object_path (request),
                                          &error))
     {
       g_warning ("Error exporting request: %s", error->message);

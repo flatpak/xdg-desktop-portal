@@ -666,7 +666,7 @@ handle_prepare_install (XdpDbusDynamicLauncher *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (dynamic_launcher->impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (dynamic_launcher->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
 
   if (!impl_request)
@@ -704,7 +704,7 @@ handle_prepare_install (XdpDbusDynamicLauncher *object,
                           g_steal_pointer (&icon_size), g_free);
 
   xdp_dbus_impl_dynamic_launcher_call_prepare_install (dynamic_launcher->impl,
-                                                       request->id,
+                                                       xdp_request_get_object_path (request),
                                                        app_id,
                                                        arg_parent_window,
                                                        arg_name,
@@ -714,7 +714,7 @@ handle_prepare_install (XdpDbusDynamicLauncher *object,
                                                        prepare_install_done,
                                                        g_object_ref (request));
 
-  xdp_dbus_dynamic_launcher_complete_prepare_install (object, invocation, request->id);
+  xdp_dbus_dynamic_launcher_complete_prepare_install (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }

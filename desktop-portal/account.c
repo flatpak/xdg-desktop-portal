@@ -188,7 +188,7 @@ handle_get_user_information (XdpDbusAccount *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (account->impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (account->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
 
   if (!impl_request)
@@ -207,7 +207,7 @@ handle_get_user_information (XdpDbusAccount *object,
   g_debug ("options filtered");
 
   xdp_dbus_impl_account_call_get_user_information (account->impl,
-                                                   request->id,
+                                                   xdp_request_get_object_path (request),
                                                    app_id,
                                                    arg_parent_window,
                                                    g_variant_builder_end (&options),
@@ -216,7 +216,7 @@ handle_get_user_information (XdpDbusAccount *object,
                                                    g_object_ref (request));
 
   xdp_dbus_account_complete_get_user_information (object, invocation,
-                                                 request->id);
+                                                 xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }

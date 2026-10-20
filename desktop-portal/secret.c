@@ -128,7 +128,7 @@ handle_retrieve_secret (XdpDbusSecret         *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (secret->impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (secret->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
 
   if (!impl_request)
@@ -148,10 +148,10 @@ handle_retrieve_secret (XdpDbusSecret         *object,
   xdp_request_set_impl_request (request, impl_request);
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  xdp_dbus_secret_complete_retrieve_secret (object, invocation, NULL, request->id);
+  xdp_dbus_secret_complete_retrieve_secret (object, invocation, NULL, xdp_request_get_object_path (request));
 
   xdp_dbus_impl_secret_call_retrieve_secret (secret->impl,
-                                             request->id,
+                                             xdp_request_get_object_path (request),
                                              app_id,
                                              arg_fd,
                                              g_variant_builder_end (&options),

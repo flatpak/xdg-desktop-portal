@@ -930,7 +930,7 @@ handle_request_background_in_thread_func (GTask *task,
       g_variant_builder_add (&opt_builder, "{sv}", "deny_label", g_variant_new_string (_("Don't allow")));
       g_variant_builder_add (&opt_builder, "{sv}", "grant_label", g_variant_new_string (_("Allow")));
       if (!xdp_dbus_impl_access_call_access_dialog_sync (background->access_impl,
-                                                         request->id,
+                                                         xdp_request_get_object_path (request),
                                                          id,
                                                          "",
                                                          title,
@@ -1111,7 +1111,7 @@ handle_request_background (XdpDbusBackground *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (background->access_impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (background->access_impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
 
   if (!impl_request)
@@ -1123,7 +1123,7 @@ handle_request_background (XdpDbusBackground *object,
   xdp_request_set_impl_request (request, impl_request);
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  xdp_dbus_background_complete_request_background (object, invocation, request->id);
+  xdp_dbus_background_complete_request_background (object, invocation, xdp_request_get_object_path (request));
 
   task = g_task_new (object, NULL, NULL, NULL);
   g_task_set_source_tag (task, handle_request_background);

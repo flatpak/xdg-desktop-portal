@@ -102,7 +102,7 @@ query_permission_sync (Camera     *camera,
         g_dbus_proxy_get_connection (G_DBUS_PROXY (camera->access_impl)),
         G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
         g_dbus_proxy_get_name (G_DBUS_PROXY (camera->access_impl)),
-        request->id,
+        xdp_request_get_object_path (request),
         NULL, &error);
 
       if (!impl_request)
@@ -113,7 +113,7 @@ query_permission_sync (Camera     *camera,
       g_debug ("Calling backend for device access to camera");
 
       if (!xdp_dbus_impl_access_call_access_dialog_sync (camera->access_impl,
-                                                         request->id,
+                                                         xdp_request_get_object_path (request),
                                                          app_id,
                                                          "",
                                                          title,
@@ -201,7 +201,7 @@ handle_access_camera (XdpDbusCamera *object,
 
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  xdp_dbus_camera_complete_access_camera (object, invocation, request->id);
+  xdp_dbus_camera_complete_access_camera (object, invocation, xdp_request_get_object_path (request));
 
   task = g_task_new (camera, NULL, NULL, NULL);
   g_task_set_source_tag (task, handle_access_camera);

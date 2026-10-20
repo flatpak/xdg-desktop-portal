@@ -313,7 +313,7 @@ check_non_interactive_permission_in_thread (Screenshot *screenshot,
     body = _("This permission can be changed at any time from the privacy settings");
 
   if (!xdp_dbus_impl_access_call_access_dialog_sync (screenshot->access_impl,
-                                                     request->id,
+                                                     xdp_request_get_object_path (request),
                                                      app_id,
                                                      parent_window,
                                                      title,
@@ -393,7 +393,7 @@ handle_screenshot_in_thread_func (GTask *task,
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (screenshot->impl)),
                                           G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                           g_dbus_proxy_get_name (G_DBUS_PROXY (screenshot->impl)),
-                                          request->id,
+                                          xdp_request_get_object_path (request),
                                           NULL, &error);
   if (!impl_request)
     {
@@ -419,7 +419,7 @@ handle_screenshot_in_thread_func (GTask *task,
 
   g_debug ("Calling Screenshot with interactive=%d", interactive);
   xdp_dbus_impl_screenshot_call_screenshot (screenshot->impl,
-                                            request->id,
+                                            xdp_request_get_object_path (request),
                                             app_id,
                                             parent_window,
                                             g_variant_builder_end (&opt_builder),
@@ -461,7 +461,7 @@ handle_screenshot (XdpDbusScreenshot *object,
                           (GDestroyNotify)g_variant_unref);
 
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
-  xdp_dbus_screenshot_complete_screenshot (object, invocation, request->id);
+  xdp_dbus_screenshot_complete_screenshot (object, invocation, xdp_request_get_object_path (request));
 
   task = g_task_new (object, NULL, NULL, NULL);
   g_task_set_source_tag (task, handle_screenshot);
@@ -525,7 +525,7 @@ handle_pick_color (XdpDbusScreenshot *object,
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (screenshot->impl)),
                                           G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                           g_dbus_proxy_get_name (G_DBUS_PROXY (screenshot->impl)),
-                                          request->id,
+                                          xdp_request_get_object_path (request),
                                           NULL, &error);
   if (!impl_request)
     {
@@ -541,7 +541,7 @@ handle_pick_color (XdpDbusScreenshot *object,
                       NULL, NULL);
 
   xdp_dbus_impl_screenshot_call_pick_color (screenshot->impl,
-                                            request->id,
+                                            xdp_request_get_object_path (request),
                                             xdp_app_info_get_id (request->app_info),
                                             arg_parent_window,
                                             g_variant_builder_end (&opt_builder),
@@ -549,7 +549,7 @@ handle_pick_color (XdpDbusScreenshot *object,
                                             pick_color_done,
                                             g_object_ref (request));
 
-  xdp_dbus_screenshot_complete_pick_color (object, invocation, request->id);
+  xdp_dbus_screenshot_complete_pick_color (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
