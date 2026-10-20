@@ -382,7 +382,7 @@ create_monitor_done (GObject *source_object,
     }
 
   g_variant_builder_add (&results_builder, "{sv}",
-                         "session_handle", g_variant_new_string (session->id));
+                         "session_handle", g_variant_new_string (xdp_session_get_object_path (session)));
 
 out:
   if (request->exported)
@@ -437,7 +437,7 @@ handle_create_monitor (XdpDbusInhibit *object,
 
   xdp_dbus_impl_inhibit_call_create_monitor (inhibit->impl,
                                              request->id,
-                                             session->id,
+                                             xdp_session_get_object_path (session),
                                              xdp_app_info_get_id (request->app_info),
                                              arg_window,
                                              NULL,
@@ -466,7 +466,7 @@ handle_query_end_response (XdpDbusInhibit        *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  xdp_dbus_impl_inhibit_call_query_end_response (inhibit->impl, session->id,
+  xdp_dbus_impl_inhibit_call_query_end_response (inhibit->impl, xdp_session_get_object_path (session),
                                                  NULL, NULL, NULL);
   xdp_dbus_inhibit_complete_query_end_response (object, invocation);
 
