@@ -512,7 +512,7 @@ handle_open_file (XdpDbusFileChooser *object,
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                           G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                           g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                          request->id,
+                                          xdp_request_get_object_path (request),
                                           NULL, &error);
   if (!impl_request)
     {
@@ -530,7 +530,7 @@ handle_open_file (XdpDbusFileChooser *object,
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_dbus_impl_file_chooser_call_open_file (impl,
-                                             request->id,
+                                             xdp_request_get_object_path (request),
                                              app_id,
                                              arg_parent_window,
                                              arg_title,
@@ -539,7 +539,7 @@ handle_open_file (XdpDbusFileChooser *object,
                                              open_file_done,
                                              g_object_ref (request));
 
-  xdp_dbus_file_chooser_complete_open_file (object, invocation, request->id);
+  xdp_dbus_file_chooser_complete_open_file (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -658,7 +658,7 @@ handle_save_file (XdpDbusFileChooser *object,
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                           G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                           g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                          request->id,
+                                          xdp_request_get_object_path (request),
                                           NULL, &error);
   if (!impl_request)
     {
@@ -672,7 +672,7 @@ handle_save_file (XdpDbusFileChooser *object,
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_dbus_impl_file_chooser_call_save_file (impl,
-                                             request->id,
+                                             xdp_request_get_object_path (request),
                                              app_id,
                                              arg_parent_window,
                                              arg_title,
@@ -681,7 +681,7 @@ handle_save_file (XdpDbusFileChooser *object,
                                              save_file_done,
                                              g_object_ref (request));
 
-  xdp_dbus_file_chooser_complete_save_file (object, invocation, request->id);
+  xdp_dbus_file_chooser_complete_save_file (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -793,7 +793,7 @@ handle_save_files (XdpDbusFileChooser *object,
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                           G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                           g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                          request->id,
+                                          xdp_request_get_object_path (request),
                                           NULL, &error);
   if (!impl_request)
     {
@@ -807,7 +807,7 @@ handle_save_files (XdpDbusFileChooser *object,
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_dbus_impl_file_chooser_call_save_files (impl,
-                                              request->id,
+                                              xdp_request_get_object_path (request),
                                               app_id,
                                               arg_parent_window,
                                               arg_title,
@@ -816,7 +816,7 @@ handle_save_files (XdpDbusFileChooser *object,
                                               save_files_done,
                                               g_object_ref (request));
 
-  xdp_dbus_file_chooser_complete_save_files (object, invocation, request->id);
+  xdp_dbus_file_chooser_complete_save_files (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }

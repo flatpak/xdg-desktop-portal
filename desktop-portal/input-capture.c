@@ -259,7 +259,7 @@ handle_create_session (XdpDbusInputCapture   *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (input_capture->impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (input_capture->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
 
   if (!impl_request)
@@ -302,7 +302,7 @@ handle_create_session (XdpDbusInputCapture   *object,
   if (input_capture->impl_version < 2)
     {
       xdp_dbus_impl_input_capture_call_create_session (input_capture->impl,
-                                                       request->id,
+                                                       xdp_request_get_object_path (request),
                                                        xdp_session_get_object_path (session),
                                                        session->app_id,
                                                        arg_parent_window,
@@ -331,7 +331,7 @@ handle_create_session (XdpDbusInputCapture   *object,
         }
 
       xdp_dbus_impl_input_capture_call_start (input_capture->impl,
-                                              request->id,
+                                              xdp_request_get_object_path (request),
                                               xdp_session_get_object_path (session),
                                               session->app_id,
                                               arg_parent_window,
@@ -342,7 +342,7 @@ handle_create_session (XdpDbusInputCapture   *object,
     }
 
   G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-  xdp_dbus_input_capture_complete_create_session (object, invocation, request->id);
+  xdp_dbus_input_capture_complete_create_session (object, invocation, xdp_request_get_object_path (request));
   G_GNUC_END_IGNORE_DEPRECATIONS
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -662,7 +662,7 @@ handle_start (XdpDbusInputCapture   *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (input_capture->impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (input_capture->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
   if (!impl_request)
     {
@@ -702,7 +702,7 @@ handle_start (XdpDbusInputCapture   *object,
   g_object_set_data (G_OBJECT (request), "-xdp-input-capture", input_capture);
 
   xdp_dbus_impl_input_capture_call_start (input_capture->impl,
-                                          request->id,
+                                          xdp_request_get_object_path (request),
                                           arg_session_handle,
                                           session->app_id,
                                           arg_parent_window,
@@ -711,7 +711,7 @@ handle_start (XdpDbusInputCapture   *object,
                                           start_done,
                                           g_object_ref (request));
 
-  xdp_dbus_input_capture_complete_start (object, invocation, request->id);
+  xdp_dbus_input_capture_complete_start (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -834,7 +834,7 @@ handle_get_zones (XdpDbusInputCapture   *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (input_capture->impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (input_capture->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
 
   if (!impl_request)
@@ -863,7 +863,7 @@ handle_get_zones (XdpDbusInputCapture   *object,
                            g_object_unref);
 
   xdp_dbus_impl_input_capture_call_get_zones (input_capture->impl,
-                                              request->id,
+                                              xdp_request_get_object_path (request),
                                               arg_session_handle,
                                               xdp_app_info_get_id (request->app_info),
                                               options,
@@ -871,7 +871,7 @@ handle_get_zones (XdpDbusInputCapture   *object,
                                               get_zones_done,
                                               g_object_ref (request));
 
-  xdp_dbus_input_capture_complete_get_zones (object, invocation, request->id);
+  xdp_dbus_input_capture_complete_get_zones (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -995,7 +995,7 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (input_capture->impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (input_capture->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
 
   if (!impl_request)
@@ -1024,7 +1024,7 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
                            g_object_unref);
 
   xdp_dbus_impl_input_capture_call_set_pointer_barriers (input_capture->impl,
-                                                         request->id,
+                                                         xdp_request_get_object_path (request),
                                                          arg_session_handle,
                                                          xdp_app_info_get_id (request->app_info),
                                                          options,
@@ -1034,7 +1034,7 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
                                                          set_pointer_barriers_done,
                                                          g_object_ref (request));
 
-  xdp_dbus_input_capture_complete_set_pointer_barriers (object, invocation, request->id);
+  xdp_dbus_input_capture_complete_set_pointer_barriers (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }

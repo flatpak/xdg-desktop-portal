@@ -190,7 +190,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
       body = _("This permission can be changed at any time from the privacy settings");
 
       if (!xdp_dbus_impl_access_call_access_dialog_sync (wallpaper->access_impl,
-                                                         request->id,
+                                                         xdp_request_get_object_path (request),
                                                          app_id,
                                                          parent_window,
                                                          title,
@@ -249,7 +249,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (wallpaper->impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (wallpaper->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
 
   if (!impl_request)
@@ -267,7 +267,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
 
   g_debug ("Calling SetWallpaperURI with %s", uri);
   xdp_dbus_impl_wallpaper_call_set_wallpaper_uri (wallpaper->impl,
-                                                  request->id,
+                                                  xdp_request_get_object_path (request),
                                                   xdp_app_info_get_id (request->app_info),
                                                   parent_window,
                                                   uri,
@@ -297,7 +297,7 @@ handle_set_wallpaper_uri (XdpDbusWallpaper *object,
                           (GDestroyNotify)g_variant_unref);
 
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
-  xdp_dbus_wallpaper_complete_set_wallpaper_uri (object, invocation, request->id);
+  xdp_dbus_wallpaper_complete_set_wallpaper_uri (object, invocation, xdp_request_get_object_path (request));
 
   task = g_task_new (object, NULL, NULL, NULL);
   g_task_set_source_tag (task, handle_set_wallpaper_uri);
@@ -337,7 +337,7 @@ handle_set_wallpaper_file (XdpDbusWallpaper *object,
                           (GDestroyNotify)g_variant_unref);
 
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
-  xdp_dbus_wallpaper_complete_set_wallpaper_file (object, invocation, NULL, request->id);
+  xdp_dbus_wallpaper_complete_set_wallpaper_file (object, invocation, NULL, xdp_request_get_object_path (request));
 
   task = g_task_new (object, NULL, NULL, NULL);
   g_task_set_source_tag (task, handle_set_wallpaper_file);

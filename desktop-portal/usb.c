@@ -1165,7 +1165,7 @@ handle_acquire_devices (XdpDbusUsb            *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (self->impl)),
     G_DBUS_PROXY_FLAGS_NONE,
     g_dbus_proxy_get_name (G_DBUS_PROXY (self->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL,
     &error);
 
@@ -1205,7 +1205,7 @@ handle_acquire_devices (XdpDbusUsb            *object,
                           g_object_ref (self), g_object_unref);
 
   xdp_dbus_impl_usb_call_acquire_devices (self->impl,
-                                          request->id,
+                                          xdp_request_get_object_path (request),
                                           arg_parent_window,
                                           xdp_app_info_get_id (request->app_info),
                                           filtered_devices,
@@ -1214,7 +1214,7 @@ handle_acquire_devices (XdpDbusUsb            *object,
                                           usb_acquire_devices_cb,
                                           g_object_ref (request));
 
-  xdp_dbus_usb_complete_acquire_devices (object, invocation, request->id);
+  xdp_dbus_usb_complete_acquire_devices (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
