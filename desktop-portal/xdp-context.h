@@ -53,11 +53,18 @@ void xdp_context_take_and_export_portal (XdpContext             *context,
 GDBusInterfaceSkeleton * xdp_context_get_portal (XdpContext *context,
                                                  const char *interface);
 
-gboolean xdp_context_claim_object_path (XdpContext *context,
-                                        const char *object_path);
+typedef struct _XdpObjectPathClaim XdpObjectPathClaim;
 
-void xdp_context_unclaim_object_path (XdpContext *context,
-                                      const char *object_path);
+XdpObjectPathClaim * xdp_context_claim_object_path (XdpContext *context,
+                                                    const char *object_path);
+
+const char * xdp_object_path_claim_get_path (XdpObjectPathClaim *claim);
+
+XdpObjectPathClaim * xdp_object_path_claim_ref (XdpObjectPathClaim *claim);
+
+void xdp_object_path_claim_unref (XdpObjectPathClaim *claim);
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpObjectPathClaim, xdp_object_path_claim_unref)
 
 gboolean xdp_context_is_experimental_portal_enabled (XdpContext *context,
                                                      const char *portal_name);

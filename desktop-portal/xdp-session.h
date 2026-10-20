@@ -22,7 +22,7 @@ typedef struct _XdpSession
 
   XdpAppInfo *app_info;
   char *app_id;
-  char *id;
+  XdpObjectPathClaim *claim;
   char *token;
 
   char *sender;

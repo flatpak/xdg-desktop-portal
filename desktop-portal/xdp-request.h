@@ -5,6 +5,7 @@
 #pragma once
 
 #include "xdp-app-info.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
@@ -14,7 +15,7 @@ typedef struct _XdpRequest
   XdpDbusRequestSkeleton parent_instance;
 
   gboolean exported;
-  char *id;
+  XdpObjectPathClaim *claim;
   char *sender;
   GMutex mutex;
   XdpAppInfo *app_info;
