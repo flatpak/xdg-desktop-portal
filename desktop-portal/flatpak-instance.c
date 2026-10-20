@@ -6,6 +6,10 @@
 
 #include "flatpak-instance.h"
 
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
 
@@ -493,15 +497,45 @@ flatpak_instance_get_all (void)
  *
  * Finds out if the sandbox represented by @self is still running.
  *
- * Returns: %TRUE if the sandbox is still running
+ * Returns: %TRUE if the sandbox's instance reference is still held,
+ *   %FALSE otherwise, including when the reference cannot be checked
  */
 gboolean
 flatpak_instance_is_running (FlatpakInstance *self)
 {
   FlatpakInstancePrivate *priv = flatpak_instance_get_instance_private (self);
+  g_autofree char *ref_path = g_build_filename (priv->dir, ".ref", NULL);
+  struct flock lock = {
+    .l_type = F_WRLCK,
+    .l_whence = SEEK_SET,
+    .l_start = 0,
+    .l_len = 0,
+  };
+  int fd;
+  int result;
 
-  if (kill (priv->pid, 0) == 0)
-    return TRUE;
+  /* The sandbox can outlive its outer monitor, for example after a relaunch.
+   * Check the .ref lock, as Flatpak's instance garbage collector does.
+   * F_WRLCK detects existing read locks without acquiring a lock.
+   */
+  do
+    fd = open (ref_path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW | O_NONBLOCK);
+  while (fd == -1 && errno == EINTR);
 
-  return FALSE;
+  if (fd == -1)
+    {
+      g_debug ("Failed to open instance reference '%s': %s", ref_path, g_strerror (errno));
+      return FALSE;
+    }
+
+  do
+    result = fcntl (fd, F_GETLK, &lock);
+  while (result == -1 && errno == EINTR);
+
+  if (result == -1)
+    g_debug ("Failed to query instance reference '%s': %s", ref_path, g_strerror (errno));
+
+  close (fd);
+
+  return result != -1 && lock.l_type != F_UNLCK;
 }

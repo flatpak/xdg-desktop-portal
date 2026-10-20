@@ -67,6 +67,23 @@ test(
   protocol: test_protocol,
 )
 
+test_flatpak_instance = executable(
+  'test-flatpak-instance',
+  ['test-flatpak-instance.c', '../desktop-portal/flatpak-instance.c'],
+  dependencies: [gio_dep, json_glib_dep],
+  include_directories: [common_includes, include_directories('../desktop-portal')],
+  install: enable_installed_tests,
+  install_dir: installed_tests_dir,
+)
+test(
+  'unit/flatpak-instance',
+  test_flatpak_instance,
+  suite: ['unit'],
+  env: env_tests,
+  is_parallel: true,
+  protocol: test_protocol,
+)
+
 run_test = find_program('run-test.sh')
 
 pytest_args = ['--verbose', '--log-level=DEBUG']
