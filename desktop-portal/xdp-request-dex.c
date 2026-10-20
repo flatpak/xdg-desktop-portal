@@ -11,18 +11,6 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
-typedef struct _XdpRequestDex
-{
-  XdpDbusRequestSkeleton parent_instance;
-
-  XdpContext *context;
-  XdpAppInfo *app_info;
-  XdpDbusImplRequest *impl_request;
-  GDBusInterfaceSkeleton *skeleton;
-  char *id;
-  gboolean exported;
-  gboolean responded;
-} XdpRequestDex;
 
 static void xdp_request_skeleton_iface_init (XdpDbusRequestIface *iface);
 
