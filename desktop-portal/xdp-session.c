@@ -177,7 +177,6 @@ xdp_session_close (XdpSession *session,
     xdp_session_unexport (session);
 
   xdp_session_unregister (session);
-  g_clear_pointer (&session->claim, xdp_object_path_claim_unref);
 
   if (session->impl_session)
     {
