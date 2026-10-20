@@ -193,7 +193,6 @@ on_peer_disconnect_in_thread_func (GTask        *task,
     xdp_dbus_impl_request_call_close (request->impl_request, NULL, NULL, NULL);
 
   xdp_request_unexport (request);
-  g_clear_pointer (&request->claim, xdp_object_path_claim_unref);
 }
 
 static void
