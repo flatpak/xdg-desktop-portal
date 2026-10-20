@@ -526,7 +526,7 @@ handle_start_in_thread_func (GTask *task,
         g_dbus_proxy_get_connection (G_DBUS_PROXY (location->access_impl)),
         G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
         g_dbus_proxy_get_name (G_DBUS_PROXY (location->access_impl)),
-        request->id,
+        xdp_request_get_object_path (request),
         NULL, NULL);
 
       xdp_request_set_impl_request (request, impl_request);
@@ -563,7 +563,7 @@ handle_start_in_thread_func (GTask *task,
       body = _("Location access can be changed at any time from the privacy settings");
 
       if (!xdp_dbus_impl_access_call_access_dialog_sync (location->access_impl,
-                                                         request->id,
+                                                         xdp_request_get_object_path (request),
                                                          app_id,
                                                          parent_window,
                                                          title,
@@ -696,7 +696,7 @@ handle_start (XdpDbusLocation *object,
 
   loc_session->state = LOCATION_SESSION_STATE_STARTING;
 
-  xdp_dbus_location_complete_start (object, invocation, request->id);
+  xdp_dbus_location_complete_start (object, invocation, xdp_request_get_object_path (request));
 
   task = g_task_new (location, NULL, NULL, NULL);
   g_task_set_source_tag (task, handle_start);

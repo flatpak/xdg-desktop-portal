@@ -357,7 +357,7 @@ handle_create_session (XdpDbusRemoteDesktop *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (remote_desktop->impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (remote_desktop->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
 
   if (!impl_request)
@@ -384,7 +384,7 @@ handle_create_session (XdpDbusRemoteDesktop *object,
                            g_object_unref);
 
   xdp_dbus_impl_remote_desktop_call_create_session (remote_desktop->impl,
-                                                    request->id,
+                                                    xdp_request_get_object_path (request),
                                                     xdp_session_get_object_path (session),
                                                     xdp_app_info_get_id (request->app_info),
                                                     options,
@@ -392,7 +392,7 @@ handle_create_session (XdpDbusRemoteDesktop *object,
                                                     create_session_done,
                                                     g_object_ref (request));
 
-  xdp_dbus_remote_desktop_complete_create_session (object, invocation, request->id);
+  xdp_dbus_remote_desktop_complete_create_session (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -567,7 +567,7 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (remote_desktop->impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (remote_desktop->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
 
   if (!impl_request)
@@ -602,7 +602,7 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
                            g_object_unref);
 
   xdp_dbus_impl_remote_desktop_call_select_devices (remote_desktop->impl,
-                                                    request->id,
+                                                    xdp_request_get_object_path (request),
                                                     arg_session_handle,
                                                     xdp_app_info_get_id (request->app_info),
                                                     options,
@@ -610,7 +610,7 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
                                                     select_devices_done,
                                                     g_object_ref (request));
 
-  xdp_dbus_remote_desktop_complete_select_devices (object, invocation, request->id);
+  xdp_dbus_remote_desktop_complete_select_devices (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -785,7 +785,7 @@ handle_start (XdpDbusRemoteDesktop *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (remote_desktop->impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (remote_desktop->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
 
   if (!impl_request)
@@ -805,7 +805,7 @@ handle_start (XdpDbusRemoteDesktop *object,
                            g_object_unref);
 
   xdp_dbus_impl_remote_desktop_call_start (remote_desktop->impl,
-                                           request->id,
+                                           xdp_request_get_object_path (request),
                                            arg_session_handle,
                                            xdp_app_info_get_id (request->app_info),
                                            arg_parent_window,
@@ -814,7 +814,7 @@ handle_start (XdpDbusRemoteDesktop *object,
                                            start_done,
                                            g_object_ref (request));
 
-  xdp_dbus_remote_desktop_complete_start (object, invocation, request->id);
+  xdp_dbus_remote_desktop_complete_start (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }

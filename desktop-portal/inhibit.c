@@ -148,7 +148,7 @@ handle_inhibit_in_thread_func (GTask *task,
 
   g_debug ("Calling inhibit backend for %s: %d", app_id, flags);
   xdp_dbus_impl_inhibit_call_inhibit (inhibit->impl,
-                                      request->id,
+                                      xdp_request_get_object_path (request),
                                       app_id,
                                       window,
                                       flags,
@@ -221,7 +221,7 @@ handle_inhibit (XdpDbusInhibit *object,
   impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (inhibit->impl)),
                                                        G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                                        g_dbus_proxy_get_name (G_DBUS_PROXY (inhibit->impl)),
-                                                       request->id,
+                                                       xdp_request_get_object_path (request),
                                                        NULL, &error);
   if (!impl_request)
     {
@@ -237,7 +237,7 @@ handle_inhibit (XdpDbusInhibit *object,
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_inhibit_in_thread_func);
 
-  xdp_dbus_inhibit_complete_inhibit (object, invocation, request->id);
+  xdp_dbus_inhibit_complete_inhibit (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -415,7 +415,7 @@ handle_create_monitor (XdpDbusInhibit *object,
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (inhibit->impl)),
                                           G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                           g_dbus_proxy_get_name (G_DBUS_PROXY (inhibit->impl)),
-                                          request->id,
+                                          xdp_request_get_object_path (request),
                                           NULL, &error);
   if (!impl_request)
     {
@@ -436,7 +436,7 @@ handle_create_monitor (XdpDbusInhibit *object,
   g_object_set_data_full (G_OBJECT (request), "session", g_object_ref (session), g_object_unref);
 
   xdp_dbus_impl_inhibit_call_create_monitor (inhibit->impl,
-                                             request->id,
+                                             xdp_request_get_object_path (request),
                                              xdp_session_get_object_path (session),
                                              xdp_app_info_get_id (request->app_info),
                                              arg_window,
@@ -444,7 +444,7 @@ handle_create_monitor (XdpDbusInhibit *object,
                                              create_monitor_done,
                                              g_object_ref (request));
 
-  xdp_dbus_inhibit_complete_create_monitor (object, invocation, request->id);
+  xdp_dbus_inhibit_complete_create_monitor (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
