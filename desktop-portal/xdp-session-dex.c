@@ -6,6 +6,7 @@
 
 #include "xdp-session-dex.h"
 
+#include "xdp-app-info-registry.h"
 #include "xdp-app-info.h"
 #include "xdp-context.h"
 #include "xdp-impl-dbus.h"
@@ -145,13 +146,13 @@ xdp_session_dex_class_init (XdpSessionDexClass *klass)
 }
 
 static void
-on_peer_disconnect (XdpContext *context,
-                    const char *peer,
-                    gpointer    user_data)
+on_app_info_removed (XdpAppInfoRegistry *registry,
+                     XdpAppInfo         *app_info,
+                     gpointer            user_data)
 {
   XdpSessionDex *session = XDP_SESSION_DEX (user_data);
 
-  if (g_strcmp0 (xdp_app_info_get_sender (session->app_info), peer) != 0)
+  if (app_info != session->app_info)
     return;
 
   if (!session->exported)
@@ -225,6 +226,8 @@ on_impl_session_proxy_created (DexFuture *future,
                                gpointer   user_data)
 {
   SessionImplProxyCreateData *data = user_data;
+  XdpAppInfoRegistry *registry =
+    xdp_context_get_app_info_registry (data->context);
   g_autoptr(XdpSessionDex) session = NULL;
   g_autoptr(XdpDbusImplSession) impl_session = NULL;
   g_autoptr(GError) error = NULL;
@@ -240,10 +243,18 @@ on_impl_session_proxy_created (DexFuture *future,
   session->skeleton = g_steal_pointer (&data->skeleton);
   session->claim = g_steal_pointer (&data->claim);
 
-  g_signal_connect_object (session->context, "peer-disconnect",
-                           G_CALLBACK (on_peer_disconnect),
+  g_signal_connect_object (registry, "removed",
+                           G_CALLBACK (on_app_info_removed),
                            session,
                            G_CONNECT_DEFAULT);
+
+  if (!xdp_app_info_registry_contains (registry, session->app_info))
+    {
+      return dex_future_new_for_error (
+        g_error_new_literal (G_IO_ERROR,
+                             G_IO_ERROR_CANCELLED,
+                             "Caller disconnected"));
+    }
 
   g_signal_connect_object (session->impl_session, "closed",
                            G_CALLBACK (on_impl_closed),
