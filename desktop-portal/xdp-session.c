@@ -120,6 +120,12 @@ xdp_session_export (XdpSession  *session,
   return TRUE;
 }
 
+const char *
+xdp_session_get_object_path (XdpSession *session)
+{
+  return session->id;
+}
+
 static void
 xdp_session_unexport (XdpSession *session)
 {
