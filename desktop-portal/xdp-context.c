@@ -534,25 +534,61 @@ xdp_context_register (XdpContext       *context,
   return TRUE;
 }
 
-gboolean
+struct _XdpObjectPathClaim
+{
+  gatomicrefcount ref_count;
+  XdpContext *context; /* (unowned) */
+  char *object_path; /* (owned) */
+};
+
+XdpObjectPathClaim *
 xdp_context_claim_object_path (XdpContext *context,
                                const char *object_path)
 {
+  XdpObjectPathClaim *claim;
+
   G_MUTEX_AUTO_LOCK (&context->registered_object_paths_lock, locker);
 
   if (g_hash_table_contains (context->registered_object_paths, object_path))
-    return FALSE;
+    return NULL;
 
   g_hash_table_add (context->registered_object_paths,
                     g_strdup (object_path));
-  return TRUE;
+
+  claim = g_new0 (XdpObjectPathClaim, 1);
+  claim->context = context;
+  claim->object_path = g_strdup (object_path);
+  g_atomic_ref_count_init (&claim->ref_count);
+
+  return claim;
+}
+
+const char *
+xdp_object_path_claim_get_path (XdpObjectPathClaim *claim)
+{
+  return claim->object_path;
+}
+
+XdpObjectPathClaim *
+xdp_object_path_claim_ref (XdpObjectPathClaim *claim)
+{
+  g_atomic_ref_count_inc (&claim->ref_count);
+  return claim;
 }
 
 void
-xdp_context_unclaim_object_path (XdpContext *context,
-                                 const char *object_path)
+xdp_object_path_claim_unref (XdpObjectPathClaim *claim)
 {
-  G_MUTEX_AUTO_LOCK (&context->registered_object_paths_lock, locker);
+  if (!claim)
+    return;
 
-  g_hash_table_remove (context->registered_object_paths, object_path);
+  if (!g_atomic_ref_count_dec (&claim->ref_count))
+    return;
+
+  G_MUTEX_AUTO_LOCK (&claim->context->registered_object_paths_lock, locker);
+  g_hash_table_remove (claim->context->registered_object_paths,
+                       claim->object_path);
+
+  g_free (claim->object_path);
+  g_free (claim);
 }
