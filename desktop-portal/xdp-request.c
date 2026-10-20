@@ -9,7 +9,6 @@
 #include <string.h>
 
 #include "xdp-context.h"
-#include "xdp-context.h"
 #include "xdp-method-info.h"
 #include "xdp-utils.h"
 
@@ -98,11 +97,9 @@ xdp_request_finalize (GObject *object)
 {
   XdpRequest *request = XDP_REQUEST (object);
 
-  xdp_context_unclaim_object_path (request->context, request->id);
-
+  g_clear_pointer (&request->claim, xdp_object_path_claim_unref);
   g_clear_object (&request->impl_request);
   g_clear_pointer (&request->sender, g_free);
-  g_clear_pointer (&request->id, g_free);
   g_mutex_clear (&request->mutex);
   g_clear_object (&request->app_info);
 
@@ -196,7 +193,7 @@ on_peer_disconnect_in_thread_func (GTask        *task,
     xdp_dbus_impl_request_call_close (request->impl_request, NULL, NULL, NULL);
 
   xdp_request_unexport (request);
-  xdp_context_unclaim_object_path (request->context, request->id);
+  g_clear_pointer (&request->claim, xdp_object_path_claim_unref);
 }
 
 static void
@@ -230,7 +227,8 @@ xdp_request_init_invocation (GDBusMethodInvocation  *invocation,
                              GError                **error)
 {
   XdpRequest *request;
-  char *id = NULL;
+  g_autoptr(XdpObjectPathClaim) claim = NULL;
+  g_autofree char *id = NULL;
   const char *token;
   g_autofree char *sender = NULL;
   int i;
@@ -259,14 +257,16 @@ xdp_request_init_invocation (GDBusMethodInvocation  *invocation,
 
   id = g_strdup_printf (DESKTOP_DBUS_PATH "/request/%s/%s", sender, token);
 
-  while (!xdp_context_claim_object_path (context, id))
+  claim = xdp_context_claim_object_path (context, id);
+  while (!claim)
     {
       g_autofree char *t = xdp_generate_token ();
       g_clear_pointer (&id, g_free);
       id = g_strdup_printf (DESKTOP_DBUS_PATH "/request/%s/%s/%s", sender, token, t);
+      claim = xdp_context_claim_object_path (context, id);
     }
 
-  request->id = id;
+  request->claim = g_steal_pointer (&claim);
 
   g_dbus_interface_skeleton_set_flags (G_DBUS_INTERFACE_SKELETON (request),
                                        G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
@@ -292,7 +292,7 @@ xdp_request_from_invocation (GDBusMethodInvocation *invocation)
 const char *
 xdp_request_get_object_path (XdpRequest *request)
 {
-  return request->id;
+  return xdp_object_path_claim_get_path (request->claim);
 }
 
 void

@@ -27,7 +27,7 @@ typedef struct _XdpSessionDex
   XdpAppInfo *app_info;
   XdpDbusImplSession *impl_session;
   GDBusInterfaceSkeleton *skeleton;
-  char *id;
+  XdpObjectPathClaim *claim;
   gboolean exported;
 } XdpSessionDex;
 
@@ -58,7 +58,7 @@ xdp_session_dex_on_signal_closed (XdpDbusSession *object,
 
   g_dbus_connection_emit_signal (connection,
                                  xdp_app_info_get_sender (session->app_info),
-                                 session->id,
+                                 xdp_session_dex_get_object_path (session),
                                  DESKTOP_DBUS_IFACE ".Session",
                                  "Closed",
                                  g_variant_new ("(@a{sv})", arg_details),
@@ -80,7 +80,7 @@ xdp_session_dex_handle_close (XdpDbusSession        *object,
 
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (session));
   session->exported = FALSE;
-  xdp_context_unclaim_object_path (session->context, session->id);
+  g_clear_pointer (&session->claim, xdp_object_path_claim_unref);
 
   dex_await (xdp_dbus_impl_session_call_close_future (session->impl_session),
              &error);
@@ -113,15 +113,14 @@ xdp_session_dex_dispose (GObject *object)
     {
       g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (session));
       session->exported = FALSE;
-      xdp_context_unclaim_object_path (session->context, session->id);
 
       xdp_dbus_impl_session_call_close (session->impl_session, NULL, NULL, NULL);
     }
 
+  g_clear_pointer (&session->claim, xdp_object_path_claim_unref);
   g_clear_object (&session->app_info);
   g_clear_object (&session->impl_session);
   g_clear_object (&session->skeleton);
-  g_clear_pointer (&session->id, g_free);
 
   G_OBJECT_CLASS (xdp_session_dex_parent_class)->dispose (object);
 }
@@ -161,7 +160,7 @@ on_peer_disconnect (XdpContext *context,
 
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (session));
   session->exported = FALSE;
-  xdp_context_unclaim_object_path (session->context, session->id);
+  g_clear_pointer (&session->claim, xdp_object_path_claim_unref);
 
   xdp_dbus_impl_session_call_close (session->impl_session, NULL, NULL, NULL);
   xdp_session_dex_emit_closed (session);
@@ -183,7 +182,7 @@ on_impl_closed (XdpDbusImplSession *object,
 
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (session));
   session->exported = FALSE;
-  xdp_context_unclaim_object_path (session->context, session->id);
+  g_clear_pointer (&session->claim, xdp_object_path_claim_unref);
 
   xdp_session_dex_emit_closed (session);
 }
@@ -212,15 +211,15 @@ typedef struct _SessionImplProxyCreateData {
   XdpContext *context;
   XdpAppInfo *app_info;
   GDBusInterfaceSkeleton *skeleton;
-  char *id;
+  XdpObjectPathClaim *claim;
 } SessionImplProxyCreateData;
 
 static void
 session_impl_proxy_create_data_free (SessionImplProxyCreateData *data)
 {
+  g_clear_pointer (&data->claim, xdp_object_path_claim_unref);
   g_clear_object (&data->app_info);
   g_clear_object (&data->skeleton);
-  g_clear_pointer (&data->id, g_free);
   free (data);
 }
 
@@ -232,17 +231,18 @@ on_impl_session_proxy_created (DexFuture *future,
   g_autoptr(XdpSessionDex) session = NULL;
   g_autoptr(XdpDbusImplSession) impl_session = NULL;
   g_autoptr(GError) error = NULL;
+  const char *path;
 
   impl_session = dex_await_object (dex_ref (future), NULL);
   g_assert (impl_session);
 
   session = g_object_new (XDP_TYPE_SESSION_DEX, NULL);
-  session->context = g_steal_pointer (&data->context);
+  session->context = data->context;
   session->app_info = g_steal_pointer (&data->app_info);
   session->impl_session = g_steal_pointer (&impl_session);
   session->skeleton = g_steal_pointer (&data->skeleton);
-  session->id = g_steal_pointer (&data->id);
   session->exported = TRUE;
+  session->claim = g_steal_pointer (&data->claim);
 
   g_signal_connect_object (session->context, "peer-disconnect",
                            G_CALLBACK (on_peer_disconnect),
@@ -260,9 +260,10 @@ on_impl_session_proxy_created (DexFuture *future,
                     G_CALLBACK (session_authorize_callback),
                     session);
 
+  path = xdp_session_dex_get_object_path (session);
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (session),
                                          g_dbus_interface_skeleton_get_connection (session->skeleton),
-                                         session->id,
+                                         path,
                                          &error))
       return dex_future_new_for_error (g_steal_pointer (&error));
 
@@ -277,6 +278,7 @@ xdp_session_dex_new (XdpContext             *context,
                      GVariant               *arg_options)
 {
   g_autoptr(DexFuture) future = NULL;
+  g_autoptr(XdpObjectPathClaim) claim = NULL;
   SessionImplProxyCreateData *data;
   const char *token = NULL;
   g_autofree char *sender = NULL;
@@ -300,7 +302,8 @@ xdp_session_dex_new (XdpContext             *context,
 
   id = g_strdup_printf (DESKTOP_DBUS_PATH "/session/%s/%s", sender, token);
 
-  while (!xdp_context_claim_object_path (context, id))
+  claim = xdp_context_claim_object_path (context, id);
+  while (!claim)
     {
       uint32_t r = g_random_int ();
       g_free (id);
@@ -308,6 +311,7 @@ xdp_session_dex_new (XdpContext             *context,
                             sender,
                             token,
                             r);
+      claim = xdp_context_claim_object_path (context, id);
     }
 
   future = xdp_dbus_impl_session_proxy_new_future (
@@ -320,7 +324,7 @@ xdp_session_dex_new (XdpContext             *context,
   data->context = context;
   data->app_info = g_object_ref (app_info);
   data->skeleton = g_object_ref (skeleton);
-  data->id = g_steal_pointer (&id);
+  data->claim = g_steal_pointer (&claim);
 
   future = dex_future_then (future,
                             on_impl_session_proxy_created,
@@ -345,7 +349,7 @@ xdp_session_dex_get_app_info (XdpSessionDex *session)
 const char *
 xdp_session_dex_get_object_path (XdpSessionDex *session)
 {
-  return session->id;
+  return xdp_object_path_claim_get_path (session->claim);
 }
 
 typedef struct _XdpSessionDexStore
