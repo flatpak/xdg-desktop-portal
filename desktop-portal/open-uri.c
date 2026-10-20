@@ -535,7 +535,7 @@ on_app_info_changed (GAppInfoMonitor *monitor,
   find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
 
   xdp_dbus_impl_app_chooser_call_update_choices (open_uri->impl,
-                                                 request->id,
+                                                 xdp_request_get_object_path (request),
                                                  (const char * const *)choices,
                                                  NULL,
                                                  NULL,
@@ -869,7 +869,7 @@ handle_open_in_thread_func (GTask *task,
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (open_uri->impl)),
                                           G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                           g_dbus_proxy_get_name (G_DBUS_PROXY (open_uri->impl)),
-                                          request->id,
+                                          xdp_request_get_object_path (request),
                                           NULL, NULL);
 
   xdp_request_set_impl_request (request, impl_request);
@@ -881,7 +881,7 @@ handle_open_in_thread_func (GTask *task,
   g_debug ("Opening app chooser");
 
   xdp_dbus_impl_app_chooser_call_choose_application (open_uri->impl,
-                                                     request->id,
+                                                     xdp_request_get_object_path (request),
                                                      app_id,
                                                      parent_window,
                                                      (const char * const *)choices,
@@ -958,7 +958,7 @@ handle_open_uri (XdpDbusOpenURI *object,
     g_object_set_data_full (G_OBJECT (request), "activation-token", g_strdup (activation_token), g_free);
 
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
-  xdp_dbus_open_uri_complete_open_uri (object, invocation, request->id);
+  xdp_dbus_open_uri_complete_open_uri (object, invocation, xdp_request_get_object_path (request));
 
   task = g_task_new (open_uri, NULL, NULL, NULL);
   g_task_set_source_tag (task, handle_open_uri);
@@ -1019,7 +1019,7 @@ handle_open_file (XdpDbusOpenURI *object,
     g_object_set_data_full (G_OBJECT (request), "activation-token", g_strdup (activation_token), g_free);
 
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
-  xdp_dbus_open_uri_complete_open_file (object, invocation, NULL, request->id);
+  xdp_dbus_open_uri_complete_open_file (object, invocation, NULL, xdp_request_get_object_path (request));
 
   task = g_task_new (object, NULL, NULL, NULL);
   g_task_set_source_tag (task, handle_open_file);
@@ -1073,7 +1073,7 @@ handle_open_directory (XdpDbusOpenURI *object,
     g_object_set_data_full (G_OBJECT (request), "activation-token", g_strdup (activation_token), g_free);
 
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
-  xdp_dbus_open_uri_complete_open_directory (object, invocation, NULL, request->id);
+  xdp_dbus_open_uri_complete_open_directory (object, invocation, NULL, xdp_request_get_object_path (request));
 
   task = g_task_new (object, NULL, NULL, NULL);
   g_task_set_source_tag (task, handle_open_directory);

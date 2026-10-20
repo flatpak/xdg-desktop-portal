@@ -110,7 +110,7 @@ xdp_session_export (XdpSession  *session,
 {
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (session),
                                          session->connection,
-                                         session->id,
+                                         xdp_session_get_object_path (session),
                                          error))
     return FALSE;
 
@@ -118,6 +118,12 @@ xdp_session_export (XdpSession  *session,
   session->exported = TRUE;
 
   return TRUE;
+}
+
+const char *
+xdp_session_get_object_path (XdpSession *session)
+{
+  return xdp_object_path_claim_get_path (session->claim);
 }
 
 static void
@@ -132,7 +138,7 @@ void
 xdp_session_register (XdpSession *session)
 {
   G_LOCK (sessions);
-  g_hash_table_insert (sessions, session->id, session);
+  g_hash_table_insert (sessions, (char *) xdp_session_get_object_path (session), session);
   G_UNLOCK (sessions);
 }
 
@@ -140,7 +146,7 @@ static void
 xdp_session_unregister (XdpSession *session)
 {
   G_LOCK (sessions);
-  g_hash_table_remove (sessions, session->id);
+  g_hash_table_remove (sessions, xdp_session_get_object_path (session));
   G_UNLOCK (sessions);
 }
 
@@ -160,7 +166,7 @@ xdp_session_close (XdpSession *session,
 
       g_dbus_connection_emit_signal (session->connection,
                                      session->sender,
-                                     session->id,
+                                     xdp_session_get_object_path (session),
                                      DESKTOP_DBUS_IFACE ".Session",
                                      "Closed",
                                      g_variant_new ("(@a{sv})", g_variant_builder_end (&details_builder)),
@@ -171,7 +177,6 @@ xdp_session_close (XdpSession *session,
     xdp_session_unexport (session);
 
   xdp_session_unregister (session);
-  xdp_context_unclaim_object_path (session->context, session->id);
 
   if (session->impl_session)
     {
@@ -286,6 +291,7 @@ xdp_session_initable_init (GInitable     *initable,
 {
   XdpSession *session = XDP_SESSION (initable);
   g_autofree char *sender_escaped = NULL;
+  g_autoptr(XdpObjectPathClaim) claim = NULL;
   g_autofree char *id = NULL;
   g_autoptr(XdpDbusImplSession) impl_session = NULL;
   int i;
@@ -321,7 +327,8 @@ xdp_session_initable_init (GInitable     *initable,
   id = g_strdup_printf (DESKTOP_DBUS_PATH "/session/%s/%s",
                         sender_escaped, session->token);
 
-  while (!xdp_context_claim_object_path (session->context, id))
+  claim = xdp_context_claim_object_path (session->context, id);
+  while (!claim)
     {
       g_autofree char *t = xdp_generate_token ();
       g_clear_pointer (&id, g_free);
@@ -329,6 +336,7 @@ xdp_session_initable_init (GInitable     *initable,
                             sender_escaped,
                             session->token,
                             t);
+      claim = xdp_context_claim_object_path (session->context, id);
     }
 
   if (session->impl_dbus_name)
@@ -350,7 +358,7 @@ xdp_session_initable_init (GInitable     *initable,
       session->impl_session = g_steal_pointer (&impl_session);
     }
 
-  session->id = g_steal_pointer (&id);
+  session->claim = g_steal_pointer (&claim);
 
   g_dbus_interface_skeleton_set_flags (G_DBUS_INTERFACE_SKELETON (session),
                                        G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
@@ -449,7 +457,8 @@ xdp_session_finalize (GObject *object)
 {
   XdpSession *session = XDP_SESSION (object);
 
-  g_assert (!session->id || !g_hash_table_lookup (sessions, session->id));
+  g_assert (!session->claim ||
+            !g_hash_table_lookup (sessions, xdp_session_get_object_path (session)));
 
   g_free (session->sender);
   g_clear_object (&session->connection);
@@ -460,7 +469,7 @@ xdp_session_finalize (GObject *object)
 
   g_clear_object (&session->app_info);
   g_free (session->app_id);
-  g_free (session->id);
+  g_clear_pointer (&session->claim, xdp_object_path_claim_unref);
   g_free (session->token);
 
   g_mutex_clear (&session->mutex);

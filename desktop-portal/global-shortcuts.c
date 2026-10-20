@@ -196,7 +196,7 @@ session_created_cb (GObject *source_object,
     }
 
   g_variant_builder_add (&results_builder, "{sv}",
-                         "session_handle", g_variant_new_string (session->id));
+                         "session_handle", g_variant_new_string (xdp_session_get_object_path (session)));
 
 out:
   if (request->exported)
@@ -256,7 +256,7 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (global_shortcuts->impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (global_shortcuts->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
 
   if (!impl_request)
@@ -284,15 +284,15 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
                            g_object_unref);
 
   xdp_dbus_impl_global_shortcuts_call_create_session (global_shortcuts->impl,
-                                                      request->id,
-                                                      session->id,
+                                                      xdp_request_get_object_path (request),
+                                                      xdp_session_get_object_path (session),
                                                       xdp_app_info_get_id (request->app_info),
                                                       options,
                                                       NULL,
                                                       session_created_cb,
                                                       g_object_ref (request));
 
-  xdp_dbus_global_shortcuts_complete_create_session (object, invocation, request->id);
+  xdp_dbus_global_shortcuts_complete_create_session (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -439,7 +439,7 @@ handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (global_shortcuts->impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (global_shortcuts->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
 
   if (!impl_request)
@@ -457,7 +457,7 @@ handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
                            g_object_unref);
 
   xdp_dbus_impl_global_shortcuts_call_bind_shortcuts (global_shortcuts->impl,
-                                                      request->id,
+                                                      xdp_request_get_object_path (request),
                                                       arg_session_handle,
                                                       shortcuts,
                                                       arg_parent_window,
@@ -466,7 +466,7 @@ handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
                                                       shortcuts_bound_cb,
                                                       g_object_ref (request));
 
-  xdp_dbus_global_shortcuts_complete_bind_shortcuts (object, invocation, request->id);
+  xdp_dbus_global_shortcuts_complete_bind_shortcuts (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -557,7 +557,7 @@ handle_list_shortcuts (XdpDbusGlobalShortcuts *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (global_shortcuts->impl)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (global_shortcuts->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL, &error);
 
   if (!impl_request)
@@ -575,13 +575,13 @@ handle_list_shortcuts (XdpDbusGlobalShortcuts *object,
                            g_object_unref);
 
   xdp_dbus_impl_global_shortcuts_call_list_shortcuts (global_shortcuts->impl,
-                                                      request->id,
+                                                      xdp_request_get_object_path (request),
                                                       arg_session_handle,
                                                       NULL,
                                                       shortcuts_listed_cb,
                                                       g_object_ref (request));
 
-  xdp_dbus_global_shortcuts_complete_list_shortcuts (object, invocation, request->id);
+  xdp_dbus_global_shortcuts_complete_list_shortcuts (object, invocation, xdp_request_get_object_path (request));
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 

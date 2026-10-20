@@ -158,7 +158,7 @@ handle_print (XdpDbusPrint *object,
   impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (print->impl)),
                                                        G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                                        g_dbus_proxy_get_name (G_DBUS_PROXY (print->impl)),
-                                                       request->id,
+                                                       xdp_request_get_object_path (request),
                                                        NULL, &error);
   if (!impl_request)
     {
@@ -173,7 +173,7 @@ handle_print (XdpDbusPrint *object,
                       print_options, G_N_ELEMENTS (print_options),
                       NULL, NULL);
   xdp_dbus_impl_print_call_print(print->impl,
-                                 request->id,
+                                 xdp_request_get_object_path (request),
                                  app_id,
                                  arg_parent_window,
                                  arg_title,
@@ -184,7 +184,7 @@ handle_print (XdpDbusPrint *object,
                                  print_done,
                                  g_object_ref (request));
 
-  xdp_dbus_print_complete_print (object, invocation, NULL, request->id);
+  xdp_dbus_print_complete_print (object, invocation, NULL, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -275,7 +275,7 @@ handle_prepare_print (XdpDbusPrint *object,
   impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (print->impl)),
                                                        G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                                        g_dbus_proxy_get_name (G_DBUS_PROXY (print->impl)),
-                                                       request->id,
+                                                       xdp_request_get_object_path (request),
                                                        NULL, &error);
   if (!impl_request)
     {
@@ -290,7 +290,7 @@ handle_prepare_print (XdpDbusPrint *object,
                       prepare_print_options, G_N_ELEMENTS (prepare_print_options),
                       NULL, NULL);
   xdp_dbus_impl_print_call_prepare_print (print->impl,
-                                          request->id,
+                                          xdp_request_get_object_path (request),
                                           app_id,
                                           arg_parent_window,
                                           arg_title,
@@ -301,7 +301,7 @@ handle_prepare_print (XdpDbusPrint *object,
                                           prepare_print_done,
                                           g_object_ref (request));
 
-  xdp_dbus_print_complete_prepare_print (object, invocation, request->id);
+  xdp_dbus_print_complete_prepare_print (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }

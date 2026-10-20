@@ -119,7 +119,7 @@ location_session_close (XdpSession *session)
   if (loc_session->client)
     geoclue_client_call_stop (loc_session->client, NULL, NULL, NULL);
 
-  g_debug ("location session '%s' closed", session->id);
+  g_debug ("location session '%s' closed", xdp_session_get_object_path (session));
 }
 
 static void
@@ -161,7 +161,7 @@ location_session_new (Location               *location,
                             NULL);
 
   if (session)
-    g_debug ("location session '%s' created", session->id);
+    g_debug ("location session '%s' created", xdp_session_get_object_path (session));
 
   return (LocationSession*)session;
 }
@@ -205,7 +205,7 @@ on_location_updated (GeoclueClient *client,
                                       DESKTOP_DBUS_PATH,
                                       LOCATION_DBUS_IFACE,
                                       "LocationUpdated",
-                                      g_variant_new ("(o@a{sv})", session->id, dict),
+                                      g_variant_new ("(o@a{sv})", xdp_session_get_object_path (session), dict),
                                       &error))
     {
       g_warning ("Failed to emit LocationUpdated signal: %s", error->message);
@@ -253,9 +253,9 @@ location_session_start (LocationSession *loc_session)
       return FALSE;
     }
 
-  g_debug ("location session '%s', GeoClue client '%s'", ((XdpSession*)loc_session)->id, client_id);
+  g_debug ("location session '%s', GeoClue client '%s'", xdp_session_get_object_path (XDP_SESSION (loc_session)), client_id);
   g_debug ("location session '%s', distance-threshold %d, time-threshold %d, accuracy %s",
-           XDP_SESSION (loc_session)->id,
+           xdp_session_get_object_path (XDP_SESSION (loc_session)),
            loc_session->distance_threshold,
            loc_session->time_threshold,
            gclue_accuracy_level_to_string (loc_session->accuracy));
@@ -283,7 +283,7 @@ location_session_start (LocationSession *loc_session)
   g_debug ("GeoClue client '%s' started", client_id);
 
   loc_session->state = LOCATION_SESSION_STATE_STARTED;
-  g_debug ("location session '%s' started", ((XdpSession*)loc_session)->id);
+  g_debug ("location session '%s' started", xdp_session_get_object_path (XDP_SESSION (loc_session)));
 
   return TRUE;
 }
@@ -472,11 +472,11 @@ handle_create_session (XdpDbusLocation *object,
     }
   else
     {
-      g_debug ("CreateSession new session '%s'",  session->id);
+      g_debug ("CreateSession new session '%s'",  xdp_session_get_object_path (session));
       xdp_session_register (session);
     }
 
-  xdp_dbus_location_complete_create_session (object, invocation, session->id);
+  xdp_dbus_location_complete_create_session (object, invocation, xdp_session_get_object_path (session));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -526,7 +526,7 @@ handle_start_in_thread_func (GTask *task,
         g_dbus_proxy_get_connection (G_DBUS_PROXY (location->access_impl)),
         G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
         g_dbus_proxy_get_name (G_DBUS_PROXY (location->access_impl)),
-        request->id,
+        xdp_request_get_object_path (request),
         NULL, NULL);
 
       xdp_request_set_impl_request (request, impl_request);
@@ -563,7 +563,7 @@ handle_start_in_thread_func (GTask *task,
       body = _("Location access can be changed at any time from the privacy settings");
 
       if (!xdp_dbus_impl_access_call_access_dialog_sync (location->access_impl,
-                                                         request->id,
+                                                         xdp_request_get_object_path (request),
                                                          app_id,
                                                          parent_window,
                                                          title,
@@ -696,7 +696,7 @@ handle_start (XdpDbusLocation *object,
 
   loc_session->state = LOCATION_SESSION_STATE_STARTING;
 
-  xdp_dbus_location_complete_start (object, invocation, request->id);
+  xdp_dbus_location_complete_start (object, invocation, xdp_request_get_object_path (request));
 
   task = g_task_new (location, NULL, NULL, NULL);
   g_task_set_source_tag (task, handle_start);

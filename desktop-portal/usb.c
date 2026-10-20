@@ -412,7 +412,7 @@ xdp_usb_session_close (XdpSession *session)
   XdpUsbSession *usb_session = XDP_USB_SESSION (session);
   XdpUsb *usb = usb_session->usb;
 
-  g_debug ("USB session '%s' closed", session->id);
+  g_debug ("USB session '%s' closed", xdp_session_get_object_path (session));
 
   g_assert (g_hash_table_contains (usb->sessions, session));
   g_hash_table_remove (usb->sessions, session);
@@ -471,7 +471,7 @@ xdp_usb_session_new (XdpUsb           *usb,
     g_hash_table_new_full (g_str_hash, g_str_equal,
                            g_free, NULL);
 
-  g_debug ("[usb] USB session '%s' created", session->id);
+  g_debug ("[usb] USB session '%s' created", xdp_session_get_object_path (session));
 
   return usb_session;
 }
@@ -617,7 +617,7 @@ handle_session_event (XdpUsb        *self,
                                  USB_DBUS_IFACE,
                                  "DeviceEvents",
                                  g_variant_new ("(o@a(ssa{sv}))",
-                                                session->id,
+                                                xdp_session_get_object_path (session),
                                                 g_variant_builder_end (&devices_builder)),
                                  NULL);
 
@@ -707,7 +707,7 @@ send_initial_device_list (XdpUsb        *self,
   g_debug ("[usb] Appending devices to CreateSession response");
 
   g_variant_builder_init (&devices_builder, G_VARIANT_TYPE ("(oa(ssa{sv}))"));
-  g_variant_builder_add (&devices_builder, "o", session->id);
+  g_variant_builder_add (&devices_builder, "o", xdp_session_get_object_path (session));
   g_variant_builder_open (&devices_builder, G_VARIANT_TYPE ("a(ssa{sv})"));
 
   g_assert (self != NULL);
@@ -817,10 +817,10 @@ handle_create_session (XdpDbusUsb            *object,
 
   xdp_session_register (session);
 
-  g_debug ("New USB session registered: %s",  session->id);
+  g_debug ("New USB session registered: %s",  xdp_session_get_object_path (session));
   g_hash_table_add (self->sessions, usb_session);
 
-  xdp_dbus_usb_complete_create_session (object, invocation, session->id);
+  xdp_dbus_usb_complete_create_session (object, invocation, xdp_session_get_object_path (session));
 
   send_initial_device_list (self, usb_session, app_info);
 
@@ -1165,7 +1165,7 @@ handle_acquire_devices (XdpDbusUsb            *object,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (self->impl)),
     G_DBUS_PROXY_FLAGS_NONE,
     g_dbus_proxy_get_name (G_DBUS_PROXY (self->impl)),
-    request->id,
+    xdp_request_get_object_path (request),
     NULL,
     &error);
 
@@ -1205,7 +1205,7 @@ handle_acquire_devices (XdpDbusUsb            *object,
                           g_object_ref (self), g_object_unref);
 
   xdp_dbus_impl_usb_call_acquire_devices (self->impl,
-                                          request->id,
+                                          xdp_request_get_object_path (request),
                                           arg_parent_window,
                                           xdp_app_info_get_id (request->app_info),
                                           filtered_devices,
@@ -1214,7 +1214,7 @@ handle_acquire_devices (XdpDbusUsb            *object,
                                           usb_acquire_devices_cb,
                                           g_object_ref (request));
 
-  xdp_dbus_usb_complete_acquire_devices (object, invocation, request->id);
+  xdp_dbus_usb_complete_acquire_devices (object, invocation, xdp_request_get_object_path (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }

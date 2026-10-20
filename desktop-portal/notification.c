@@ -30,6 +30,7 @@ struct _Notification
   XdpDbusNotificationSkeleton parent_instance;
 
   XdpDbusImplNotification *impl;
+  XdpContext *context;
   guint32 impl_version;
 
   GHashTable *active; /* Pair *notification -> char *sender */
@@ -170,22 +171,21 @@ G_DEFINE_TYPE_WITH_CODE (Notification, notification,
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Notification, g_object_unref)
 
 static void
-on_app_info_destroyed (XdpAppInfo *app_info,
-                       gpointer    user_data)
+on_app_info_removed (XdpAppInfoRegistry *registry,
+                     XdpAppInfo         *app_info,
+                     gpointer            user_data)
 {
   Notification *notification = user_data;
-  const char *sender_app_id;
+  const char *sender = xdp_app_info_get_sender (app_info);
   GHashTableIter iter;
-  Pair *p;
+  const char *entry_sender;
 
   G_MUTEX_AUTO_LOCK (&notification->active_mutex, locker);
 
-  sender_app_id = xdp_app_info_get_id (app_info);
-
   g_hash_table_iter_init (&iter, notification->active);
-  while (g_hash_table_iter_next (&iter, (gpointer *)&p, NULL))
+  while (g_hash_table_iter_next (&iter, NULL, (gpointer *)&entry_sender))
     {
-      if (g_strcmp0 (p->app_id, sender_app_id) == 0)
+      if (g_strcmp0 (entry_sender, sender) == 0)
         g_hash_table_iter_remove (&iter);
     }
 }
@@ -198,6 +198,7 @@ add_done (GObject *source,
   XdpDbusImplNotification *impl = XDP_DBUS_IMPL_NOTIFICATION (source);
   g_autoptr(CallData) call_data = data;
   Notification *notification = call_data->notification;
+  XdpAppInfoRegistry *registry = xdp_context_get_app_info_registry (notification->context);
   g_autoptr(GError) error = NULL;
 
   if (!xdp_dbus_impl_notification_call_add_notification_finish (impl, NULL, result, &error))
@@ -205,7 +206,7 @@ add_done (GObject *source,
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
     }
-  else
+  else if (xdp_app_info_registry_contains (registry, call_data->app_info))
     {
       Pair p;
 
@@ -217,14 +218,6 @@ add_done (GObject *source,
       g_hash_table_insert (notification->active,
                            pair_copy (&p),
                            g_strdup (call_data->sender));
-
-      g_signal_handlers_disconnect_by_data (call_data->app_info,
-                                            notification);
-      g_signal_connect_object (call_data->app_info,
-                               "destroyed",
-                               G_CALLBACK (on_app_info_destroyed),
-                               notification,
-                               G_CONNECT_DEFAULT);
     }
 }
 
@@ -1269,10 +1262,12 @@ static Notification *
 notification_new (XdpContext              *context,
                   XdpDbusImplNotification *impl)
 {
+  XdpAppInfoRegistry *registry = xdp_context_get_app_info_registry (context);
   Notification *notification = NULL;
 
   notification = g_object_new (notification_get_type (), NULL);
   notification->impl = g_object_ref (impl);
+  notification->context = context;
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (notification->impl), G_MAXINT);
 
@@ -1293,6 +1288,11 @@ notification_new (XdpContext              *context,
 
   g_signal_connect_object (notification->impl, "action-invoked",
                            G_CALLBACK (action_invoked_cb),
+                           notification,
+                           G_CONNECT_DEFAULT);
+
+  g_signal_connect_object (registry, "removed",
+                           G_CALLBACK (on_app_info_removed),
                            notification,
                            G_CONNECT_DEFAULT);
 
