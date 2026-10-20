@@ -110,6 +110,7 @@ if build_documentation
     'sessions.rst',
     'system-integration.rst',
     'terminology.rst',
+    'wanted-features.rst',
     'window-identifiers.rst',
     'writing-a-new-backend.rst',
   ]
