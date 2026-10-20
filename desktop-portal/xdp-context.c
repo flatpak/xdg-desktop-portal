@@ -513,7 +513,7 @@ xdp_context_register (XdpContext       *context,
   init_location (context);
 #endif
   init_camera (context);
-  init_screenshot (context);
+  init_portal_in_fiber (context, init_screenshot);
   init_background (context);
   init_wallpaper (context);
   init_account (context);

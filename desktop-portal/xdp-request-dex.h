@@ -5,7 +5,21 @@
 #pragma once
 
 #include "xdp-dbus.h"
+#include "xdp-impl-dbus.h"
 #include "xdp-types.h"
+
+typedef struct _XdpRequestDex
+{
+  XdpDbusRequestSkeleton parent_instance;
+
+  XdpContext *context;
+  XdpAppInfo *app_info;
+  XdpDbusImplRequest *impl_request;
+  GDBusInterfaceSkeleton *skeleton;
+  char *id;
+  gboolean exported;
+  gboolean responded;
+} XdpRequestDex;
 
 #define XDP_TYPE_REQUEST_DEX (xdp_request_dex_get_type ())
 G_DECLARE_FINAL_TYPE (XdpRequestDex,
@@ -27,3 +41,5 @@ void xdp_request_dex_emit_response (XdpRequestDex                *request,
                                     GVariant                     *results);
 
 const char * xdp_request_dex_get_object_path (XdpRequestDex *request);
+
+void xdp_request_dex_unexport (XdpRequestDex *request);
