@@ -24,7 +24,7 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-permissions.h"
 #include "xdp-portal-config.h"
-#include "xdp-request.h"
+#include "xdp-request-dex.h"
 #include "xdp-utils.h"
 
 typedef enum
@@ -42,6 +42,7 @@ struct _Screenshot
 {
   XdpDbusScreenshotSkeleton parent_instance;
 
+  XdpContext *context;
   XdpDbusImplScreenshot *impl;
   XdpDbusImplAccess *access_impl;
   guint32 impl_version;
@@ -60,125 +61,6 @@ G_DEFINE_TYPE_WITH_CODE (Screenshot, screenshot, XDP_DBUS_TYPE_SCREENSHOT_SKELET
                                                 screenshot_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Screenshot, g_object_unref)
-
-static void
-send_response (XdpRequest *request,
-               guint response,
-               GVariant *results)
-{
-  if (request->exported)
-    {
-      g_debug ("sending response: %d", response);
-      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request), response, results);
-      xdp_request_unexport (request);
-    }
-  else
-    {
-      g_variant_ref_sink (results);
-      g_variant_unref (results);
-    }
-}
-
-static void
-send_response_in_thread_func (GTask *task,
-                              gpointer source_object,
-                              gpointer task_data,
-                              GCancellable *cancellable)
-{
-  XdpRequest *request = task_data;
-  g_auto(GVariantBuilder) results =
-    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-  guint response;
-  GVariant *options;
-  g_autoptr(GError) error = NULL;
-  const char *retval;
-
-  REQUEST_AUTOLOCK (request);
-
-  response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
-  options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
-
-  if (response != 0)
-    goto out;
-
-  retval = g_object_get_data (G_OBJECT (task), "retval");
-  if (g_strcmp0 (retval, "url") == 0)
-    {
-      const char *uri;
-      g_autofree char *ruri = NULL;
-
-      if (!g_variant_lookup (options, "uri", "&s", &uri))
-        {
-          g_warning ("No URI was provided");
-          goto out;
-        }
-
-      if (xdp_app_info_is_host (request->app_info))
-        ruri = g_strdup (uri);
-      else
-        ruri = xdp_register_document (uri,
-                                      xdp_app_info_get_id (request->app_info),
-                                      xdp_app_info_get_gappinfo (request->app_info),
-                                      XDP_DOCUMENT_FLAG_DELETABLE,
-                                      &error);
-
-      if (ruri == NULL)
-        g_warning ("Failed to register %s: %s", uri, error->message);
-      else
-        g_variant_builder_add (&results, "{&sv}", "uri", g_variant_new_string (ruri));
-    }
-  else if (g_strcmp0 (retval, "color") == 0)
-    {
-      double red, green, blue;
-
-      if (!g_variant_lookup (options, "color", "(ddd)", &red, &green, &blue))
-        {
-          g_warning ("No color was provided");
-          goto out;
-        }
-
-      g_variant_builder_add (&results, "{&sv}", "color", g_variant_new ("(ddd)", red, green, blue));
-    }
-  else
-    {
-      g_warning ("Don't know what to return");
-    }
-
-out:
-  send_response (request, response, g_variant_builder_end (&results));
-}
-
-static void
-screenshot_done (GObject *source,
-                 GAsyncResult *result,
-                 gpointer data)
-{
-  g_autoptr(XdpRequest) request = data;
-  guint response = 2;
-  g_autoptr(GVariant) options = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autoptr(GTask) task = NULL;
-
-  if (!xdp_dbus_impl_screenshot_call_screenshot_finish (XDP_DBUS_IMPL_SCREENSHOT (source),
-                                                        &response,
-                                                        &options,
-                                                        result,
-                                                        &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_warning ("A backend call failed: %s", error->message);
-    }
-
-  g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
-  if (options)
-    g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
-
-  task = g_task_new (NULL, NULL, NULL, NULL);
-  g_task_set_source_tag (task, screenshot_done);
-  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
-  g_object_set_data (G_OBJECT (task), "retval", "url");
-  g_task_run_in_thread (task, send_response_in_thread_func);
-}
 
 static gboolean
 validate_screenshot_target (Screenshot *screenshot,
@@ -219,7 +101,9 @@ validate_screenshot_target_filter (const char  *key,
                                    gpointer     user_data,
                                    GError     **error)
 {
-  return validate_screenshot_target (user_data, g_variant_get_uint32 (value), error);
+  return validate_screenshot_target (user_data,
+                                     g_variant_get_uint32 (value),
+                                     error);
 }
 
 static XdpOptionKey screenshot_options_v3[] = {
@@ -229,180 +113,240 @@ static XdpOptionKey screenshot_options_v3[] = {
 };
 
 static gboolean
-check_non_interactive_permission_in_thread (Screenshot *screenshot,
-                                            XdpRequest *request,
-                                            const char *parent_window,
-                                            gboolean    modal)
+get_permission (Screenshot     *screenshot,
+                XdpRequestDex  *request,
+                XdpAppInfo        *app_info,
+                GVariant          *arg_options,
+                const char        *arg_parent_window,
+                gboolean          *permission_granted_out,
+                GError           **error)
 {
-  g_autoptr(GError) error = NULL;
-  g_autoptr(GVariant) access_results = NULL;
-  g_auto(GVariantBuilder) access_opt_builder =
-    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   XdpPermission permission;
-  g_autofree char *subtitle = NULL;
-  g_autofree char *title = NULL;
-  const char *body = "";
-  uint access_response = 2;
-  const char *app_id;
+  g_autoptr(XdpDbusImplAccessAccessDialogResult) result = NULL;
+  g_autoptr(GError) local_error = NULL;
 
-  permission = xdp_get_permission_sync (request->app_info,
-                                        SCREENSHOT_PERMISSION_TABLE,
-                                        SCREENSHOT_PERMISSION_ID);
+  permission = dex_await_uint (xdp_permission_get_future (
+      app_info,
+      SCREENSHOT_PERMISSION_TABLE,
+      SCREENSHOT_PERMISSION_ID),
+    &local_error);
 
-  if (permission == XDP_PERMISSION_YES)
-    return TRUE;
-
-  if (permission == XDP_PERMISSION_NO)
-    return FALSE;
-
-  g_variant_builder_add (&access_opt_builder, "{sv}",
-                         "deny_label", g_variant_new_string (_("Deny")));
-  g_variant_builder_add (&access_opt_builder, "{sv}",
-                         "grant_label", g_variant_new_string (_("Allow")));
-  g_variant_builder_add (&access_opt_builder, "{sv}",
-                         "icon", g_variant_new_string ("applets-screenshooter-symbolic"));
-  g_variant_builder_add (&access_opt_builder, "{sv}",
-                         "modal", g_variant_new_boolean (modal));
-
-  app_id = xdp_app_info_get_id (request->app_info);
-
-  if (g_strcmp0 (app_id, "") != 0)
+  if (local_error)
     {
-      g_autoptr(GDesktopAppInfo) info = NULL;
-      g_autofree gchar *id = NULL;
-      const gchar *name = NULL;
-
-      id = g_strconcat (app_id, ".desktop", NULL);
-      info = g_desktop_app_info_new (id);
-
-      if (info)
-        name = g_app_info_get_display_name (G_APP_INFO (info));
-      else
-        name = app_id;
-
-      if (permission == XDP_PERMISSION_UNSET)
-        {
-          title = g_strdup_printf (_("Allow %s to Take Screenshots?"), name);
-          subtitle = g_strdup_printf (_("%s wants to take screenshots at any time"), name);
-        }
-      else /* permission == XDP_PERMISSION_ASK */
-        {
-          title = g_strdup_printf (_("Allow %s to Take a Screenshot?"), name);
-          subtitle = g_strdup_printf (_("%s wants to take a screenshot"), name);
-        }
-    }
-  else
-    {
-      g_assert (xdp_app_info_is_host (request->app_info));
-      if (permission == XDP_PERMISSION_UNSET)
-        {
-          /* Note: this will set the screenshot permission for all unsandboxed
-           * apps for which an app ID can't be determined.
-           */
-          title = g_strdup (_("Allow Apps to Take Screenshots?"));
-          subtitle = g_strdup (_("An app wants to take screenshots at any time"));
-        }
-      else /* permission == XDP_PERMISSION_ASK */
-        {
-          title = g_strdup (_("Allow to Take a Screenshot?"));
-          subtitle = g_strdup (_("An app wants to take a screenshot"));
-        }
-    }
-
-  if (permission == XDP_PERMISSION_UNSET)
-    body = _("This permission can be changed at any time from the privacy settings");
-
-  if (!xdp_dbus_impl_access_call_access_dialog_sync (screenshot->access_impl,
-                                                     request->id,
-                                                     app_id,
-                                                     parent_window,
-                                                     title,
-                                                     subtitle,
-                                                     body,
-                                                     g_variant_builder_end (&access_opt_builder),
-                                                     &access_response,
-                                                     &access_results,
-                                                     NULL,
-                                                     &error))
-    {
-      g_warning ("Failed to show access dialog: %s", error->message);
+      g_propagate_error (error, g_steal_pointer (&local_error));
       return FALSE;
     }
 
-  if (permission == XDP_PERMISSION_UNSET)
+  if (permission == XDP_PERMISSION_NO)
     {
-      xdp_set_permission_sync (request->app_info,
-                               SCREENSHOT_PERMISSION_TABLE,
-                               SCREENSHOT_PERMISSION_ID,
-                               access_response == 0 ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
+      *permission_granted_out = FALSE;
+      return TRUE;
     }
 
-  return access_response == 0;
+  if (permission == XDP_PERMISSION_YES)
+    {
+      *permission_granted_out = TRUE;
+      return TRUE;
+    }
+
+  {
+    g_auto(GVariantBuilder) access_opt_builder =
+      G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+    g_autofree gchar *title = NULL;
+    g_autofree gchar *subtitle = NULL;
+    const gchar *body = NULL;
+    gboolean modal = TRUE;
+    const char *app_id = NULL;
+
+    if (!g_variant_lookup (arg_options, "modal", "b", &modal))
+      modal = TRUE;
+
+    g_variant_builder_add (&access_opt_builder, "{sv}",
+                          "deny_label", g_variant_new_string (_("Deny")));
+    g_variant_builder_add (&access_opt_builder, "{sv}",
+                          "grant_label", g_variant_new_string (_("Allow")));
+    g_variant_builder_add (&access_opt_builder, "{sv}",
+                          "icon", g_variant_new_string ("applets-screenshooter-symbolic"));
+    g_variant_builder_add (&access_opt_builder, "{sv}",
+                          "modal", g_variant_new_boolean (modal));
+
+    app_id = xdp_app_info_get_id (app_info);
+
+    if (g_strcmp0 (app_id, "") != 0)
+      {
+        g_autoptr(GDesktopAppInfo) info = NULL;
+        g_autofree gchar *id = NULL;
+        const gchar *name = NULL;
+
+        id = g_strconcat (app_id, ".desktop", NULL);
+        info = g_desktop_app_info_new (id);
+
+        if (info)
+          name = g_app_info_get_display_name (G_APP_INFO (info));
+        else
+          name = app_id;
+
+        if (permission == XDP_PERMISSION_UNSET)
+          {
+            title = g_strdup_printf (_("Allow %s to Take Screenshots?"), name);
+            subtitle = g_strdup_printf (_("%s wants to take screenshots at any time"), name);
+          }
+        else /* permission == XDP_PERMISSION_ASK */
+          {
+            title = g_strdup_printf (_("Allow %s to Take a Screenshot?"), name);
+            subtitle = g_strdup_printf (_("%s wants to take a screenshot"), name);
+          }
+      }
+    else
+      {
+        g_assert (xdp_app_info_is_host (app_info));
+        if (permission == XDP_PERMISSION_UNSET)
+          {
+            /* Note: this will set the screenshot permission for all unsandboxed
+            * apps for which an app ID can't be determined.
+            */
+            title = g_strdup (_("Allow Apps to Take Screenshots?"));
+            subtitle = g_strdup (_("An app wants to take screenshots at any time"));
+          }
+        else /* permission == XDP_PERMISSION_ASK */
+          {
+            title = g_strdup (_("Allow to Take a Screenshot?"));
+            subtitle = g_strdup (_("An app wants to take a screenshot"));
+          }
+      }
+
+    if (permission == XDP_PERMISSION_UNSET)
+      body = _("This permission can be changed at any time from the privacy settings");
+
+    result = dex_await_boxed (xdp_dbus_impl_access_call_access_dialog_future (
+        screenshot->access_impl,
+        xdp_request_dex_get_object_path (request),
+        xdp_app_info_get_id (app_info),
+        arg_parent_window,
+        title,
+        subtitle,
+        body,
+        g_variant_builder_end (&access_opt_builder)),
+      error);
+    if (!result)
+      return FALSE;
+  }
+
+  if (permission == XDP_PERMISSION_UNSET)
+    {
+      if (!dex_await_boolean (xdp_permission_set_future (
+          app_info,
+          SCREENSHOT_PERMISSION_TABLE,
+          SCREENSHOT_PERMISSION_ID,
+          result->response == 0 ?
+          XDP_PERMISSION_YES : XDP_PERMISSION_NO),
+        &local_error))
+        g_warning ("Setting unset permission failed: %s", local_error->message);
+    }
+
+  *permission_granted_out = (result->response != 0);
+  return TRUE;
 }
 
 
-static void
-handle_screenshot_in_thread_func (GTask *task,
-                                  gpointer source_object,
-                                  gpointer task_data,
-                                  GCancellable *cancellable)
+static gboolean
+handle_screenshot (XdpDbusScreenshot *object,
+                   GDBusMethodInvocation *invocation,
+                   const gchar *arg_parent_window,
+                   GVariant *arg_options)
 {
-  Screenshot *screenshot = (Screenshot *) source_object;
-  XdpRequest *request = XDP_REQUEST (task_data);
-  g_autoptr(GError) error = NULL;
-  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
+  Screenshot *screenshot = (Screenshot *) object;
+  g_autoptr(XdpRequestDex) request = NULL;
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_auto(GVariantBuilder) opt_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  g_autoptr(GVariant) options = NULL;
+  g_autoptr(GTask) task = NULL;
+  g_autoptr(GError) error = NULL;
   GVariantIter options_iter;
-  GVariant *options;
-  const char *key;
-  GVariant *value;
+  const char *key = NULL;
+  GVariant *value = NULL;
   gboolean permission_store_checked = FALSE;
-  gboolean interactive;
-  gboolean modal;
-  const char *parent_window;
-  const char *app_id;
+  gboolean permission_granted = FALSE;
+  gboolean interactive = FALSE;
 
-  REQUEST_AUTOLOCK (request);
+  g_debug ("Handle screenshot");
 
-  app_id = xdp_app_info_get_id (request->app_info);
-  parent_window = ((const char *)g_object_get_data (G_OBJECT (request), "parent-window"));
-  options = ((GVariant *)g_object_get_data (G_OBJECT (request), "options"));
+  if (!xdp_filter_options (arg_options,
+                           &opt_builder,
+                           screenshot_options_v3,
+                           G_N_ELEMENTS (screenshot_options_v3),
+                           screenshot,
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (g_steal_pointer (&invocation),
+                                              error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
 
-  if (!g_variant_lookup (options, "interactive", "b", &interactive))
+  request = dex_await_object (xdp_request_dex_new (
+      screenshot->context,
+      app_info,
+      G_DBUS_INTERFACE_SKELETON (object),
+      G_DBUS_PROXY (screenshot->impl),
+      arg_options),
+    &error);
+
+  if (!request)
+    {
+      g_dbus_method_invocation_return_gerror (g_steal_pointer (&invocation),
+                                              error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  if (!xdp_request_dex_export (request, &error))
+    {
+      g_dbus_method_invocation_return_gerror (g_steal_pointer (&invocation),
+                                              error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  xdp_dbus_screenshot_complete_screenshot (object,
+                                           g_steal_pointer (&invocation),
+                                           xdp_request_dex_get_object_path (request));
+
+  if (!g_variant_lookup (arg_options, "interactive", "b", &interactive))
     interactive = FALSE;
 
-  if (!g_variant_lookup (options, "modal", "b", &modal))
-    modal = TRUE;
-
-  if (xdp_dbus_impl_screenshot_get_version (screenshot->impl) >= 2)
+   if (xdp_dbus_impl_screenshot_get_version (screenshot->impl) >= 2 &&
+       !interactive)
     {
-      if (!interactive &&
-          !check_non_interactive_permission_in_thread (screenshot,
-                                                       request,
-                                                       parent_window,
-                                                       modal))
+      if (!get_permission (screenshot,
+                          request,
+                          app_info,
+                          arg_options,
+                          arg_parent_window,
+                          &permission_granted,
+                          &error))
         {
-          send_response (request, 2, g_variant_builder_end (&opt_builder));
-          return;
+          g_warning ("Getting permission failed: %s", error->message);
+
+          xdp_request_dex_emit_response (request,
+                                        XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                        g_variant_builder_end (&opt_builder));
+
+          if (request->exported)                                 
+            xdp_request_dex_unexport (request);
+
+          return G_DBUS_METHOD_INVOCATION_HANDLED;
         }
+
       permission_store_checked = TRUE;
-    }
 
-  impl_request =
-    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (screenshot->impl)),
-                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                          g_dbus_proxy_get_name (G_DBUS_PROXY (screenshot->impl)),
-                                          request->id,
-                                          NULL, &error);
-  if (!impl_request)
-    {
-      g_warning ("Failed to to create screenshot implementation proxy: %s", error->message);
-      send_response (request, 2, g_variant_builder_end (&opt_builder));
-      return;
+      if (!permission_granted)
+        {
+          xdp_request_dex_emit_response (request,
+                                        XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                        NULL);
+          return G_DBUS_METHOD_INVOCATION_HANDLED;
+        }
+        
     }
-
-  xdp_request_set_impl_request (request, impl_request);
 
   g_variant_iter_init (&options_iter, options);
   while (g_variant_iter_next (&options_iter, "{&sv}", &key, &value))
@@ -417,94 +361,68 @@ handle_screenshot_in_thread_func (GTask *task,
                              g_variant_new_boolean (TRUE));
     }
 
-  g_debug ("Calling Screenshot with interactive=%d", interactive);
-  xdp_dbus_impl_screenshot_call_screenshot (screenshot->impl,
-                                            request->id,
-                                            app_id,
-                                            parent_window,
-                                            g_variant_builder_end (&opt_builder),
-                                            NULL,
-                                            screenshot_done,
-                                            g_object_ref (request));
+  g_autoptr(XdpDbusImplScreenshotScreenshotResult) result = NULL;
+  XdgDesktopPortalResponseEnum response;
+  g_autoptr(GVariant) results = NULL;
 
-}
+  result = dex_await_boxed (xdp_dbus_impl_screenshot_call_screenshot_future (
+      screenshot->impl,
+      xdp_request_dex_get_object_path (request),
+      xdp_app_info_get_id (app_info),
+      arg_parent_window,
+      g_variant_builder_end (&opt_builder)),
+    &error);
 
-static gboolean
-handle_screenshot (XdpDbusScreenshot *object,
-                   GDBusMethodInvocation *invocation,
-                   const gchar *arg_parent_window,
-                   GVariant *arg_options)
-{
-  Screenshot *screenshot = (Screenshot *) object;
-  XdpRequest *request = xdp_request_from_invocation (invocation);
-  g_auto(GVariantBuilder) opt_builder =
-    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-  g_autoptr(GVariant) options = NULL;
-  g_autoptr(GTask) task = NULL;
-  g_autoptr(GError) error = NULL;
-
-  g_debug ("Handle Screenshot");
-
-  if (!xdp_filter_options (arg_options, &opt_builder,
-                           screenshot_options_v3, G_N_ELEMENTS (screenshot_options_v3),
-                           screenshot, &error))
+  if (result)
     {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return G_DBUS_METHOD_INVOCATION_HANDLED;
+      const char *uri;
+
+      if (!g_variant_lookup (options, "uri", "&s", &uri))
+        {
+          g_warning ("No URI was provided");
+        }
+      else
+        {
+          g_auto(GVariantBuilder) results_builder =
+            G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+          g_autofree char *ruri = NULL;
+
+          if (xdp_app_info_is_host (request->app_info))
+            ruri = g_strdup (uri);
+          else
+            ruri = xdp_register_document (uri,
+                                          xdp_app_info_get_id (request->app_info),
+                                          xdp_app_info_get_gappinfo (request->app_info),
+                                          XDP_DOCUMENT_FLAG_DELETABLE,
+                                          &error);
+
+          if (ruri == NULL)
+            g_warning ("Failed to register %s: %s", uri, error->message);
+          else
+            g_variant_builder_add (&results_builder, "{&sv}", "uri", g_variant_new_string (ruri));
+
+          response = result->response;
+          results = g_variant_builder_end (&results_builder);
+        }
     }
-  options = g_variant_ref_sink (g_variant_builder_end (&opt_builder));
+  else
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_warning ("Backend call failed: %s", error->message);
 
-  g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
-  g_object_set_data_full (G_OBJECT (request),
-                          "options",
-                          g_steal_pointer (&options),
-                          (GDestroyNotify)g_variant_unref);
+      response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
+      results = NULL;
+    }
+  
+  xdp_request_dex_emit_response (request,
+                                 response,
+                                 results);
 
-  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
-  xdp_dbus_screenshot_complete_screenshot (object, invocation, request->id);
-
-  task = g_task_new (object, NULL, NULL, NULL);
-  g_task_set_source_tag (task, handle_screenshot);
-  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
-  g_task_run_in_thread (task, handle_screenshot_in_thread_func);
+  if (request->exported)                                 
+    xdp_request_dex_unexport (request);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
-
-static void
-pick_color_done (GObject *source,
-                 GAsyncResult *result,
-                 gpointer data)
-{
-  g_autoptr(XdpRequest) request = data;
-  guint response = 2;
-  g_autoptr(GVariant) options = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autoptr(GTask) task = NULL;
-
-  if (!xdp_dbus_impl_screenshot_call_pick_color_finish (XDP_DBUS_IMPL_SCREENSHOT (source),
-                                                        &response,
-                                                        &options,
-                                                        result,
-                                                        &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_warning ("A backend call failed: %s", error->message);
-    }
-
-  g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
-  if (options)
-    g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
-
-  task = g_task_new (NULL, NULL, NULL, NULL);
-  g_task_set_source_tag (task, pick_color_done);
-  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
-  g_object_set_data (G_OBJECT (task), "retval", "color");
-  g_task_run_in_thread (task, send_response_in_thread_func);
-}
-
-static XdpOptionKey pick_color_options[] = {
-};
 
 static gboolean
 handle_pick_color (XdpDbusScreenshot *object,
@@ -513,43 +431,98 @@ handle_pick_color (XdpDbusScreenshot *object,
                    GVariant *arg_options)
 {
   Screenshot *screenshot = (Screenshot *) object;
-  XdpRequest *request = xdp_request_from_invocation (invocation);
+  g_autoptr(XdpRequestDex) request = NULL;
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GError) error = NULL;
-  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) opt_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-  REQUEST_AUTOLOCK (request);
+  g_debug ("Handle pick color");
 
-  impl_request =
-    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (screenshot->impl)),
-                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                          g_dbus_proxy_get_name (G_DBUS_PROXY (screenshot->impl)),
-                                          request->id,
-                                          NULL, &error);
-  if (!impl_request)
+  request = dex_await_object (xdp_request_dex_new (
+      screenshot->context,
+      app_info,
+      G_DBUS_INTERFACE_SKELETON (object),
+      G_DBUS_PROXY (screenshot->impl),
+      arg_options),
+    &error);
+
+  if (!request)
     {
-      g_dbus_method_invocation_return_gerror (invocation, error);
+      g_dbus_method_invocation_return_gerror (g_steal_pointer (&invocation),
+                                              error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  xdp_request_set_impl_request (request, impl_request);
-  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  if (!xdp_request_dex_export (request, &error))
+    {
+      g_dbus_method_invocation_return_gerror (g_steal_pointer (&invocation),
+                                              error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
 
-  xdp_filter_options (arg_options, &opt_builder,
-                      pick_color_options, G_N_ELEMENTS (pick_color_options),
-                      NULL, NULL);
+  xdp_dbus_screenshot_complete_pick_color (object,
+                                           g_steal_pointer (&invocation),
+                                           xdp_request_dex_get_object_path (request));
 
-  xdp_dbus_impl_screenshot_call_pick_color (screenshot->impl,
-                                            request->id,
-                                            xdp_app_info_get_id (request->app_info),
-                                            arg_parent_window,
-                                            g_variant_builder_end (&opt_builder),
-                                            NULL,
-                                            pick_color_done,
-                                            g_object_ref (request));
+  
+  g_autoptr(XdpDbusImplScreenshotPickColorResult) result =
+    NULL;
+  XdgDesktopPortalResponseEnum response =
+    XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
+  g_autoptr(GVariant) results = NULL;
 
-  xdp_dbus_screenshot_complete_pick_color (object, invocation, request->id);
+  result = dex_await_boxed (xdp_dbus_impl_screenshot_call_pick_color_future (
+      screenshot->impl,
+      xdp_request_dex_get_object_path (request),
+      xdp_app_info_get_id (app_info),
+      arg_parent_window,
+      g_variant_builder_end (&opt_builder)),
+    &error);
+  
+  if (result)
+    {
+
+      g_auto(GVariantBuilder) results_builder =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
+      {
+        double red, green, blue;
+
+        if (!g_variant_lookup (result->results,
+                               "color",
+                               "(ddd)",
+                               &red,
+                               &green,
+                               &blue))
+          {
+            g_warning ("No color was provided");
+          } else {
+            g_variant_builder_add (&results_builder,
+                                   "{&sv}",
+                                   "color",
+                                   g_variant_new ("(ddd)", red, green, blue));
+          }
+      }
+      
+      response = result->response;
+      results = g_variant_builder_end (&results_builder);
+    }
+  else
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_warning ("Backend call failed: %s", error->message);
+
+      response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
+      results = NULL;
+    }
+  
+  xdp_request_dex_emit_response (request,
+                                 response,
+                                 results);
+
+  if (request->exported)                                 
+    xdp_request_dex_unexport (request);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -586,12 +559,14 @@ screenshot_class_init (ScreenshotClass *klass)
 }
 
 static Screenshot *
-screenshot_new (XdpDbusImplScreenshot *impl,
+screenshot_new (XdpContext *context,
+                XdpDbusImplScreenshot *impl,
                 XdpDbusImplAccess     *access_impl)
 {
   Screenshot *screenshot;
 
   screenshot = g_object_new (screenshot_get_type (), NULL);
+  screenshot->context = context;
   screenshot->access_impl = g_object_ref (access_impl);
   screenshot->impl = g_object_ref (impl);
 
@@ -616,9 +591,10 @@ screenshot_new (XdpDbusImplScreenshot *impl,
   return screenshot;
 }
 
-void
-init_screenshot (XdpContext *context)
+DexFuture *
+init_screenshot (gpointer user_data)
 {
+  XdpContext *context = XDP_CONTEXT (user_data);
   g_autoptr(Screenshot) screenshot = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
@@ -629,30 +605,31 @@ init_screenshot (XdpContext *context)
 
   impl_config = xdp_portal_config_find (config, SCREENSHOT_DBUS_IMPL_IFACE);
   if (impl_config == NULL)
-    return;
+    return dex_future_new_false ();
 
   access_impl = xdp_context_get_access_impl (context);
   if (access_impl == NULL)
     {
       g_warning ("The screenshot portal requires an access impl");
-      return;
+      return dex_future_new_false ();
     }
 
-  impl = xdp_dbus_impl_screenshot_proxy_new_sync (connection,
+  impl = dex_await_object (xdp_dbus_impl_screenshot_proxy_new_future (connection,
                                                   G_DBUS_PROXY_FLAGS_NONE,
                                                   impl_config->dbus_name,
-                                                  DESKTOP_DBUS_PATH,
-                                                  NULL,
-                                                  &error);
+                                                  DESKTOP_DBUS_PATH),
+                           &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create screenshot proxy: %s", error->message);
-      return;
+      return dex_future_new_false ();
     }
 
-  screenshot = screenshot_new (impl, access_impl);
+  screenshot = screenshot_new (context, impl, access_impl);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&screenshot)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
+                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER);
+
+  return dex_future_new_true ();
 }
