@@ -238,7 +238,6 @@ on_impl_session_proxy_created (DexFuture *future,
   session->app_info = g_steal_pointer (&data->app_info);
   session->impl_session = g_steal_pointer (&impl_session);
   session->skeleton = g_steal_pointer (&data->skeleton);
-  session->exported = TRUE;
   session->claim = g_steal_pointer (&data->claim);
 
   g_signal_connect_object (session->context, "peer-disconnect",
@@ -263,6 +262,8 @@ on_impl_session_proxy_created (DexFuture *future,
                                          path,
                                          &error))
       return dex_future_new_for_error (g_steal_pointer (&error));
+
+  session->exported = TRUE;
 
   return dex_future_new_for_object (session);
 }
