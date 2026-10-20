@@ -39,7 +39,7 @@ xdp_request_dex_on_signal_response (XdpDbusRequest *object,
                                  "Response",
                                  g_variant_new ("(u@a{sv})",
                                                 arg_response,
-                                                arg_results),
+                                                g_variant_ref (arg_results)),
                                  NULL);
 }
 
