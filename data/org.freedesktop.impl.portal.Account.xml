@@ -59,5 +59,16 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
+
+    <!--
+        request-version:
+
+        The version of the :doc:`org.freedesktop.impl.portal.Request`
+        interface supported by this backend. See that interface's
+        documentation for details.
+
+        If this property is not present, version 1 is assumed.
+    -->
+    <property name="request-version" type="u" access="read"/>
   </interface>
 </node>
