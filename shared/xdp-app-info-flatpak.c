@@ -611,29 +611,9 @@ open_flatpak_info (int      pid,
   root_fd = openat (AT_FDCWD, root_path, O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
   if (root_fd == -1)
     {
-      if (errno == EACCES)
-        {
-          struct statfs buf;
-
-          /* Access to the root dir isn't allowed. This can happen if the root is on a fuse
-           * filesystem, such as in a toolbox container. We will never have a fuse rootfs
-           * in the flatpak case, so in that case its safe to ignore this and
-           * continue to detect other types of apps.
-           */
-          if (statfs (root_path, &buf) == 0 &&
-              buf.f_type == 0x65735546) /* FUSE_SUPER_MAGIC */
-            {
-              g_set_error (error, XDP_APP_INFO_ERROR, XDP_APP_INFO_ERROR_WRONG_APP_KIND,
-                           "Not a flatpak (fuse rootfs)");
-              return -1;
-            }
-        }
-
-      /* Otherwise, we should be able to open the root dir. Probably the app died and
-         we're failing due to /proc/$pid not existing. In that case fail instead
-         of treating this as privileged. */
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Unable to open %s", root_path);
+      g_set_error (error, XDP_APP_INFO_ERROR, XDP_APP_INFO_ERROR_WRONG_APP_KIND,
+                   "Not a flatpak (cannot open %s: %s)",
+                   root_path, g_strerror (errno));
       return -1;
     }
 

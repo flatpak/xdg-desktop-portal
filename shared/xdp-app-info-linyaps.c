@@ -104,21 +104,10 @@ open_linyaps_info (int      pid,
   root_fd = openat (AT_FDCWD, root_path, O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
   if (root_fd == -1)
     {
-      if (errno == EACCES)
-        {
-          struct statfs buf;
-          if (statfs (root_path, &buf) == 0 &&
-              buf.f_type == 0x65735546) /* FUSE_SUPER_MAGIC */
-          {
-            g_set_error (error, XDP_APP_INFO_ERROR,
-                         XDP_APP_INFO_ERROR_WRONG_APP_KIND,
-                         "Not a linyaps (fuse rootfs)");
-            return -1;
-          }
-        }
-
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Unable to open %s",
-                   root_path);
+      g_set_error (error, XDP_APP_INFO_ERROR,
+                   XDP_APP_INFO_ERROR_WRONG_APP_KIND,
+                   "Not a linyaps (cannot open %s: %s)",
+                   root_path, g_strerror (errno));
       return -1;
   }
 
