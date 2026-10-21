@@ -5,8 +5,11 @@
 
 import os
 import re
+import subprocess
 from pathlib import Path
+from typing import Any, AnyStr
 
+import dbus
 import pytest
 
 import tests.xdp_utils as xdp
@@ -19,7 +22,7 @@ ACCOUNT_DATA = {
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     image = Path(os.environ["XDG_DATA_HOME"]) / "account-image.png"
     image.write_text("image contents")
     ACCOUNT_DATA["image"] = f"file://{image.absolute().as_posix()}"
@@ -33,10 +36,16 @@ def required_templates():
 
 
 class TestAccount:
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         xdp.check_version(dbus_con, "Account", 1)
 
-    def test_basic1(self, xdg_document_portal, portals, dbus_con, xdp_app_info):
+    def test_basic1(
+        self,
+        xdg_document_portal: subprocess.Popen[AnyStr],
+        portals: Any,
+        dbus_con: dbus.Bus,
+        xdp_app_info: xdp.AppInfoFlatpak,
+    ) -> None:
         app_id = xdp_app_info.app_id
         account_intf = xdp.get_portal_iface(dbus_con, "Account")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -71,7 +80,7 @@ class TestAccount:
         assert args[2] == ""  # window
         assert args[3]["reason"] == reason
 
-    def test_reason(self, portals, dbus_con):
+    def test_reason(self, portals: Any, dbus_con: dbus.Bus) -> None:
         account_intf = xdp.get_portal_iface(dbus_con, "Account")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -104,7 +113,7 @@ class TestAccount:
         assert "reason" not in args[3]
 
     @pytest.mark.parametrize("template_params", ({"account": {"expect-close": True}},))
-    def test_close(self, portals, dbus_con):
+    def test_close(self, portals: Any, dbus_con: dbus.Bus) -> None:
         account_intf = xdp.get_portal_iface(dbus_con, "Account")
 
         reason = "reason"

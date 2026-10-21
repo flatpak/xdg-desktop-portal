@@ -3,6 +3,9 @@
 #
 # This file is formatted with Python Black
 
+from collections.abc import Callable
+from typing import Any
+
 import dbus
 from gi.repository import Gio, GLib
 
@@ -10,65 +13,93 @@ import tests.xdp_utils as xdp
 
 
 class PermissionStore(xdp.GDBusIface):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             "org.freedesktop.impl.portal.PermissionStore",
             "/org/freedesktop/impl/portal/PermissionStore",
             "org.freedesktop.impl.portal.PermissionStore",
         )
 
-    def Lookup(self, table, id):
+    def Lookup(self, table: str, id: str) -> GLib.Variant:
         return self._call(
             "Lookup",
             GLib.Variant("(ss)", (table, id)),
         )
 
-    def Set(self, table, create, id, perm, data):
+    def Set(
+        self,
+        table: str,
+        create: bool,
+        id: str,
+        perms: list[tuple[str, list[str]]],
+        data: GLib.Variant,
+    ) -> GLib.Variant:
         return self._call(
             "Set",
-            GLib.Variant("(sbsa{sas}v)", (table, create, id, perm, data)),
+            GLib.Variant("(sbsa{sas}v)", (table, create, id, perms, data)),
         )
 
-    def SetValue(self, table, create, id, data):
+    def SetValue(
+        self, table: str, create: bool, id: str, data: GLib.Variant
+    ) -> GLib.Variant:
         return self._call(
             "SetValue",
             GLib.Variant("(sbsv)", (table, create, id, data)),
         )
 
-    def SetPermission(self, table, create, id, app, perm):
+    def SetPermission(
+        self,
+        table: str,
+        create: bool,
+        id: str,
+        app: str,
+        perms: list[str],
+    ) -> GLib.Variant:
         return self._call(
             "SetPermission",
-            GLib.Variant("(sbssas)", (table, create, id, app, perm)),
+            GLib.Variant("(sbssas)", (table, create, id, app, perms)),
         )
 
-    def SetPermissionAsync(self, table, create, id, app, perm, user_cb):
+    def SetPermissionAsync(
+        self,
+        table: str,
+        create: bool,
+        id: str,
+        app: str,
+        perms: list[str],
+        user_cb: Callable[[Any], None] | None,
+    ) -> None:
         self._call_async(
             "SetPermission",
-            GLib.Variant("(sbssas)", (table, create, id, app, perm)),
+            GLib.Variant("(sbssas)", (table, create, id, app, perms)),
             cb=user_cb,
         )
 
-    def DeletePermissionAsync(self, table, id, app, user_cb):
+    def DeletePermissionAsync(
+        self, table: str, id: str, app: str, user_cb: Callable[[Any], None] | None
+    ) -> None:
         self._call_async(
             "DeletePermission",
             GLib.Variant("(sss)", (table, id, app)),
             cb=user_cb,
         )
 
-    def DeleteAsync(self, table, id, user_cb):
+    def DeleteAsync(
+        self, table: str, id: str, user_cb: Callable[[Any], None] | None
+    ) -> None:
         self._call_async(
             "Delete",
             GLib.Variant("(ss)", (table, id)),
             cb=user_cb,
         )
 
-    def Delete(self, table, id):
+    def Delete(self, table: str, id: str) -> GLib.Variant:
         return self._call(
             "Delete",
             GLib.Variant("(ss)", (table, id)),
         )
 
-    def GetPermission(self, table, id, app):
+    def GetPermission(self, table: str, id: str, app: str) -> GLib.Variant:
         return self._call(
             "GetPermission",
             GLib.Variant("(sss)", (table, id, app)),
@@ -76,7 +107,7 @@ class PermissionStore(xdp.GDBusIface):
 
 
 class TestPermissionStore:
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         permission_store = dbus_con.get_object(
             "org.freedesktop.impl.portal.PermissionStore",
             "/org/freedesktop/impl/portal/PermissionStore",
@@ -92,7 +123,7 @@ class TestPermissionStore:
         )
         assert int(portal_version) == 2
 
-    def test_delete_race(self, portals, dbus_con):
+    def test_delete_race(self, portals: Any, dbus_con: dbus.Bus) -> None:
         permission_store_intf = PermissionStore()
         finished_count = 0
 
@@ -100,7 +131,7 @@ class TestPermissionStore:
         id = "inhibit"
         perms = ["logout", "suspend"]
 
-        def cb(_):
+        def cb(_: Any) -> None:
             nonlocal finished_count
 
             finished_count += 1
@@ -137,7 +168,7 @@ class TestPermissionStore:
         perms_out = result.unpack()[0]
         assert perms_out == {}
 
-    def test_change(self, portals, dbus_con):
+    def test_change(self, portals: Any, dbus_con: dbus.Bus) -> None:
         permission_store_intf = PermissionStore()
         changed_count = 0
 
@@ -146,7 +177,7 @@ class TestPermissionStore:
         app = "one.two.three"
         perms = ["one", "two"]
 
-        def cb_changed1(results):
+        def cb_changed1(results: GLib.Variant) -> None:
             nonlocal changed_count
 
             cb_table, cb_id, deleted, _, cb_perms = results.unpack()
@@ -163,7 +194,7 @@ class TestPermissionStore:
         xdp.wait_for(lambda: changed_count >= 1)
         cs.disconnect()
 
-        def cb_changed2(results):
+        def cb_changed2(results: GLib.Variant) -> None:
             nonlocal changed_count
 
             cb_table, cb_id, deleted, _, _ = results.unpack()
@@ -179,7 +210,7 @@ class TestPermissionStore:
         xdp.wait_for(lambda: changed_count >= 2)
         cs.disconnect()
 
-    def test_lookup(self, portals, dbus_con):
+    def test_lookup(self, portals: Any, dbus_con: dbus.Bus) -> None:
         permission_store_intf = PermissionStore()
 
         table = "TEST"
@@ -206,7 +237,7 @@ class TestPermissionStore:
 
         assert data_out == data
 
-    def test_set_value(self, portals, dbus_con):
+    def test_set_value(self, portals: Any, dbus_con: dbus.Bus) -> None:
         permission_store_intf = PermissionStore()
 
         table = "TEST"
@@ -227,7 +258,7 @@ class TestPermissionStore:
         assert perms_out == {}
         assert data_out == data
 
-    def test_create(self, portals, dbus_con):
+    def test_create(self, portals: Any, dbus_con: dbus.Bus) -> None:
         permission_store_intf = PermissionStore()
 
         table = "inhibit"
@@ -250,7 +281,7 @@ class TestPermissionStore:
 
         permission_store_intf.SetPermission(table, True, id, app, perms)
 
-    def test_delete(self, portals, dbus_con):
+    def test_delete(self, portals: Any, dbus_con: dbus.Bus) -> None:
         permission_store_intf = PermissionStore()
 
         table = "inhibit"
@@ -274,7 +305,7 @@ class TestPermissionStore:
         except GLib.GError as e:
             assert "org.freedesktop.portal.Error.NotFound" in e.message
 
-    def test_get_permission(self, portals, dbus_con):
+    def test_get_permission(self, portals: Any, dbus_con: dbus.Bus) -> None:
         permission_store_intf = PermissionStore()
 
         table = "notifications"
