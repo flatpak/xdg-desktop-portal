@@ -393,6 +393,112 @@ echo 'read-write'
         assert concurrent_result[0][1] == b"doc1-content"
 
 
+class TestFileTransfer:
+    @pytest.fixture
+    def file_transfer_intf(self, xdg_document_portal, dbus_con):
+        return xdp.get_file_transfer_iface(dbus_con)
+
+    @pytest.fixture
+    def documents_intf(self, xdg_document_portal, dbus_con):
+        return xdp.get_document_portal_iface(dbus_con)
+
+    def test_start_add_retrieve(self, file_transfer_intf, documents_intf):
+        file1 = xdp_doc.make_file("ft1")
+        file2 = xdp_doc.make_file("ft2")
+
+        key = file_transfer_intf.StartTransfer({})
+
+        fd1 = os.open(str(file1), os.O_PATH)
+        fd2 = os.open(str(file2), os.O_PATH)
+        file_transfer_intf.AddFiles(key, [fd1, fd2], {})
+        os.close(fd1)
+        os.close(fd2)
+
+        files = file_transfer_intf.RetrieveFiles(key, {})
+        assert len(files) == 2
+        assert files[0] == str(file1)
+        assert files[1] == str(file2)
+
+    def test_transfer_with_directory(self, file_transfer_intf, documents_intf):
+        file1 = xdp_doc.make_file("ft-dir1")
+        dir1 = xdp_doc.make_dir()
+        file2 = xdp_doc.make_file("ft-dir2")
+
+        key = file_transfer_intf.StartTransfer({})
+
+        fds = []
+        for p in [file1, dir1, file2]:
+            fds.append(os.open(str(p), os.O_PATH))
+        file_transfer_intf.AddFiles(key, fds, {})
+        for fd in fds:
+            os.close(fd)
+
+        files = file_transfer_intf.RetrieveFiles(key, {})
+        assert len(files) == 3
+        assert files[0] == str(file1)
+        assert files[1] == str(dir1)
+        assert files[2] == str(file2)
+
+    def test_invalid_key_rejected(self, file_transfer_intf, documents_intf):
+        file1 = xdp_doc.make_file("ft-badkey")
+
+        key = file_transfer_intf.StartTransfer({})
+        assert key != "1234"
+
+        fd = os.open(str(file1), os.O_PATH)
+        with pytest.raises(dbus.exceptions.DBusException) as exc_info:
+            file_transfer_intf.AddFiles("1234", [fd], {})
+        os.close(fd)
+        assert "AccessDenied" in str(exc_info.value)
+
+    def test_stop_transfer_invalidates_key(self, file_transfer_intf, documents_intf):
+        file1 = xdp_doc.make_file("ft-stop")
+
+        key = file_transfer_intf.StartTransfer({})
+        fd = os.open(str(file1), os.O_PATH)
+        file_transfer_intf.AddFiles(key, [fd], {})
+        os.close(fd)
+
+        file_transfer_intf.StopTransfer(key)
+
+        with pytest.raises(dbus.exceptions.DBusException) as exc_info:
+            file_transfer_intf.RetrieveFiles(key, {})
+        assert "AccessDenied" in str(exc_info.value)
+
+    def test_stopped_key_cannot_add(self, file_transfer_intf, documents_intf):
+        file1 = xdp_doc.make_file("ft-stop-add")
+
+        key = file_transfer_intf.StartTransfer({})
+        fd = os.open(str(file1), os.O_PATH)
+        file_transfer_intf.AddFiles(key, [fd], {})
+        os.close(fd)
+
+        file_transfer_intf.StopTransfer(key)
+
+        fd = os.open(str(file1), os.O_PATH)
+        with pytest.raises(dbus.exceptions.DBusException) as exc_info:
+            file_transfer_intf.AddFiles(key, [fd], {})
+        os.close(fd)
+        assert "AccessDenied" in str(exc_info.value)
+
+    def test_old_key_not_reusable(self, file_transfer_intf, documents_intf):
+        file1 = xdp_doc.make_file("ft-reuse")
+
+        key = file_transfer_intf.StartTransfer({})
+        fd = os.open(str(file1), os.O_PATH)
+        file_transfer_intf.AddFiles(key, [fd], {})
+        os.close(fd)
+        file_transfer_intf.StopTransfer(key)
+
+        _new_key = file_transfer_intf.StartTransfer({})
+
+        fd = os.open(str(file1), os.O_PATH)
+        with pytest.raises(dbus.exceptions.DBusException) as exc_info:
+            file_transfer_intf.AddFiles(key, [fd], {})
+        os.close(fd)
+        assert "AccessDenied" in str(exc_info.value)
+
+
 try:
     xdp.ensure_fuse_supported()
 except xdp.FuseNotSupportedException as e:
