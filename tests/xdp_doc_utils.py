@@ -8,7 +8,28 @@ from pathlib import Path
 
 from gi.repository import Gio, GLib
 
+EXPORT_FILES_FLAG_REUSE_EXISTING = 1
 EXPORT_FILES_FLAG_EXPORT_DIR = 8
+
+
+def make_file(content="content"):
+    tmpdir = Path(os.environ["TMPDIR"])
+    subdir = tmpdir / f"doc-{os.urandom(4).hex()}"
+    subdir.mkdir()
+    path = subdir / "the-file"
+    path.write_text(content)
+    return path
+
+
+def make_dir():
+    tmpdir = Path(os.environ["TMPDIR"])
+    subdir = tmpdir / f"dir-{os.urandom(4).hex()}"
+    subdir.mkdir()
+    return subdir
+
+
+def path_to_null_term_bytes(path):
+    return list(os.fsencode(str(path))) + [0]
 
 
 def path_from_null_term_bytes(bytes):
@@ -71,6 +92,16 @@ def export_files(documents_intf, file_paths, perms, flags=0, app_id=""):
 
     assert result
     return result
+
+
+def export_dir(documents_intf, path):
+    doc_ids, _ = export_files(
+        documents_intf,
+        [path],
+        ["read"],
+        flags=EXPORT_FILES_FLAG_REUSE_EXISTING | EXPORT_FILES_FLAG_EXPORT_DIR,
+    )
+    return doc_ids[0]
 
 
 def write_bytes_atomic(file_path, bytes):
