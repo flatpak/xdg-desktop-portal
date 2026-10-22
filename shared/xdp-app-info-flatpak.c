@@ -28,6 +28,7 @@
 #define FLATPAK_METADATA_KEY_INSTANCE_ID "instance-id"
 #define FLATPAK_METADATA_GROUP_CONTEXT "Context"
 #define FLATPAK_METADATA_KEY_SHARED "shared"
+#define FLATPAK_METADATA_KEY_PERSISTENT "persistent"
 #define FLATPAK_METADATA_CONTEXT_SHARED_NETWORK "network"
 #define FLATPAK_METADATA_GROUP_RUNTIME "Runtime"
 
@@ -169,6 +170,91 @@ xdp_app_info_flatpak_is_valid_sub_app_id (XdpAppInfo *app_info,
   return flatpak_is_valid_name (sub_app_id);
 }
 
+/* Translate paths that flatpak makes available at the same relative
+ * location in $HOME, but that actually live in the per-app directory,
+ * as requested by the "persistent" key in the [Context] group, e.g.:
+ *
+ *   persistent=data;.config;
+ *
+ * makes $HOME/data/foo and
+ * ~/.var/app/$APP_ID/data/foo refer to the same file.
+ *
+ * Returns NULL if the path is not covered by any persistent entry.
+ */
+static char *
+xdp_app_info_flatpak_remap_persistent_path (XdpAppInfo *app_info,
+                                            const char *path)
+{
+  XdpAppInfoFlatpak *app_info_flatpak = XDP_APP_INFO_FLATPAK (app_info);
+  const char *app_id = xdp_app_info_get_id (app_info);
+  const char *home = g_get_home_dir ();
+  g_autofree char *host_base = NULL;
+  g_auto(GStrv) persistent = NULL;
+
+  if (home == NULL || app_id == NULL)
+    return NULL;
+
+  persistent = g_key_file_get_string_list (app_info_flatpak->flatpak_info,
+                                           FLATPAK_METADATA_GROUP_CONTEXT,
+                                           FLATPAK_METADATA_KEY_PERSISTENT,
+                                           NULL, NULL);
+
+  if (persistent == NULL)
+    return NULL;
+
+  host_base = g_build_filename (home, ".var", "app", app_id, NULL);
+
+  for (size_t i = 0; persistent[i] != NULL; i++)
+    {
+      g_autofree char *sandbox_dir = NULL;
+      g_autofree char *host_dir = NULL;
+      g_autofree char *result = NULL;
+      g_autofree char *canonical = NULL;
+      size_t sandbox_len;
+
+      if (persistent[i][0] == '\0')
+        continue;
+
+      sandbox_dir = g_canonicalize_filename (persistent[i], home);
+
+      /* Never translate anything outside of $HOME */
+      if (!g_str_has_prefix (sandbox_dir, home) ||
+          (sandbox_dir[strlen (home)] != '\0' &&
+           sandbox_dir[strlen (home)] != G_DIR_SEPARATOR))
+        continue;
+
+      /* Match on path component boundaries, so that e.g.
+       * "data" does not match "database".
+       */
+      if (!g_str_has_prefix (path, sandbox_dir))
+        continue;
+
+      sandbox_len = strlen (sandbox_dir);
+      if (path[sandbox_len] != '\0' && path[sandbox_len] != G_DIR_SEPARATOR)
+        continue;
+
+      host_dir = g_canonicalize_filename (persistent[i], host_base);
+
+      if (path[sandbox_len] == '\0')
+        result = g_strdup (host_dir);
+      else
+        result = g_build_filename (host_dir, path + sandbox_len + 1, NULL);
+
+      /* The remainder may contain ".." components, so make sure the
+       * result stays inside the per-app directory.
+       */
+      canonical = g_canonicalize_filename (result, NULL);
+      if (!g_str_has_prefix (canonical, host_base) ||
+          (canonical[strlen (host_base)] != '\0' &&
+           canonical[strlen (host_base)] != G_DIR_SEPARATOR))
+        return NULL;
+
+      return g_steal_pointer (&canonical);
+    }
+
+  return NULL;
+}
+
 static char *
 xdp_app_info_flatpak_remap_path (XdpAppInfo *app_info,
                                  const char *path)
@@ -177,6 +263,7 @@ xdp_app_info_flatpak_remap_path (XdpAppInfo *app_info,
   const char *app_id = xdp_app_info_get_id (app_info);
   g_autofree char *app_path = NULL;
   g_autofree char *runtime_path = NULL;
+  g_autofree char *persistent_path = NULL;
 
   g_assert (app_info_flatpak);
   g_assert (app_id);
@@ -222,6 +309,10 @@ xdp_app_info_flatpak_remap_path (XdpAppInfo *app_info,
     return g_build_filename (g_get_home_dir (), ".var", "app",
                              app_id, "data",
                              path + strlen ("/var/data/"), NULL);
+
+  persistent_path = xdp_app_info_flatpak_remap_persistent_path (app_info, path);
+  if (persistent_path != NULL)
+    return g_steal_pointer (&persistent_path);
 
   return g_strdup (path);
 }

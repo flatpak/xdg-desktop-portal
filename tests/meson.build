@@ -67,6 +67,24 @@ test(
   protocol: test_protocol,
 )
 
+test_app_info_persist = executable(
+  'test-xdp-app-info-persist',
+  'test-xdp-app-info-persist.c',
+  xdp_utils_sources,
+  dependencies: [common_deps, xdp_utils_deps],
+  include_directories: incs_xdg_desktop_portal,
+  install: enable_installed_tests,
+  install_dir: installed_tests_dir,
+)
+test(
+  'unit/xdp-app-info-persist',
+  test_app_info_persist,
+  suite: ['unit'],
+  env: env_tests,
+  is_parallel: false,
+  protocol: test_protocol,
+)
+
 run_test = find_program('run-test.sh')
 
 pytest_args = ['--verbose', '--log-level=DEBUG']
