@@ -622,3 +622,98 @@ class TestFilechooser:
         # Check the impl portal was not called
         method_calls = mock_intf.GetMethodCalls("FileChooser")
         assert len(method_calls) == 0
+
+
+class TestFilechooserPersist:
+    """current_folder translation for paths bind-mounted by --persist.
+
+    The default xdp_app_info fixture runs every test with all app info kinds,
+    so pin it to a flatpak sandbox with our own metadata here.
+    """
+
+    APP_ID = "org.example.Test"
+
+    @pytest.fixture
+    def xdp_app_info(self):
+        return xdp.AppInfoFlatpak(
+            app_id=self.APP_ID,
+            metadata=b"""
+[Application]
+name=org.example.Test
+runtime=org.freedesktop.Platform/x86_64/24.08
+sdk=org.freedesktop.Sdk/x86_64/24.08
+command=org.example.Test
+
+[Instance]
+instance-id=1234567890
+
+[Context]
+shared=network;ipc;
+sockets=wayland;pulseaudio;
+devices=dri;
+persistent=data;
+""",
+        )
+
+    @pytest.fixture
+    def xdp_overwrite_env(self, tmp_path):
+        return {"HOME": (tmp_path / "home").as_posix()}
+
+    @pytest.fixture
+    def paths(self, tmp_path):
+        """Return (path as the app sees it, path as the host has it)."""
+        home = tmp_path / "home"
+        app_path = home / "data"
+        host_path = home / ".var" / "app" / self.APP_ID / "data"
+        host_path.mkdir(parents=True)
+        return app_path, host_path
+
+    def open_file(self, dbus_con, path):
+        filechooser_intf = xdp.get_portal_iface(dbus_con, "FileChooser")
+        request = xdp.Request(dbus_con, filechooser_intf)
+        response = request.call(
+            "OpenFile",
+            parent_window="",
+            title="Test",
+            options={
+                "current_folder": dbus.ByteArray(
+                    path.as_posix().encode() + b"\0", variant_level=1
+                )
+            },
+        )
+        assert response
+        assert response.response == 0
+
+        mock_intf = xdp.get_mock_iface(dbus_con)
+        method_calls = mock_intf.GetMethodCalls("OpenFile")
+        assert len(method_calls) == 1
+        _, args = method_calls.pop()
+        return args[4]
+
+    def test_current_folder_persist_translated(self, portals, dbus_con, paths):
+        app_path, host_path = paths
+
+        impl_options = self.open_file(dbus_con, app_path)
+
+        assert (
+            bytes(impl_options["current_folder"]).rstrip(b"\0")
+            == host_path.as_posix().encode()
+        )
+
+    def test_current_folder_persist_missing_on_host(self, portals, dbus_con, paths):
+        app_path, host_path = paths
+        host_path.rmdir()
+
+        impl_options = self.open_file(dbus_con, app_path)
+
+        assert "current_folder" not in impl_options
+
+    def test_current_folder_already_host_path(self, portals, dbus_con, paths):
+        _, host_path = paths
+
+        impl_options = self.open_file(dbus_con, host_path)
+
+        assert (
+            bytes(impl_options["current_folder"]).rstrip(b"\0")
+            == host_path.as_posix().encode()
+        )
