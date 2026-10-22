@@ -594,9 +594,9 @@ xdp_app_info_get_pidns (XdpAppInfo  *app_info,
   return TRUE;
 }
 
-static char *
-remap_path (XdpAppInfo *app_info,
-            const char *path)
+char *
+xdp_app_info_remap_path (XdpAppInfo *app_info,
+                         const char *path)
 {
   if (!XDP_APP_INFO_GET_CLASS (app_info)->remap_path)
     return g_strdup (path);
@@ -665,7 +665,7 @@ verify_proc_self_fd (XdpAppInfo  *app_info,
     }
 
   /* remap from sandbox to host if needed */
-  return remap_path (app_info, path_buffer);
+  return xdp_app_info_remap_path (app_info, path_buffer);
 }
 
 static gboolean
