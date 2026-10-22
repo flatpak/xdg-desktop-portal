@@ -257,3 +257,84 @@ text/plain=furrfix.desktop;
         )
 
         self.assert_resolved_uri(dbus_con, str(host_file))
+
+
+class TestMountNsFileChooser:
+    @pytest.fixture
+    def xdp_app_info(self):
+        return xdp.AppInfoHost()
+
+    @pytest.fixture
+    def required_templates(self):
+        return {
+            "filechooser": {},
+        }
+
+    def call_filechooser_in_bwrap(self, method, sandbox_folder, bwrap_args):
+        run_in_bwrap(
+            bwrap_args,
+            [
+                "--interface",
+                "org.freedesktop.portal.FileChooser",
+                "--method",
+                method,
+                "--current-folder",
+                sandbox_folder,
+            ],
+        )
+
+    def assert_current_folder(self, dbus_con, method, expected_host_path):
+        """Check that the mock backend received the correct current_folder."""
+        mock_intf = xdp.get_mock_iface(dbus_con)
+        method_calls = mock_intf.GetMethodCalls(method)
+        assert len(method_calls) > 0
+
+        _, args = method_calls[-1]
+        folder_bytes = bytes(args[4]["current_folder"])
+        folder = folder_bytes.rstrip(b"\x00").decode()
+        assert folder == expected_host_path
+
+    def test_open_file_current_folder_remaps(self, portals, dbus_con):
+        """FileChooser.OpenFile current_folder is remapped from sandbox
+        to host path."""
+        host_dir = Path.home() / "mount-ns-fc-open"
+        host_dir.mkdir()
+
+        sandbox_dir = "/tmp/xdp-sandbox-fc-open"
+
+        self.call_filechooser_in_bwrap(
+            "OpenFile",
+            sandbox_dir,
+            ["--bind", str(host_dir), sandbox_dir],
+        )
+
+        self.assert_current_folder(dbus_con, "OpenFile", str(host_dir))
+
+    def test_save_file_current_folder_remaps(self, portals, dbus_con):
+        """FileChooser.SaveFile current_folder is remapped from sandbox
+        to host path."""
+        host_dir = Path.home() / "mount-ns-fc-save"
+        host_dir.mkdir()
+
+        sandbox_dir = "/tmp/xdp-sandbox-fc-save"
+
+        self.call_filechooser_in_bwrap(
+            "SaveFile",
+            sandbox_dir,
+            ["--bind", str(host_dir), sandbox_dir],
+        )
+
+        self.assert_current_folder(dbus_con, "SaveFile", str(host_dir))
+
+    def test_current_folder_no_remap_needed(self, portals, dbus_con):
+        """When sandbox and host paths match, current_folder passes through."""
+        host_dir = Path.home() / "mount-ns-fc-same"
+        host_dir.mkdir()
+
+        self.call_filechooser_in_bwrap(
+            "OpenFile",
+            str(host_dir),
+            [],
+        )
+
+        self.assert_current_folder(dbus_con, "OpenFile", str(host_dir))
