@@ -1915,10 +1915,8 @@ xdp_file_new (int fd)
 static void
 xdp_file_free (XdpFile *file)
 {
-  GList *link = g_steal_pointer (&file->link);
-
   XDP_AUTOLOCK (open_files);
-  open_files = g_list_delete_link (open_files, link);
+  open_files = g_list_delete_link (open_files, file->link);
 
   close (file->fd);
   g_free (file);
