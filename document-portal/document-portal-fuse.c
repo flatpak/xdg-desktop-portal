@@ -3582,6 +3582,10 @@ xdp_fuse_thread (gpointer data)
   fuse_session_destroy (se);
   session = NULL;
 
+  /* No FUSE workers are running after fuse_session_destroy() */
+  while (open_files)
+    xdp_file_free (open_files->data);
+
   return NULL;
 }
 
@@ -3664,10 +3668,6 @@ xdp_fuse_init (GError **error)
     }
 
   g_assert (session != NULL);
-
-  XDP_AUTOLOCK (open_files);
-  while (open_files)
-    xdp_file_free (open_files->data);
 
   return TRUE;
 }
