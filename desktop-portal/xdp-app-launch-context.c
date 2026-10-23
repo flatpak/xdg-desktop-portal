@@ -4,6 +4,8 @@
 
 #include "xdp-app-launch-context.h"
 
+#include "xdp-context.h"
+
 struct _XdpAppLaunchContext
 {
   GAppLaunchContext parent_instance;
@@ -58,7 +60,12 @@ xdp_app_launch_context_init (XdpAppLaunchContext *self)
 }
 
 XdpAppLaunchContext *
-xdp_app_launch_context_new (void)
+xdp_app_launch_context_new (XdpContext *context)
 {
-  return g_object_new (XDP_TYPE_APP_LAUNCH_CONTEXT, NULL);
+  XdpAppLaunchContext *self = g_object_new (XDP_TYPE_APP_LAUNCH_CONTEXT, NULL);
+
+  xdp_context_restore_launch_environment (context,
+                                          G_APP_LAUNCH_CONTEXT (self));
+
+  return self;
 }

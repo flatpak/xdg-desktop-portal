@@ -38,6 +38,7 @@ struct _DynamicLauncher
 {
   XdpDbusDynamicLauncherSkeleton parent_instance;
 
+  XdpContext *context;
   XdpDbusImplDynamicLauncher *impl;
   GMutex transient_permissions_lock;
   GHashTable *transient_permissions;
@@ -1007,6 +1008,7 @@ handle_launch (XdpDbusDynamicLauncher *object,
                const gchar            *arg_desktop_file_id,
                GVariant               *arg_options)
 {
+  DynamicLauncher *dynamic_launcher = (DynamicLauncher *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GError) error = NULL;
   g_autofree char *desktop_dir = NULL;
@@ -1032,10 +1034,8 @@ handle_launch (XdpDbusDynamicLauncher *object,
 
   g_variant_lookup (arg_options, "activation_token", "&s", &activation_token);
 
-  xdp_launch_context = xdp_app_launch_context_new ();
+  xdp_launch_context = xdp_app_launch_context_new (dynamic_launcher->context);
   launch_context = G_APP_LAUNCH_CONTEXT (xdp_launch_context);
-  /* Unset env var set in main() */
-  g_app_launch_context_unsetenv (launch_context, "GIO_USE_VFS");
   /* Set activation token for focus stealing prevention */
   xdp_app_launch_context_set_activation_token (xdp_launch_context,
                                                activation_token);
@@ -1155,6 +1155,7 @@ init_dynamic_launcher (XdpContext *context)
     }
 
   dynamic_launcher = dynamic_launcher_new (impl);
+  dynamic_launcher->context = context;
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&dynamic_launcher)),
