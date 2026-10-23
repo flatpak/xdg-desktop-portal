@@ -126,6 +126,9 @@ static gid_t my_gid;
 static GList *open_files = NULL;
 G_LOCK_DEFINE (open_files);
 
+static GList *open_dirs = NULL;
+G_LOCK_DEFINE (open_dirs);
+
 /* from libfuse */
 #define FUSE_UNKNOWN_INO 0xffffffff
 
@@ -236,6 +239,8 @@ typedef struct {
 
   char *dirbuf;
   gsize dirbuf_size;
+
+  GList *link;
 } XdpDir;
 
 XdpInode *root_inode;
@@ -1915,10 +1920,8 @@ xdp_file_new (int fd)
 static void
 xdp_file_free (XdpFile *file)
 {
-  GList *link = g_steal_pointer (&file->link);
-
   XDP_AUTOLOCK (open_files);
-  open_files = g_list_delete_link (open_files, link);
+  open_files = g_list_delete_link (open_files, file->link);
 
   close (file->fd);
   g_free (file);
@@ -2226,6 +2229,9 @@ xdp_fuse_forget_multi (fuse_req_t               req,
 static void
 xdp_dir_free (XdpDir *d)
 {
+  XDP_AUTOLOCK (open_dirs);
+  open_dirs = g_list_delete_link (open_dirs, d->link);
+
   if (d->dir)
     closedir (d->dir);
   g_free (d->dirbuf);
@@ -2260,6 +2266,11 @@ xdp_dir_new_physical (DIR *dir)
   d->dir = dir;
   d->offset = 0;
   d->entry = NULL;
+
+  XDP_AUTOLOCK (open_dirs);
+  open_dirs = g_list_prepend (open_dirs, d);
+  d->link = open_dirs;
+
   return d;
 }
 
@@ -2269,6 +2280,11 @@ xdp_dir_new_buffered (fuse_req_t  req)
   XdpDir *d = g_new0 (XdpDir, 1);
   xdp_dir_add (d, req, ".", S_IFDIR);
   xdp_dir_add (d, req, "..", S_IFDIR);
+
+  XDP_AUTOLOCK (open_dirs);
+  open_dirs = g_list_prepend (open_dirs, d);
+  d->link = open_dirs;
+
   return d;
 }
 
@@ -3584,6 +3600,13 @@ xdp_fuse_thread (gpointer data)
   fuse_session_destroy (se);
   session = NULL;
 
+  /* No FUSE workers are running after fuse_session_destroy() */
+  while (open_files)
+    xdp_file_free (open_files->data);
+
+  while (open_dirs)
+    xdp_dir_free (open_dirs->data);
+
   return NULL;
 }
 
@@ -3666,10 +3689,6 @@ xdp_fuse_init (GError **error)
     }
 
   g_assert (session != NULL);
-
-  XDP_AUTOLOCK (open_files);
-  while (open_files)
-    xdp_file_free (open_files->data);
 
   return TRUE;
 }

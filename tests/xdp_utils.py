@@ -159,6 +159,14 @@ def get_document_portal_iface(bus: dbus.Bus) -> dbus.Interface:
     return dbus.Interface(obj, "org.freedesktop.portal.Documents")
 
 
+def get_file_transfer_iface(bus: dbus.Bus) -> dbus.Interface:
+    obj = bus.get_object(
+        "org.freedesktop.portal.Documents",
+        "/org/freedesktop/portal/documents",
+    )
+    return dbus.Interface(obj, "org.freedesktop.portal.FileTransfer")
+
+
 def get_mock_iface(bus: dbus.Bus, bus_name: str | None = None) -> dbus.Interface:
     """
     Returns the mock interface of the xdg-desktop-portal.
