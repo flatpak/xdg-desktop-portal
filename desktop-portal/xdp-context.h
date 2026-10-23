@@ -22,7 +22,13 @@ G_DECLARE_FINAL_TYPE (XdpContext,
                       XDP, CONTEXT,
                       GObject);
 
-XdpContext * xdp_context_new (gboolean opt_verbose);
+GArray * xdp_context_capture_env_overrides (const char *first_name, ...);
+
+XdpContext * xdp_context_new (gboolean  opt_verbose,
+                              GArray   *env_overrides);
+
+void xdp_context_restore_launch_environment (XdpContext        *context,
+                                             GAppLaunchContext *launch_context);
 
 gboolean xdp_context_register (XdpContext       *context,
                                GDBusConnection  *connection,

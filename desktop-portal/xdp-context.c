@@ -46,6 +46,14 @@
 #include "xdp-session-persistence.h"
 #include "xdp-utils.h"
 
+typedef struct _XdpEnvOverride
+{
+  char *name;
+  char *override; /* NULL = unset */
+  char *original;
+  gboolean was_set;
+} XdpEnvOverride;
+
 enum
 {
   PEER_DISCONNECT,
@@ -59,6 +67,8 @@ struct _XdpContext
   GObject parent_instance;
 
   gboolean verbose;
+
+  GArray *env_overrides; /* XdpEnvOverride */
 
   XdpPortalConfig *portal_config;
   GDBusConnection *connection;
@@ -79,6 +89,52 @@ struct _XdpContext
 G_DEFINE_FINAL_TYPE (XdpContext,
                      xdp_context,
                      G_TYPE_OBJECT);
+
+static void
+xdp_env_override_clear (gpointer data)
+{
+  XdpEnvOverride *override = data;
+
+  g_free (override->name);
+  g_free (override->override);
+  g_free (override->original);
+}
+
+GArray *
+xdp_context_capture_env_overrides (const char *first_name, ...)
+{
+  g_autoptr(GArray) overrides = NULL;
+  va_list args;
+  const char *name;
+
+  overrides = g_array_new (FALSE, TRUE, sizeof (XdpEnvOverride));
+  g_array_set_clear_func (overrides, xdp_env_override_clear);
+
+  va_start (args, first_name);
+
+  for (name = first_name; name != NULL; name = va_arg (args, const char *))
+    {
+      const char *override = va_arg (args, const char *);
+      const char *current = g_getenv (name);
+      XdpEnvOverride entry;
+
+      entry.name = g_strdup (name);
+      entry.override = g_strdup (override);
+      entry.original = g_strdup (current);
+      entry.was_set = current != NULL;
+
+      g_array_append_val (overrides, entry);
+
+      if (override != NULL)
+        g_setenv (name, override, TRUE);
+      else
+        g_unsetenv (name);
+    }
+
+  va_end (args);
+
+  return g_steal_pointer (&overrides);
+}
 
 static void
 xdp_context_dispose (GObject *object)
@@ -133,6 +189,7 @@ xdp_context_dispose (GObject *object)
     }
 
   g_clear_pointer (&context->experimental_portals, g_hash_table_unref);
+  g_clear_pointer (&context->env_overrides, g_array_unref);
 
   G_OBJECT_CLASS (xdp_context_parent_class)->dispose (object);
 }
@@ -158,12 +215,30 @@ xdp_context_init (XdpContext *context)
 {
 }
 
+void
+xdp_context_restore_launch_environment (XdpContext        *context,
+                                        GAppLaunchContext *launch_context)
+{
+  for (size_t i = 0; i < context->env_overrides->len; i++)
+    {
+      XdpEnvOverride *o = &g_array_index (context->env_overrides,
+                                          XdpEnvOverride, i);
+
+      if (o->was_set)
+        g_app_launch_context_setenv (launch_context, o->name, o->original);
+      else
+        g_app_launch_context_unsetenv (launch_context, o->name);
+    }
+}
+
 XdpContext *
-xdp_context_new (gboolean opt_verbose)
+xdp_context_new (gboolean  opt_verbose,
+                 GArray   *env_overrides)
 {
   XdpContext *context = g_object_new (XDP_TYPE_CONTEXT, NULL);
 
   context->verbose = opt_verbose;
+  context->env_overrides = env_overrides;
   context->cancellable = g_cancellable_new ();
   context->portal_config = xdp_portal_config_new (context);
   context->app_info_registry = xdp_app_info_registry_new ();
