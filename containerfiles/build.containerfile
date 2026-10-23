@@ -65,14 +65,14 @@ RUN apt install -y --no-install-recommends python3-pip
 # Install meson
 # To build glib we need a version of meson which is not in the repos
 # RUN apt install -y --no-install-recommends meson
-RUN pip install --prefix=/usr --break-system-packages meson">=1.4.0" ninja">=1.9.0"
+RUN pip install --prefix=/usr --break-system-packages --ignore-installed packaging meson">=1.4.0" ninja">=1.9.0"
 
 # Install doc dependencies
-RUN pip install --user --break-system-packages furo">=2024.04.27" \
+RUN pip install --user --break-system-packages --ignore-installed packaging furo">=2024.04.27" \
     sphinx-copybutton sphinxext-opengraph matplotlib
 
 # Install pre-commit
-RUN pip install --user --break-system-packages pre-commit
+RUN pip install --user --break-system-packages --ignore-installed packaging pre-commit
 
 # Install qdbusxml2cpp
 RUN apt install -y --no-install-recommends qt6-base-dev-tools

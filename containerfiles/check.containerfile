@@ -21,7 +21,7 @@ ENV LANG=en_US.UTF-8
 RUN apt install -y git cargo python3-pip
 
 # Install pre-commit and gitlint
-RUN pip install --break-system-packages pre-commit gitlint-core==0.19.1
+RUN pip install --break-system-packages --ignore-installed packaging pre-commit gitlint-core==0.19.1
 
 # Install qdbusxml2cpp
 RUN apt install -y --no-install-recommends qt6-base-dev-tools
