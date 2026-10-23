@@ -3,7 +3,7 @@
 
 [wrap-git]
 url = https://gitlab.gnome.org/swick/libglnx.git
-revision = wip/pidfd
+revision = wip/mount
 
 [provide]
 libglnx=libglnx_dep
