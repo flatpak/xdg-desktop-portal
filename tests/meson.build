@@ -100,6 +100,7 @@ tests = {
   'inputcapture': {},
   'location': {'enabled': have_geoclue},
   'memorymonitor': {},
+  'mount_ns': {},
   'notification': {'timeout': 225},
   'openuri': {},
   'permission_store': {},
@@ -180,6 +181,10 @@ if enable_installed_tests
   install_data(
     template_files,
     install_dir: installed_tests_dir / 'tests' / 'templates',
+  )
+  install_data(
+    'helpers/bwrap-portal-call.py',
+    install_dir: installed_tests_dir / 'tests' / 'helpers',
   )
 
   installed_env = {
