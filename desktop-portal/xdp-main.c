@@ -107,6 +107,7 @@ main (int argc, char *argv[])
   XdpMain xdp_main;
   g_autoptr(GMainLoop) loop = NULL;
   g_autoptr(XdpContext) context = NULL;
+  g_autoptr(GArray) env_overrides = NULL;
   guint owner_id;
   g_autoptr(GError) error = NULL;
   g_autoptr(GDBusConnection) session_bus = NULL;
@@ -144,16 +145,9 @@ main (int argc, char *argv[])
   bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
   textdomain (GETTEXT_PACKAGE);
 
+  env_overrides = xdp_context_capture_env_overrides ();
+
   dex_init ();
-
-  /* Note: if you add any more environment variables here, update
-   * handle_launch() in dynamic-launcher.c to unset them before launching apps
-   */
-  /* Avoid even loading gvfs to avoid accidental confusion */
-  g_setenv ("GIO_USE_VFS", "local", TRUE);
-
-  /* Avoid pointless and confusing recursion */
-  g_unsetenv ("GTK_USE_PORTAL");
 
   option_context = g_option_context_new ("- desktop portal");
   g_option_context_set_summary (option_context,
@@ -192,7 +186,7 @@ main (int argc, char *argv[])
   g_set_prgname (argv[0]);
 
   loop = g_main_loop_new (NULL, FALSE);
-  context = xdp_context_new (opt_verbose);
+  context = xdp_context_new (opt_verbose, g_steal_pointer (&env_overrides));
 
   xdp_main.exit_status = 0;
   xdp_main.loop = loop;

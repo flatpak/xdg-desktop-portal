@@ -46,6 +46,7 @@ struct _OpenURI
 {
   XdpDbusOpenURISkeleton parent_instance;
 
+  XdpContext *context;
   XdpDbusImplAppChooser *impl;
   XdpDbusImplLockdown *lockdown_impl;
   GAppInfoMonitor *monitor;
@@ -199,7 +200,8 @@ is_file_uri (const char *uri)
 }
 
 static gboolean
-launch_application_with_uri (const char *choice_id,
+launch_application_with_uri (XdpContext *xdp_context,
+                             const char *choice_id,
                              const char *uri,
                              const char *parent_window,
                              gboolean    writable,
@@ -208,8 +210,8 @@ launch_application_with_uri (const char *choice_id,
 {
   g_autofree char *desktop_id = g_strconcat (choice_id, ".desktop", NULL);
   g_autoptr(GDesktopAppInfo) info = g_desktop_app_info_new (desktop_id);
-  g_autoptr(XdpAppLaunchContext) xdp_context = xdp_app_launch_context_new ();
-  GAppLaunchContext *context = G_APP_LAUNCH_CONTEXT (xdp_context);
+  g_autoptr(XdpAppLaunchContext) xdp_launch_context = xdp_app_launch_context_new (xdp_context);
+  GAppLaunchContext *context = G_APP_LAUNCH_CONTEXT (xdp_launch_context);
   g_autofree char *ruri = NULL;
   XdpDocumentFlags flags = XDP_DOCUMENT_FLAG_NONE;
   GList uris;
@@ -245,7 +247,7 @@ launch_application_with_uri (const char *choice_id,
 
   g_app_launch_context_setenv (context, "PARENT_WINDOW_ID", parent_window);
 
-  xdp_app_launch_context_set_activation_token (xdp_context, activation_token);
+  xdp_app_launch_context_set_activation_token (xdp_launch_context, activation_token);
 
   uris.data = (gpointer)ruri;
   uris.next = NULL;
@@ -318,12 +320,14 @@ send_response_in_thread_func (GTask *task,
                               GCancellable *cancellable)
 {
   XdpRequest *request = XDP_REQUEST (task_data);
+  OpenURI *open_uri;
   guint response;
   GVariant *options;
   const char *choice;
 
   REQUEST_AUTOLOCK (request);
 
+  open_uri = (OpenURI *) g_object_get_data (G_OBJECT (request), "open-uri");
   response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
   options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
 
@@ -347,7 +351,7 @@ send_response_in_thread_func (GTask *task,
 
       g_variant_lookup (options, "activation_token", "&s", &activation_token);
 
-      if (launch_application_with_uri (choice, uri, parent_window, writable, activation_token, NULL))
+      if (launch_application_with_uri (open_uri->context, choice, uri, parent_window, writable, activation_token, NULL))
         update_permissions_store (xdp_app_info_get_id (request->app_info), content_type, choice);
     }
 
@@ -835,7 +839,7 @@ handle_open_in_thread_func (GTask *task,
 
           g_debug ("Skipping app chooser");
 
-          gboolean result = launch_application_with_uri (app, uri, parent_window, writable, activation_token, &error);
+          gboolean result = launch_application_with_uri (open_uri->context, app, uri, parent_window, writable, activation_token, &error);
           if (request->exported)
             {
               if (!result)
@@ -1165,6 +1169,7 @@ init_open_uri (XdpContext *context)
   lockdown_impl = xdp_context_get_lockdown_impl (context);
 
   open_uri = open_uri_new (impl, lockdown_impl);
+  open_uri->context = context;
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&open_uri)),
