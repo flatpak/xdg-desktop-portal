@@ -169,63 +169,6 @@ xdp_app_info_flatpak_is_valid_sub_app_id (XdpAppInfo *app_info,
   return flatpak_is_valid_name (sub_app_id);
 }
 
-static char *
-xdp_app_info_flatpak_remap_path (XdpAppInfo *app_info,
-                                 const char *path)
-{
-  XdpAppInfoFlatpak *app_info_flatpak = XDP_APP_INFO_FLATPAK (app_info);
-  const char *app_id = xdp_app_info_get_id (app_info);
-  g_autofree char *app_path = NULL;
-  g_autofree char *runtime_path = NULL;
-
-  g_assert (app_info_flatpak);
-  g_assert (app_id);
-
-  app_path = g_key_file_get_string (app_info_flatpak->flatpak_info,
-                                    FLATPAK_METADATA_GROUP_INSTANCE,
-                                    FLATPAK_METADATA_KEY_APP_PATH,
-                                    NULL);
-  runtime_path = g_key_file_get_string (app_info_flatpak->flatpak_info,
-                                        FLATPAK_METADATA_GROUP_INSTANCE,
-                                        FLATPAK_METADATA_KEY_RUNTIME_PATH,
-                                        NULL);
-
-  /* For apps we translate /app and /usr to the installed locations.
-   * Also, we need to rewrite to drop the /newroot prefix added by
-   * bubblewrap for other files to work.  See
-   * https://github.com/projectatomic/bubblewrap/pull/172
-   * for a bit more information on the /newroot issue.
-   */
-
-  if (g_str_has_prefix (path, "/newroot/"))
-    path = path + strlen ("/newroot");
-
-  if (app_path != NULL && g_str_has_prefix (path, "/app/"))
-    return g_build_filename (app_path, path + strlen ("/app/"), NULL);
-  else if (runtime_path != NULL && g_str_has_prefix (path, "/usr/"))
-    return g_build_filename (runtime_path, path + strlen ("/usr/"), NULL);
-  else if (g_str_has_prefix (path, "/run/host/usr/"))
-    return g_build_filename ("/usr", path + strlen ("/run/host/usr/"), NULL);
-  else if (g_str_has_prefix (path, "/run/host/etc/"))
-    return g_build_filename ("/etc", path + strlen ("/run/host/etc/"), NULL);
-  else if (g_str_has_prefix (path, "/run/flatpak/app/"))
-    return g_build_filename (g_get_user_runtime_dir (), "app",
-                             path + strlen ("/run/flatpak/app/"), NULL);
-  else if (g_str_has_prefix (path, "/run/flatpak/doc/"))
-    return g_build_filename (g_get_user_runtime_dir (), "doc",
-                             path + strlen ("/run/flatpak/doc/"), NULL);
-  else if (g_str_has_prefix (path, "/var/config/"))
-    return g_build_filename (g_get_home_dir (), ".var", "app",
-                             app_id, "config",
-                             path + strlen ("/var/config/"), NULL);
-  else if (g_str_has_prefix (path, "/var/data/"))
-    return g_build_filename (g_get_home_dir (), ".var", "app",
-                             app_id, "data",
-                             path + strlen ("/var/data/"), NULL);
-
-  return g_strdup (path);
-}
-
 static char **
 rewrite_commandline (XdpAppInfoFlatpak  *app_info,
                      const char * const *commandline,
@@ -484,8 +427,6 @@ xdp_app_info_flatpak_class_init (XdpAppInfoFlatpakClass *klass)
 
   object_class->dispose = xdp_app_info_flatpak_dispose;
 
-  app_info_class->remap_path =
-    xdp_app_info_flatpak_remap_path;
   app_info_class->get_usb_queries =
     xdp_app_info_flaptak_get_usb_queries;
   app_info_class->validate_autostart =

@@ -55,6 +55,9 @@ gboolean xdp_app_info_has_network (XdpAppInfo *app_info);
 
 GLnxPidRef * xdp_app_info_get_pidref (XdpAppInfo *app_info);
 
+char * xdp_app_info_remap_path (XdpAppInfo *app_info,
+                                const char *path);
+
 char * xdp_app_info_get_path_for_fd (XdpAppInfo   *app_info,
                                      int           fd,
                                      int           require_st_mode,

@@ -20,6 +20,7 @@
 #include "xdp-app-info-linyaps-private.h"
 #include "xdp-app-info-snap-private.h"
 #include "xdp-enum-types.h"
+#include "xdp-mount-ns.h"
 #include "xdp-utils.h"
 
 #if HAVE_SYS_VFS_H
@@ -50,6 +51,10 @@ typedef struct _XdpAppInfoPrivate
 
   /* dbus name of the sender */
   char *sender;
+
+  /* mount namespace mapping (lazy, immutable once set) */
+  GMutex mount_ns_lock;
+  XdpMountNs *mount_ns;
 
   /* misc */
   XdpAppInfoFlags flags;
@@ -127,6 +132,8 @@ xdp_app_info_dispose (GObject *object)
   g_clear_pointer (&priv->sender, g_free);
 
   g_clear_pointer (&priv->pidref, glnx_pid_ref_unref);
+
+  g_clear_pointer (&priv->mount_ns, xdp_mount_ns_free);
 
   G_OBJECT_CLASS (xdp_app_info_parent_class)->dispose (object);
 }
@@ -534,23 +541,39 @@ xdp_app_info_get_pidref (XdpAppInfo *app_info)
   return priv->pidref;
 }
 
-static char *
-remap_path (XdpAppInfo *app_info,
-            const char *path)
+static XdpMountNs *
+ensure_mount_ns (XdpAppInfo *app_info)
 {
-  if (!XDP_APP_INFO_GET_CLASS (app_info)->remap_path)
-    return g_strdup (path);
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+  g_autoptr(GMutexLocker) guard = g_mutex_locker_new (&priv->mount_ns_lock);
 
-  return XDP_APP_INFO_GET_CLASS (app_info)->remap_path (app_info, path);
+  if (!priv->mount_ns)
+    priv->mount_ns = xdp_mount_ns_new (priv->pidref);
+
+  return priv->mount_ns;
+}
+
+char *
+xdp_app_info_remap_path (XdpAppInfo *app_info,
+                         const char *path)
+{
+  XdpMountNs *mount_ns;
+
+  mount_ns = ensure_mount_ns (app_info);
+
+  return xdp_mount_ns_remap_path_unverified (mount_ns, path);
 }
 
 static char *
-verify_proc_self_fd (XdpAppInfo  *app_info,
-                     const char  *proc_path,
-                     GError     **error)
+verify_proc_self_fd (XdpAppInfo   *app_info,
+                     const char   *proc_path,
+                     struct stat  *st_buf,
+                     GError      **error)
 {
   char path_buffer[PATH_MAX + 1];
   ssize_t symlink_size;
+  g_autofree char *resolved = NULL;
+  XdpMountNs *mount_ns;
   int saved_errno;
 
   symlink_size = readlink (proc_path, path_buffer, PATH_MAX);
@@ -604,8 +627,13 @@ verify_proc_self_fd (XdpAppInfo  *app_info,
         }
     }
 
-  /* remap from sandbox to host if needed */
-  return remap_path (app_info, path_buffer);
+  mount_ns = ensure_mount_ns (app_info);
+
+  resolved = xdp_mount_ns_remap_path (mount_ns, path_buffer, st_buf);
+  if (resolved)
+    return g_steal_pointer (&resolved);
+
+  return g_strdup (path_buffer);
 }
 
 static gboolean
@@ -717,7 +745,7 @@ xdp_app_info_get_path_for_fd (XdpAppInfo   *app_info,
 
   /* Must be able to read valid path from /proc/self/fd */
   /* This is an absolute and (at least at open time) symlink-expanded path */
-  path = verify_proc_self_fd (app_info, proc_path, error);
+  path = verify_proc_self_fd (app_info, proc_path, st_buf, error);
   if (path == NULL)
     return NULL;
 
