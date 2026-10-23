@@ -12,6 +12,7 @@
 #include <glib/gi18n.h>
 #include <libdex.h>
 
+#include "xdp-app-launch-context.h"
 #include "xdp-context.h"
 
 typedef struct _XdpMain
@@ -144,10 +145,12 @@ main (int argc, char *argv[])
   bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
   textdomain (GETTEXT_PACKAGE);
 
+  xdp_app_launch_context_init_environment ();
+
   dex_init ();
 
   /* Note: if you add any more environment variables here, update
-   * handle_launch() in dynamic-launcher.c to unset them before launching apps
+   * xdp_app_launch_context_init() to restore them before launching apps
    */
   /* Avoid even loading gvfs to avoid accidental confusion */
   g_setenv ("GIO_USE_VFS", "local", TRUE);

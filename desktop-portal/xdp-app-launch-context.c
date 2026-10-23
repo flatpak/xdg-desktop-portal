@@ -4,6 +4,16 @@
 
 #include "xdp-app-launch-context.h"
 
+static char **original_environment;
+
+void
+xdp_app_launch_context_init_environment (void)
+{
+  g_return_if_fail (original_environment == NULL);
+
+  original_environment = g_get_environ ();
+}
+
 struct _XdpAppLaunchContext
 {
   GAppLaunchContext parent_instance;
@@ -55,6 +65,20 @@ xdp_app_launch_context_class_init (XdpAppLaunchContextClass *klass)
 static void
 xdp_app_launch_context_init (XdpAppLaunchContext *self)
 {
+  const char * const variables[] = { "GIO_USE_VFS", "GTK_USE_PORTAL" };
+  GAppLaunchContext *context = G_APP_LAUNCH_CONTEXT (self);
+
+  g_return_if_fail (original_environment != NULL);
+
+  for (size_t i = 0; i < G_N_ELEMENTS (variables); i++)
+    {
+      const char *value = g_environ_getenv (original_environment, variables[i]);
+
+      if (value != NULL)
+        g_app_launch_context_setenv (context, variables[i], value);
+      else
+        g_app_launch_context_unsetenv (context, variables[i]);
+    }
 }
 
 XdpAppLaunchContext *

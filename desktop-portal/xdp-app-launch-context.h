@@ -17,6 +17,8 @@ G_DECLARE_FINAL_TYPE (XdpAppLaunchContext,
 
 XdpAppLaunchContext * xdp_app_launch_context_new (void);
 
+void xdp_app_launch_context_init_environment (void);
+
 void xdp_app_launch_context_set_activation_token (XdpAppLaunchContext *self,
                                                   const char          *token);
 
