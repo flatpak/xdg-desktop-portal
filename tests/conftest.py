@@ -423,11 +423,12 @@ def required_templates() -> dict[str, dict[str, Any]]:
 def templates(
     required_templates: dict[str, dict[str, Any]],
     template_params: dict[str, dict[str, Any]],
-) -> Iterator[None]:
+) -> Iterator[dict[dbusmock.BusType, dict[str, dbusmock.SpawnedMock]]]:
     """
     Fixture which starts the required templates with their parameters. Usually
     the `portals` fixture is what you're looking for because it also starts
     the portal frontend and the permission store.
+    It yields the owned backend servers for backend-lifetime tests.
     """
     busses: dict[dbusmock.BusType, dict[str, dbusmock.SpawnedMock]] = {
         dbusmock.BusType.SYSTEM: {},
@@ -438,8 +439,73 @@ def templates(
         assert template
         params = template_params.get(template, params)
         _start_template(busses, template, bus_name, params)
-    yield
+    yield busses
     _terminate_servers(busses)
+
+
+@pytest.fixture
+def backend_owner_loss(templates, dbus_con):
+    replacement_connections = []
+
+    def lose_owner(backend_name, replacement):
+        backend = templates[dbusmock.BusType.SESSION][backend_name]
+        replacement_calls = []
+        if replacement:
+            connection = dbus.bus.BusConnection(os.environ["DBUS_SESSION_BUS_ADDRESS"])
+            replacement_connections.append(connection)
+
+            def record_call(connection, message):
+                # GDBusProxy refreshes properties on a handoff independently of
+                # request/session lifetime. Record actual operations on the
+                # old handles, not those automatic property queries.
+                if (
+                    message.get_type() == dbus.lowlevel.MESSAGE_TYPE_METHOD_CALL
+                    and message.get_interface() != "org.freedesktop.DBus.Properties"
+                    and message.get_path().startswith(
+                        (
+                            "/org/freedesktop/portal/desktop/request/",
+                            "/org/freedesktop/portal/desktop/session/",
+                        )
+                    )
+                ):
+                    replacement_calls.append(
+                        (
+                            message.get_interface(),
+                            message.get_member(),
+                            message.get_path(),
+                        )
+                    )
+
+            connection.add_message_filter(record_call)
+            assert (
+                connection.request_name(backend_name, 0)
+                == dbus.bus.REQUEST_NAME_REPLY_IN_QUEUE
+            )
+
+            # Keep the original connection and its outstanding method calls
+            # alive. Releasing the name transfers it straight to the queued
+            # replacement, without an intermediate unowned state.
+            mock = dbus.Interface(backend.obj, dbusmock.MOCK_IFACE)
+            mock.AddMethod(
+                dbusmock.MOCK_IFACE,
+                "ReleaseBackendName",
+                "",
+                "",
+                f"self.connection.release_name('{backend_name}')",
+            )
+            mock.ReleaseBackendName()
+            assert dbus_con.get_name_owner(backend_name) == connection.get_unique_name()
+        else:
+            backend.process.kill()
+            backend.process.wait(timeout=5)
+            assert not dbus_con.name_has_owner(backend_name)
+
+        return replacement_calls
+
+    yield lose_owner
+
+    for connection in replacement_connections:
+        connection.close()
 
 
 @pytest.fixture

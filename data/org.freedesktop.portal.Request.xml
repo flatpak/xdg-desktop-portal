@@ -41,6 +41,12 @@
       The token that the caller provides should be unique and not guessable. To avoid clashes
       with calls made from unrelated libraries, it is a good idea to use a per-library prefix
       combined with a random number.
+
+      A request forwarded to a backend also ends when that backend's D-Bus
+      name owner disappears or changes. The
+      :ref:`org.freedesktop.portal.Request::Response` signal is emitted with
+      response 2 in this case; the request does not resume if the backend is
+      restarted.
   -->
   <interface name="org.freedesktop.portal.Request">
 
