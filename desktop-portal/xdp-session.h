@@ -6,6 +6,7 @@
 
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-impl-owner-watch.h"
 #include "xdp-request.h"
 #include "xdp-types.h"
 
@@ -29,7 +30,7 @@ typedef struct _XdpSession
   GDBusConnection *connection;
 
   char *impl_dbus_name;
-  char *impl_name_owner;
+  XdpImplOwnerWatch *impl_owner_watch;
   GDBusConnection *impl_connection;
   XdpDbusImplSession *impl_session;
 } XdpSession;
