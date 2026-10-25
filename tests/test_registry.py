@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
+import os
+from pathlib import Path
+
 import dbus
 import pytest
 
@@ -15,11 +18,41 @@ Type=Application
 """
 
 
+def create_profile(profiles: Path, name: str, app_ids: list[str]) -> Path:
+    profile = profiles / name
+    applications = profile / "share" / "applications"
+    applications.mkdir(parents=True)
+    for app_id in app_ids:
+        (applications / f"{app_id}.desktop").write_bytes(CORRECT_APP_ID_DESKTOP)
+    return profile
+
+
+def switch_profile(link: Path, profile: Path) -> None:
+    # Replace the symlink atomically, the way Nix and Guix switch profiles
+    new_link = link.with_name(f"{link.name}.new")
+    new_link.symlink_to(profile)
+    new_link.replace(link)
+
+
 @pytest.fixture
 def xdg_data_home_files():
     return {
         "applications/org.example.CorrectAppId.desktop": CORRECT_APP_ID_DESKTOP,
     }
+
+
+@pytest.fixture
+def profiles(create_test_dirs) -> Path:
+    profiles = Path(os.environ["HOME"]) / "profiles"
+    profile = create_profile(profiles, "1", ["org.example.Old"])
+    (profiles / "current").symlink_to(profile)
+    return profiles
+
+
+@pytest.fixture
+def xdp_overwrite_env(profiles):
+    data_dirs = os.environ.get("XDG_DATA_DIRS", "/usr/local/share:/usr/share")
+    return {"XDG_DATA_DIRS": f"{profiles / 'current' / 'share'}:{data_dirs}"}
 
 
 @pytest.fixture
@@ -171,3 +204,25 @@ class TestRegistry:
         with pytest.raises(dbus.exceptions.DBusException) as exc_info:
             registry_intf.Register(expected_app_id, {})
         exc_info.match(".*Connection already associated with an application ID.*")
+
+    def test_register_after_profile_switch(self, portals, dbus_con, profiles):
+        registry_intf = xdp.get_portal_iface(dbus_con, "Registry", domain="host")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        expected_app_id = "org.example.New"
+
+        # Let xdg-desktop-portal look for the desktop file before it exists
+        with pytest.raises(dbus.exceptions.DBusException) as exc_info:
+            registry_intf.Register(expected_app_id, {})
+        assert "Can't create registered app" in str(exc_info.value)
+
+        # Install the app by switching the profile. No directory a file
+        # monitor could be watching changes.
+        profile = create_profile(profiles, "2", ["org.example.Old", expected_app_id])
+        switch_profile(profiles / "current", profile)
+
+        registry_intf.Register(expected_app_id, {})
+
+        session = self.create_dummy_session(dbus_con)
+        app_id = mock_intf.GetSessionAppId(session.handle)
+        assert app_id == expected_app_id

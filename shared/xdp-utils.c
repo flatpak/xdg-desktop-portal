@@ -1579,3 +1579,41 @@ xdp_desktop_app_info_get_doc_mountpoint (GDesktopAppInfo *info)
 
   return g_build_filename (g_get_user_runtime_dir (), "doc", NULL);
 }
+
+GDesktopAppInfo *
+xdp_desktop_app_info_new (const char *desktop_id)
+{
+  g_autoptr(GDesktopAppInfo) info = NULL;
+  g_autofree char *user_path = NULL;
+  const char * const *data_dirs;
+
+  info = g_desktop_app_info_new (desktop_id);
+  if (info)
+    return g_steal_pointer (&info);
+
+  /* GLib caches the desktop files of each data directory and refreshes the
+   * cache when a file monitor on the directory fires. When the data directory
+   * is reached through a symlink which gets replaced to install an app, as
+   * with Nix and Guix profiles, the monitor does not fire. So look for the
+   * desktop file in the data directories, in the same order as GLib. */
+  if (strchr (desktop_id, '/') != NULL)
+    return NULL;
+
+  user_path = g_build_filename (g_get_user_data_dir (), "applications",
+                                desktop_id, NULL);
+  info = g_desktop_app_info_new_from_filename (user_path);
+
+  data_dirs = g_get_system_data_dirs ();
+  for (size_t i = 0; !info && data_dirs[i]; i++)
+    {
+      g_autofree char *path = NULL;
+
+      path = g_build_filename (data_dirs[i], "applications", desktop_id, NULL);
+      info = g_desktop_app_info_new_from_filename (path);
+    }
+
+  if (info && g_desktop_app_info_get_is_hidden (info))
+    return NULL;
+
+  return g_steal_pointer (&info);
+}

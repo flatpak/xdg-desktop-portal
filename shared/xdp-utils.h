@@ -237,5 +237,9 @@ char * xdp_desktop_app_info_get_app_id (GDesktopAppInfo *info);
 /* Returns the document fuse mountpoint */
 char * xdp_desktop_app_info_get_doc_mountpoint (GDesktopAppInfo *info);
 
+/* Like g_desktop_app_info_new(), but also finds desktop files which GLib
+ * has not noticed yet */
+GDesktopAppInfo * xdp_desktop_app_info_new (const char *desktop_id);
+
 #define XDP_EXPORT_TEST XDP_EXPORT
 #define XDP_EXPORT __attribute__((visibility("default"))) extern
