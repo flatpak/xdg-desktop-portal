@@ -36,7 +36,7 @@ xdp_request_on_signal_response (XdpDbusRequest *object,
 
   signal_variant = g_variant_ref_sink (g_variant_new ("(u@a{sv})",
                                                       arg_response,
-                                                      arg_results));
+                                                      g_variant_ref (arg_results)));
   for (l = connections; l != NULL; l = l->next)
     {
       GDBusConnection *connection = l->data;
