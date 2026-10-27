@@ -316,3 +316,16 @@ xdp_request_dex_get_object_path (XdpRequestDex *request)
 {
   return request->id;
 }
+
+void
+xdp_request_dex_unexport (XdpRequestDex *request)
+{
+  int fd;
+
+  fd = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "fd"));
+  if (fd != -1)
+    close (fd);
+
+  request->exported = FALSE;
+  g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
+}

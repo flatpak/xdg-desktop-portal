@@ -41,3 +41,5 @@ void xdp_request_dex_emit_response (XdpRequestDex                *request,
                                     GVariant                     *results);
 
 const char * xdp_request_dex_get_object_path (XdpRequestDex *request);
+
+void xdp_request_dex_unexport (XdpRequestDex *request);
