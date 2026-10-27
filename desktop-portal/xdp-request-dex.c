@@ -533,3 +533,9 @@ xdp_request_dex_get_object_path (XdpRequestDex *request)
 {
   return xdp_object_path_claim_get_path (request->claim);
 }
+
+XdpAppInfo *
+xdp_request_dex_get_app_info (XdpRequestDex *request)
+{
+  return request->app_info;
+}
