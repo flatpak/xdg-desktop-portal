@@ -52,11 +52,11 @@ xdp_init_document_proxy (GDBusConnection  *connection,
 }
 
 char *
-xdp_register_document (const char        *uri,
-                       const char        *app_id,
-                       GDesktopAppInfo   *app_info,
-                       XdpDocumentFlags   flags,
-                       GError           **error)
+xdp_register_document_sync (const char        *uri,
+                            const char        *app_id,
+                            GDesktopAppInfo   *app_info,
+                            XdpDocumentFlags   flags,
+                            GError           **error)
 {
   g_autofree char *doc_id = NULL;
   g_auto(GStrv) doc_ids = NULL;

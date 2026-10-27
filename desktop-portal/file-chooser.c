@@ -113,11 +113,12 @@ send_response_in_thread_func (GTask        *task,
           if (xdp_app_info_is_host (request->app_info))
             ruri = g_strdup (uris[i]);
           else
-            ruri = xdp_register_document (uris[i],
-                                          xdp_app_info_get_id (request->app_info),
-                                          xdp_app_info_get_gappinfo (request->app_info),
-                                          flags,
-                                          &error);
+            ruri = xdp_register_document_sync (
+              uris[i],
+              xdp_app_info_get_id (request->app_info),
+              xdp_app_info_get_gappinfo (request->app_info),
+              flags,
+              &error);
 
           if (ruri == NULL)
             {
