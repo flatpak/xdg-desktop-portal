@@ -409,11 +409,12 @@ handle_screenshot (XdpDbusScreenshot *object,
           if (xdp_app_info_is_host (request->app_info))
             ruri = g_strdup (uri);
           else
-            ruri = xdp_register_document (uri,
-                                          xdp_app_info_get_id (request->app_info),
-                                          xdp_app_info_get_gappinfo (request->app_info),
-                                          XDP_DOCUMENT_FLAG_DELETABLE,
-                                          &error);
+            ruri = xdp_register_document_async (
+              uri,
+              xdp_app_info_get_id (request->app_info),
+              xdp_app_info_get_gappinfo (request->app_info),
+              XDP_DOCUMENT_FLAG_DELETABLE,
+              &error);
 
           if (ruri == NULL)
             g_warning ("Failed to register %s: %s",
