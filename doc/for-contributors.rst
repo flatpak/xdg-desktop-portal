@@ -26,3 +26,4 @@ more complex parts of XDG Desktop Portal.
    merge-requirements
    architecture
    experimental-portals
+   wanted-features
