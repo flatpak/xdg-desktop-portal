@@ -4,7 +4,12 @@
 [Unit]
 Description=Portal service
 PartOf=graphical-session.target
-Requisite=graphical-session.target
+Requires=dbus.service
+After=dbus.service
+# This means correct ordering is only ensured for sessions started with
+# graphical-session.target. Replace the Requires and After above with the
+# following to reliably avoid this race.
+#Requisite=graphical-session.target
 After=graphical-session.target
 
 [Service]
