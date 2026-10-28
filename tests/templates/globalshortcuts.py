@@ -6,19 +6,29 @@
 
 import time
 from dataclasses import dataclass
+from typing import Any
 
 import dbus
 import dbus.service
-from dbusmock import MOCK_IFACE
+import dbusmock
 from gi.repository import GLib
 
-from tests.templates.xdp_utils import ImplRequest, ImplSession, Response, init_logger
+from tests.templates.xdp_utils import (
+    AsyncCallback,
+    ImplRequest,
+    ImplSession,
+    Response,
+    init_logger,
+)
+from tests.xdp_utils import ASV
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
 SYSTEM_BUS = False
 MAIN_IFACE = "org.freedesktop.impl.portal.GlobalShortcuts"
 VERSION = 2
+
+type Shortcuts = dict[str, dict[str, GLib.Variant]]
 
 
 logger = init_logger(__name__)
@@ -32,7 +42,7 @@ class GlobalshortcutsParameters:
     force_close: int
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     logger.debug(f"Loading parameters: {parameters}")
@@ -56,13 +66,21 @@ def load(mock, parameters=None):
     mock.sessions: dict[str, ImplSession] = {}
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oosa{sv}",
     out_signature="ua{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_error):
+def CreateSession(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    session_handle: dbus.ObjectPath,
+    app_id: str,
+    options: ASV,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(f"CreateSession({handle}, {session_handle}, {app_id}, {options})")
     params = self.globalshortcuts_params
 
@@ -89,19 +107,19 @@ def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_
             GLib.timeout_add(params.force_close, session.close)
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="ooa(sa{sv})sa{sv}",
     out_signature="ua{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def BindShortcuts(
+def BindShortcuts(  # type: ignore [no-untyped-def]
     self,
-    handle,
-    session_handle,
-    shortcuts,
-    parent_window,
-    options,
+    handle: dbus.ObjectPath,
+    session_handle: dbus.ObjectPath,
+    shortcuts: Shortcuts,
+    parent_window: Any,
+    options: ASV,
     cb_success,
     cb_error,
 ):
@@ -123,7 +141,7 @@ def BindShortcuts(
         request.wait_for_close()
     else:
 
-        def reply():
+        def reply() -> Response:
             logger.debug(f"BindShortcuts with shortcuts {shortcuts}")
             self.sessions[session_handle].shortcuts = shortcuts
             return Response(params.response, {})
@@ -131,35 +149,37 @@ def BindShortcuts(
         request.respond(reply, delay=params.delay)
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oo",
     out_signature="ua{sv}",
 )
-def ListShortcuts(
+def ListShortcuts(  # type: ignore [no-untyped-def]
     self,
     handle,
     session_handle,
-):
-    shortcuts = self.sessions[session_handle].shortcuts
+) -> tuple[int, dict[str, Shortcuts]]:
+    shortcuts: Shortcuts = self.sessions[session_handle].shortcuts
     return (0, {"shortcuts": shortcuts})
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="osa{sv}",
     out_signature="",
 )
-def ConfigureShortcuts(self, session_handle, parent_window, options):
+def ConfigureShortcuts(  # type: ignore [no-untyped-def]
+    self, session_handle: dbus.ObjectPath, parent_window: Any, options: ASV
+) -> None:
     assert session_handle in self.sessions
 
 
-@dbus.service.method(
-    MOCK_IFACE,
+@dbus.service.method(  # type: ignore [untyped-decorator]
+    dbusmock.MOCK_IFACE,
     in_signature="os",
     out_signature="",
 )
-def Trigger(self, session_handle, shortcut_id):
+def Trigger(self, session_handle: dbus.ObjectPath, shortcut_id: str) -> None:  # type: ignore [no-untyped-def]
     now_since_epoch = int(time.time() * 1000000)
     self.EmitSignal(
         MAIN_IFACE,
