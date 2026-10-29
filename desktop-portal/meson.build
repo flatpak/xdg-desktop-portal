@@ -115,6 +115,7 @@ xdg_desktop_portal_sources = files(
   'xdp-background-monitor.c',
   'xdp-context.c',
   'xdp-documents.c',
+  'xdp-impl-owner-watch.c',
   'xdp-main.c',
   'xdp-permissions.c',
   'xdp-portal-config.c',

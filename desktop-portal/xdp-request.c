@@ -32,6 +32,16 @@ xdp_request_on_signal_response (XdpDbusRequest *object,
   g_autolist(GDBusConnection) connections = NULL;
   g_autoptr(GVariant) signal_variant = NULL;
 
+  if (!request->exported || request->responded)
+    return;
+
+  if (g_atomic_int_get (&request->impl_owner_lost) ||
+      (request->impl_owner_watch &&
+       !xdp_impl_owner_watch_is_current (request->impl_owner_watch)))
+    arg_response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
+
+  request->responded = TRUE;
+
   connections = g_dbus_interface_skeleton_get_connections (G_DBUS_INTERFACE_SKELETON (skeleton));
 
   signal_variant = g_variant_ref_sink (g_variant_new ("(u@a{sv})",
@@ -63,8 +73,10 @@ xdp_request_handle_close (XdpDbusRequest        *object,
   if (request->exported)
     {
       if (request->impl_request &&
-          !xdp_dbus_impl_request_call_close_sync (request->impl_request,
-                                                  NULL, &error))
+          !g_atomic_int_get (&request->impl_owner_lost) &&
+          !xdp_impl_owner_watch_close_sync (request->impl_owner_watch,
+                                            G_DBUS_PROXY (request->impl_request),
+                                            &error))
         {
           if (invocation)
             g_dbus_method_invocation_return_gerror (invocation, error);
@@ -100,6 +112,7 @@ xdp_request_finalize (GObject *object)
 
   xdp_context_unclaim_object_path (request->context, request->id);
 
+  g_clear_object (&request->impl_owner_watch);
   g_clear_object (&request->impl_request);
   g_clear_pointer (&request->sender, g_free);
   g_clear_pointer (&request->id, g_free);
@@ -192,8 +205,10 @@ on_peer_disconnect_in_thread_func (GTask        *task,
   if (!request->exported)
     return;
 
-  if (request->impl_request)
-    xdp_dbus_impl_request_call_close (request->impl_request, NULL, NULL, NULL);
+  if (request->impl_request &&
+      !g_atomic_int_get (&request->impl_owner_lost))
+    xdp_impl_owner_watch_close (request->impl_owner_watch,
+                                G_DBUS_PROXY (request->impl_request));
 
   xdp_request_unexport (request);
   xdp_context_unclaim_object_path (request->context, request->id);
@@ -221,6 +236,49 @@ on_peer_disconnect (XdpContext *context,
   task = g_task_new (request, NULL, NULL, NULL);
   g_task_set_source_tag (task, on_peer_disconnect_in_thread_func);
   g_task_run_in_thread (task, on_peer_disconnect_in_thread_func);
+}
+
+static void
+on_impl_owner_lost_in_thread_func (GTask        *task,
+                                   gpointer      source_object,
+                                   gpointer      task_data,
+                                   GCancellable *cancellable)
+{
+  XdpRequest *request = XDP_REQUEST (source_object);
+
+  REQUEST_AUTOLOCK (request);
+
+  g_clear_object (&request->impl_request);
+
+  if (request->exported)
+    {
+      g_auto(GVariantBuilder) results =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                      g_variant_builder_end (&results));
+      xdp_request_unexport (request);
+    }
+}
+
+static void
+on_impl_owner_lost (XdpImplOwnerWatch *watch,
+                    GObject           *object)
+{
+  XdpRequest *request = XDP_REQUEST (object);
+  g_autoptr(GTask) task = NULL;
+
+  /* Record loss before waiting for the lock, so clearing a temporary backend
+   * proxy or completing the pending operation cannot hide the transition. */
+  if (!g_atomic_int_compare_and_exchange (&request->impl_owner_lost, FALSE, TRUE))
+    return;
+
+  /* Portal handlers can hold the lock while waiting on the backend. Keep the
+   * proxy's main context available to dispatch that call's completion. */
+  task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_source_tag (task, on_impl_owner_lost_in_thread_func);
+  g_task_run_in_thread (task, on_impl_owner_lost_in_thread_func);
 }
 
 gboolean
@@ -312,12 +370,29 @@ xdp_request_export (XdpRequest      *request,
 
   g_object_ref (request);
   request->exported = TRUE;
+
+  if (g_atomic_int_get (&request->impl_owner_lost) ||
+      (request->impl_owner_watch &&
+       !xdp_impl_owner_watch_is_current (request->impl_owner_watch)))
+    {
+      g_auto(GVariantBuilder) results =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
+      g_atomic_int_set (&request->impl_owner_lost, TRUE);
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                      g_variant_builder_end (&results));
+      xdp_request_unexport (request);
+    }
 }
 
 void
 xdp_request_unexport (XdpRequest *request)
 {
   int fd;
+
+  if (!request->exported)
+    return;
 
   fd = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "fd"));
   if (fd != -1)
@@ -332,5 +407,23 @@ void
 xdp_request_set_impl_request (XdpRequest         *request,
                               XdpDbusImplRequest *impl_request)
 {
+  g_clear_object (&request->impl_owner_watch);
+  if (g_atomic_int_get (&request->impl_owner_lost))
+    {
+      g_clear_object (&request->impl_request);
+      return;
+    }
+
   g_set_object (&request->impl_request, impl_request);
+
+  if (impl_request)
+    {
+      request->impl_owner_watch =
+        xdp_impl_owner_watch_new (G_DBUS_PROXY (impl_request),
+                                  G_OBJECT (request),
+                                  on_impl_owner_lost);
+
+      if (!xdp_impl_owner_watch_is_current (request->impl_owner_watch))
+        on_impl_owner_lost (request->impl_owner_watch, G_OBJECT (request));
+    }
 }

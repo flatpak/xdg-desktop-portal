@@ -7,6 +7,7 @@
 #include "xdp-app-info.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-impl-owner-watch.h"
 #include "xdp-utils.h"
 
 typedef struct _XdpRequest
@@ -14,6 +15,8 @@ typedef struct _XdpRequest
   XdpDbusRequestSkeleton parent_instance;
 
   gboolean exported;
+  gboolean responded;
+  gint impl_owner_lost;
   char *id;
   char *sender;
   GMutex mutex;
@@ -21,6 +24,7 @@ typedef struct _XdpRequest
   XdpContext *context;
 
   XdpDbusImplRequest *impl_request;
+  XdpImplOwnerWatch *impl_owner_watch;
 } XdpRequest;
 
 struct _XdpRequestClass

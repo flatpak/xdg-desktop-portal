@@ -104,10 +104,21 @@ xdp_session_lookup (const char *session_handle)
   return g_steal_pointer (&session);
 }
 
+
 gboolean
 xdp_session_export (XdpSession  *session,
                     GError     **error)
 {
+  if (session->closed ||
+      (session->impl_dbus_name &&
+       (!session->impl_session ||
+        !xdp_impl_owner_watch_is_current (session->impl_owner_watch))))
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_CLOSED,
+                           "Session backend disappeared or changed");
+      return FALSE;
+    }
+
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (session),
                                          session->connection,
                                          session->id,
@@ -151,6 +162,8 @@ xdp_session_close (XdpSession *session,
   if (session->closed)
     return;
 
+  session->closed = TRUE;
+
   XDP_SESSION_GET_CLASS (session)->close (session);
 
   if (notify_closed)
@@ -177,16 +190,14 @@ xdp_session_close (XdpSession *session,
     {
       g_autoptr(GError) error = NULL;
 
-      if (!xdp_dbus_impl_session_call_close_sync (session->impl_session,
-                                                  NULL, &error))
+      if (!xdp_impl_owner_watch_close_sync (session->impl_owner_watch,
+                                            G_DBUS_PROXY (session->impl_session),
+                                            &error))
         g_warning ("Failed to close session implementation: %s",
                    error->message);
 
       g_clear_object (&session->impl_session);
     }
-
-  session->closed = TRUE;
-
 
   g_object_unref (session);
 }
@@ -213,14 +224,67 @@ xdp_session_skeleton_iface_init (XdpDbusSessionIface *iface)
 }
 
 static void
-on_closed (XdpDbusImplSession *object, GObject *data)
+on_impl_closed_in_thread_func (GTask        *task,
+                               gpointer      source_object,
+                               gpointer      task_data,
+                               GCancellable *cancellable)
 {
-  XdpSession *session = XDP_SESSION (data);
+  XdpSession *session = XDP_SESSION (source_object);
 
-  SESSION_AUTOLOCK_UNREF (g_object_ref (session));
+  SESSION_AUTOLOCK (session);
+
+  if (session->closed || session->impl_session != task_data)
+    return;
 
   g_clear_object (&session->impl_session);
   xdp_session_close (session, TRUE);
+}
+
+static void
+on_closed (XdpDbusImplSession *object,
+           GObject            *data)
+{
+  g_autoptr(GTask) task = g_task_new (data, NULL, NULL, NULL);
+
+  g_task_set_task_data (task, g_object_ref (object), g_object_unref);
+  g_task_set_source_tag (task, on_impl_closed_in_thread_func);
+  g_task_run_in_thread (task, on_impl_closed_in_thread_func);
+}
+
+static void
+on_impl_owner_lost_in_thread_func (GTask        *task,
+                                   gpointer      source_object,
+                                   gpointer      task_data,
+                                   GCancellable *cancellable)
+{
+  XdpSession *session = XDP_SESSION (source_object);
+  XdpImplOwnerWatch *watch = task_data;
+
+  SESSION_AUTOLOCK (session);
+
+  if (session->closed || session->impl_owner_watch != watch ||
+      xdp_impl_owner_watch_is_current (watch))
+    return;
+
+  /* Never send Close to a replacement backend or activate a vanished one. */
+  g_clear_object (&session->impl_session);
+
+  /* A pending CreateSession will fail the ownership check when exported. */
+  if (session->exported)
+    xdp_session_close (session, TRUE);
+}
+
+static void
+on_impl_owner_lost (XdpImplOwnerWatch *watch,
+                    GObject           *object)
+{
+  g_autoptr(GTask) task = g_task_new (object, NULL, NULL, NULL);
+
+  /* Do not wait for a portal handler's session lock in the proxy context. The
+   * task owns the session until after its lock has been released. */
+  g_task_set_task_data (task, g_object_ref (watch), g_object_unref);
+  g_task_set_source_tag (task, on_impl_owner_lost_in_thread_func);
+  g_task_run_in_thread (task, on_impl_owner_lost_in_thread_func);
 }
 
 static gboolean
@@ -363,6 +427,12 @@ xdp_session_initable_init (GInitable     *initable,
                            session,
                            G_CONNECT_DEFAULT);
 
+  if (session->impl_session)
+    session->impl_owner_watch =
+      xdp_impl_owner_watch_new (G_DBUS_PROXY (session->impl_session),
+                                G_OBJECT (session),
+                                on_impl_owner_lost);
+
   return TRUE;
 }
 
@@ -456,6 +526,7 @@ xdp_session_finalize (GObject *object)
 
   g_clear_object (&session->impl_connection);
   g_free (session->impl_dbus_name);
+  g_clear_object (&session->impl_owner_watch);
   g_clear_object (&session->impl_session);
 
   g_clear_object (&session->app_info);
