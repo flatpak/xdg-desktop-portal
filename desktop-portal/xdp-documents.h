@@ -20,11 +20,17 @@ typedef enum {
 gboolean xdp_init_document_proxy (GDBusConnection  *connection,
                                   GError          **error);
 
-char *xdp_register_document (const char        *uri,
-                             const char        *app_id,
-                             GDesktopAppInfo   *app_info,
-                             XdpDocumentFlags   flags,
-                             GError           **error);
+char *xdp_register_document_sync (const char        *uri,
+                                  const char        *app_id,
+                                  GDesktopAppInfo   *app_info,
+                                  XdpDocumentFlags   flags,
+                                  GError           **error);
+
+char *xdp_register_document_async (const char        *uri,
+                                    const char        *app_id,
+                                    GDesktopAppInfo   *app_info,
+                                    XdpDocumentFlags   flags,
+                                    GError           **error);
 
 char *xdp_get_real_path_for_doc_id (const char *doc_id);
 

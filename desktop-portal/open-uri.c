@@ -234,7 +234,11 @@ launch_application_with_uri (XdpContext *xdp_context,
       if (writable)
         flags |= XDP_DOCUMENT_FLAG_WRITABLE;
 
-      ruri = xdp_register_document (uri, app_id, info, flags, &local_error);
+      ruri = xdp_register_document_sync (uri,
+                                         app_id,
+                                         info,
+                                         flags,
+                                         &local_error);
       if (ruri == NULL)
         {
           g_warning ("Error registering %s for %s: %s", uri, app_id, local_error->message);

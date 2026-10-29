@@ -52,11 +52,11 @@ xdp_init_document_proxy (GDBusConnection  *connection,
 }
 
 char *
-xdp_register_document (const char        *uri,
-                       const char        *app_id,
-                       GDesktopAppInfo   *app_info,
-                       XdpDocumentFlags   flags,
-                       GError           **error)
+xdp_register_document_sync (const char        *uri,
+                            const char        *app_id,
+                            GDesktopAppInfo   *app_info,
+                            XdpDocumentFlags   flags,
+                            GError           **error)
 {
   g_autofree char *doc_id = NULL;
   g_auto(GStrv) doc_ids = NULL;
@@ -179,7 +179,7 @@ xdp_register_document (const char        *uri,
                                                 error);
     }
 
-  if (!ret)
+  if ((error && *error) || !ret)
     return NULL;
 
   if (doc_ids && doc_ids[0]) {
@@ -194,6 +194,177 @@ xdp_register_document (const char        *uri,
                                                            permissions,
                                                            NULL,
                                                            error))
+        return NULL;
+    }
+
+  if (g_strcmp0 (doc_id, "") == 0)
+    {
+      doc_path = g_build_filename (path, NULL);
+      return g_filename_to_uri (doc_path, NULL, error);
+    }
+
+  fuse_path = xdp_desktop_app_info_get_doc_mountpoint (app_info);
+  doc_path = g_build_filename (fuse_path, doc_id, basename, NULL);
+
+  return g_filename_to_uri (doc_path, NULL, error);
+}
+
+char *
+xdp_register_document_async (const char        *uri,
+                              const char        *app_id,
+                              GDesktopAppInfo   *app_info,
+                              XdpDocumentFlags   flags,
+                              GError           **error)
+{
+  g_autofree char *doc_id = NULL;
+  g_auto(GStrv) doc_ids = NULL;
+  g_autofree char *path = NULL;
+  g_autofree char *basename = NULL;
+  g_autofree char *dirname = NULL;
+  g_autoptr(GUnixFDList) fd_list = NULL;
+  int fd, fd_in;
+  g_autoptr(GFile) file = NULL;
+  gboolean ret = FALSE;
+  const char *permissions[5];
+  g_autofree char *doc_path = NULL;
+  int i;
+  int version;
+  gboolean handled_permissions = FALSE;
+  DocumentAddFullFlags full_flags;
+  g_autofree char *fuse_path = NULL;
+
+  g_return_val_if_fail (app_id != NULL && *app_id != '\0', NULL);
+
+  file = g_file_new_for_uri (uri);
+  path = g_file_get_path (file);
+  if (path == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
+                   "URI %s not supported by the document portal", uri);
+      return NULL;
+    }
+  basename = g_path_get_basename (path);
+  dirname = g_path_get_dirname (path);
+
+  if (flags & XDP_DOCUMENT_FLAG_FOR_SAVE)
+    fd = dex_await_fd (dex_aio_open (NULL,
+                                     dirname,
+                                     O_CLOEXEC,
+                                     0),
+                       error);
+  else
+    fd = dex_await_fd (dex_aio_open (NULL,
+                                     path,
+                                     O_CLOEXEC,
+                                     0),
+                       error);
+
+  if (fd == -1)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "Failed to open %s", uri);
+      return NULL;
+    }
+
+  fd_list = g_unix_fd_list_new ();
+  fd_in = g_unix_fd_list_append (fd_list, fd, error);
+  
+  dex_await (dex_aio_close (NULL, fd), error);
+
+  if ((error && *error) || fd_in == -1)
+    return NULL;
+
+  i = 0;
+  permissions[i++] = "read";
+  if ((flags & XDP_DOCUMENT_FLAG_WRITABLE) || (flags & XDP_DOCUMENT_FLAG_FOR_SAVE))
+    permissions[i++] = "write";
+  permissions[i++] = "grant-permissions";
+  if (flags & XDP_DOCUMENT_FLAG_DELETABLE)
+    permissions[i++] = "delete";
+  permissions[i++] = NULL;
+
+  version = xdp_dbus_documents_get_version (documents);
+  full_flags = DOCUMENT_ADD_FLAGS_REUSE_EXISTING | DOCUMENT_ADD_FLAGS_PERSISTENT | DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP;
+  if (flags & XDP_DOCUMENT_FLAG_DIRECTORY)
+    full_flags |= DOCUMENT_ADD_FLAGS_DIRECTORY;
+
+  if (flags & XDP_DOCUMENT_FLAG_FOR_SAVE)
+    {
+      if (version >= 3)
+        {
+          ret = dex_await_boolean (xdp_dbus_documents_call_add_named_full_future (
+              documents,
+              g_variant_new_handle (fd_in),
+              basename,
+              full_flags,
+              app_id,
+              permissions,
+              fd_list),
+            error);
+
+          handled_permissions = TRUE;
+        }
+      else
+        ret = dex_await_boolean (xdp_dbus_documents_call_add_named_future (
+            documents,
+            g_variant_new_handle (fd_in),
+            basename,
+            TRUE,
+            TRUE,
+            fd_list),
+          error);
+    }
+  else
+    {
+      if (version >= 2)
+        {
+          g_autoptr(XdpDbusDocumentsAddFullResult) result = NULL;
+          result = dex_await_boxed (xdp_dbus_documents_call_add_full_future (
+              documents,
+              g_variant_new_fixed_array (G_VARIANT_TYPE_HANDLE, &fd_in, 1, sizeof (gint32)),
+              full_flags,
+              app_id,
+              permissions,
+              fd_list),
+            error);
+
+          doc_ids = g_steal_pointer (&result->doc_ids);
+          ret = (doc_ids != NULL);
+
+          handled_permissions = TRUE;
+        }
+      else
+        {
+          g_autoptr(XdpDbusDocumentsAddResult) result = NULL;
+
+          result = dex_await_boxed (xdp_dbus_documents_call_add_future (
+              documents,
+              g_variant_new_handle (fd_in),
+              TRUE,
+              TRUE,
+              fd_list),
+            error);
+
+          doc_id = g_steal_pointer (&result->doc_id);
+          ret = (doc_id != NULL);
+        }
+    }
+
+  if ((error && *error) || !ret)
+    return NULL;
+
+  if (doc_ids && doc_ids[0]) {
+      doc_id = g_strdup (doc_ids[0]);
+  }
+
+  if (!handled_permissions)
+    {
+      if (!dex_await_boolean (xdp_dbus_documents_call_grant_permissions_future (
+                                                           documents,
+                                                           doc_id,
+                                                           app_id,
+                                                           permissions),
+                              error))
         return NULL;
     }
 
