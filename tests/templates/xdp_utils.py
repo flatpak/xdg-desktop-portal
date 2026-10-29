@@ -57,6 +57,7 @@ class ImplRequest:
         logger: logging.Logger,
         cb_success: Callable,
         cb_error: Callable,
+        request_version: int = 1,
     ):
         self.mock = mock
         bus = mock.connection
@@ -66,6 +67,7 @@ class ImplRequest:
         self.logger = logger
         self.cb_success = cb_success
         self.cb_error = cb_error
+        self.request_version = request_version
 
     def respond(
         self,
@@ -162,6 +164,15 @@ class ImplRequest:
                 )
             ],
         )
+
+        if self.request_version >= 2:
+            request_obj = dbusmock.get_object(self.handle)
+            request_obj.EmitSignal(
+                interface="org.freedesktop.impl.portal.Request",
+                name="Created",
+                signature="",
+                sigargs=(),
+            )
 
     def _unexport(self):
         self.mock.RemoveObject(self.handle)
