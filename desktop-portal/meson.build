@@ -53,6 +53,18 @@ if portal_experimental_impl_sources.length() > 0
 else
   impl_experimental_built_sources = []
 endif
+if portal_experimental_handler_sources.length() > 0
+  handler_experimental_built_sources = gnome.gdbus_codegen(
+    'xdp-handler-dbus-experimental',
+    sources: portal_experimental_handler_sources,
+    interface_prefix: 'org.freedesktop.handler.portal.experimental',
+    namespace: 'XdpDbusExperimentalHandler',
+    docbook: 'portal',
+    extra_args: gdbus_codegen_extra_args,
+  )
+else
+  handler_experimental_built_sources = []
+endif
 background_monitor_built_sources = gnome.gdbus_codegen(
   'xdp-background-dbus',
   sources: background_monitor_sources,
@@ -86,6 +98,7 @@ xdg_desktop_portal_sources = files(
   'background.c',
   'camera.c',
   'clipboard.c',
+  'credential.c',
   'dynamic-launcher.c',
   'email.c',
   'file-chooser.c',
@@ -133,6 +146,7 @@ xdg_desktop_portal_sources += [
   host_built_sources,
   impl_built_sources,
   impl_experimental_built_sources,
+  handler_experimental_built_sources,
   background_monitor_built_sources,
   geoclue_built_sources,
 ]
