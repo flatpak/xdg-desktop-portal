@@ -13,6 +13,15 @@
       optionally providing an address, subject, body and attachments.
 
       This documentation describes version 4 of this interface.
+
+      Entitlements
+      ~~~~~~~~~~~~
+
+      ``org.freedesktop.portal.Email`` · version 1
+        Gates general access to the Email portal.
+
+      See :doc:`entitlements` for general information about the
+      entitlement system.
   -->
   <interface name="org.freedesktop.portal.Email">
     <!--

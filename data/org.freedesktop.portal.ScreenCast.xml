@@ -13,6 +13,15 @@
 
       This documentation describes version 6 of this interface.
 
+      Entitlements
+      ~~~~~~~~~~~~
+
+      ``org.freedesktop.portal.ScreenCast`` · version 1
+        Gates general access to the ScreenCast portal.
+
+      See :doc:`entitlements` for general information about the
+      entitlement system.
+
       Session lifecycle
       ~~~~~~~~~~~~~~~~~
 

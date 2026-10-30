@@ -96,6 +96,7 @@ tests = {
   'document_fuse_semantics': {},
   'dynamiclauncher': {},
   'email': {},
+  'entitlements': {},
   'filechooser': {},
   'globalshortcuts': {},
   'inhibit': {},
