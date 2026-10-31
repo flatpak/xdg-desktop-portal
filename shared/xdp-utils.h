@@ -15,6 +15,7 @@
 #include <gio/gio.h>
 #include <glib/gstdio.h>
 #include <libdex.h>
+#include <libglnx.h>
 
 #include "xdp-sealed-fd.h"
 #include "xdp-types.h"
@@ -46,25 +47,8 @@ guint xdp_connection_track_peer_disconnect (GDBusConnection           *connectio
 void xdp_connection_untrack_peer_disconnect (GDBusConnection *connection,
                                              guint            subscription_id);
 
-typedef struct {
-  gatomicrefcount rc;
-  uint32_t pid;
-  int fd;
-} XdpPidFdResult;
-
-#define XDP_TYPE_PID_FD_RESULT (xdp_pid_fd_result_get_type ())
-GType xdp_pid_fd_result_get_type (void);
-
-XdpPidFdResult * xdp_pid_fd_result_ref (XdpPidFdResult *self);
-
-void xdp_pid_fd_result_unref (XdpPidFdResult *self);
-G_DEFINE_AUTOPTR_CLEANUP_FUNC(XdpPidFdResult, xdp_pid_fd_result_unref);
-
-XdpPidFdResult * xdp_pid_fd_result_new (uint32_t pid,
-                                        int      fd);
-
-DexFuture * xdp_connection_get_pidfd (GDBusConnection *connection,
-                                      const char      *sender);
+DexFuture * xdp_connection_get_peer_pidref (GDBusConnection *connection,
+                                            const char      *sender);
 
 XdpAppInfo * xdp_invocation_get_app_info (GDBusMethodInvocation *invocation);
 
@@ -150,51 +134,7 @@ char * xdp_canonicalize_filename (const char *path);
 gboolean  xdp_has_path_prefix (const char *str,
                                const char *prefix);
 
-gboolean xdp_pid_to_pidfd (pid_t    pid,
-                           int     *pidfd_out,
-                           GError **error);
 
-/**
- * xdp_pidfd_to_pid:
- * @pidfd: The fd for the process to find
- * @error: (nullable): return location for a #GError
- *
- * Attempts to find the process id referenced by
- * the given @pidfd. This specifically also returns an
- * error if the process referenced by the @pidfd has died.
- *
- * Returns: A #pid_t with the corresponding pid, or -1 on
- * error.
- */
-pid_t xdp_pidfd_to_pid (int      pidfd,
-                        GError **error);
-
-gboolean xdp_pidfds_to_pids (const int  *pidfds,
-                             pid_t      *pids,
-                             gint        count,
-                             GError    **error);
-
-gboolean xdp_pidfd_get_pidns (int      pidfd,
-                              ino_t   *ns,
-                              GError **error);
-
-gboolean xdp_map_pids_full (DIR     *proc,
-                            ino_t    pidns,
-                            pid_t   *pids,
-                            guint    n_pids,
-                            uid_t    target_uid,
-                            GError **error);
-
-gboolean xdp_map_pids (ino_t    pidns,
-                       pid_t   *pids,
-                       guint    n_pids,
-                       GError **error);
-
-gboolean xdp_map_tids (ino_t    pidns,
-                       pid_t    owner_pid,
-                       pid_t   *tids,
-                       guint    n_tids,
-                       GError **error);
 
 static inline gboolean
 xdp_is_fd_list_index_valid (GUnixFDList *fd_list,

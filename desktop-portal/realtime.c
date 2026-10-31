@@ -46,7 +46,8 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (Realtime, g_object_unref)
 static gboolean
 map_pid (XdpAppInfo *app_info, pid_t *pid, pid_t *tid, GError **error)
 {
-  ino_t pidns_id;
+  GLnxPidRef *pidref = xdp_app_info_get_pidref (app_info);
+  g_autoptr(GLnxNamespace) pidns = NULL;
   /*
    * the unmapped pid is more useful for debugging, and doesn't leak
    * information into the sandbox - see discussion in
@@ -54,21 +55,25 @@ map_pid (XdpAppInfo *app_info, pid_t *pid, pid_t *tid, GError **error)
    */
   const pid_t unmapped_pid = *pid;
 
-  if (!xdp_app_info_get_pidns (app_info, &pidns_id, error))
+  if (!pidref)
+    return TRUE;
+
+  pidns = glnx_pid_ref_get_namespace (pidref, GLNX_NAMESPACE_PID, error);
+  if (!pidns)
     {
       g_prefix_error (error, "Could not get pidns for pid %d: ", unmapped_pid);
       g_warning ("Realtime error: %s", (*error)->message);
       return FALSE;
     }
 
-  if (pidns_id != 0 && !xdp_map_pids (pidns_id, pid, 1, error))
+  if (!glnx_namespace_get_pid_from (pidns, *pid, pid, error))
     {
       g_prefix_error (error, "Could not map pid %d: ", unmapped_pid);
       g_warning ("Realtime error: %s", (*error)->message);
       return FALSE;
     }
 
-  if (pidns_id != 0 && !xdp_map_tids (pidns_id, *pid, tid, 1, error))
+  if (!glnx_namespace_get_pid_from (pidns, *tid, tid, error))
     {
       g_prefix_error (error, "Could not map tid %d of pid %d: ", *tid, unmapped_pid);
       g_warning ("Realtime error: %s", (*error)->message);

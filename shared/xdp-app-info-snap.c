@@ -262,15 +262,10 @@ xdp_app_info_snap_new_testing (const char  *sender,
   return XDP_APP_INFO (g_steal_pointer (&app_info_snap));
 }
 
-/*
- * @pidfd: (inout) (not nullable): Pointer to process ID file descriptor.
- *  This function may take ownership of the fd. If it does, it will
- *  set `*pidfd` to -1.
- */
 XdpAppInfo *
 xdp_app_info_snap_new (const char  *sender,
                        int          pid,
-                       int         *pidfd,
+                       GLnxPidRef  *pidref,
                        GError     **error)
 {
   g_autoptr (XdpAppInfoSnap) app_info_snap = NULL;
@@ -350,7 +345,7 @@ xdp_app_info_snap_new (const char  *sender,
                                   error,
                                   "engine", SNAP_ENGINE_ID,
                                   "id", snap_id,
-                                  "pidfd", g_steal_fd (pidfd),
+                                  "pidref", pidref,
                                   "flags", flags,
                                   "desktop-file", desktop_id,
                                   "sender", sender,

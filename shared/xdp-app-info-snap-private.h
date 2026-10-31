@@ -19,7 +19,7 @@ G_DECLARE_FINAL_TYPE (XdpAppInfoSnap,
 
 XdpAppInfo * xdp_app_info_snap_new (const char  *sender,
                                     int          pid,
-                                    int         *pidfd,
+                                    GLnxPidRef  *pidref,
                                     GError     **error);
 
 XDP_EXPORT_TEST
