@@ -2,11 +2,14 @@
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 # mypy: disable-error-code="misc"
 
-import dbus
+from typing import Any
+
 import dbus.service
-from dbusmock import mockobject
+import dbusmock
+from gi.repository import GLib
 
 from tests.templates.xdp_utils import init_logger
+from tests.xdp_utils import ASV
 
 BUS_NAME = "org.freedesktop.GeoClue2"
 MAIN_OBJ = "/org/freedesktop/GeoClue2/Manager"
@@ -20,40 +23,40 @@ VERSION = 1
 logger = init_logger(__name__)
 
 
-class GeoClueClient(mockobject.DBusMockObject):
-    def __init__(self, *args, **kwargs):
+class GeoClueClient(dbusmock.DBusMockObject):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
         self.started = False
         self.location = 0
         self.data = {"Latitude": 0, "Longitude": 0, "Accuracy": 0}
 
-    @dbus.service.method(
+    @dbus.service.method(  # type: ignore [untyped-decorator]
         CLIENT_IFACE,
         in_signature="",
         out_signature="",
     )
-    def Start(self):
+    def Start(self) -> None:
         logger.debug("Start()")
         self.started = True
         self.ChangeLocation(self.data)
 
-    @dbus.service.method(
+    @dbus.service.method(  # type: ignore [untyped-decorator]
         CLIENT_IFACE,
         in_signature="",
         out_signature="",
     )
-    def Stop(self):
+    def Stop(self) -> None:
         logger.debug("Stop()")
         self.started = False
         self.RemoveObject(f"/org/freedesktop/GeoClue2/Location/{self.location}")
 
-    @dbus.service.method(
+    @dbus.service.method(  # type: ignore [untyped-decorator]
         MOCK_IFACE,
         in_signature="a{sv}",
         out_signature="",
     )
-    def ChangeLocation(self, data):
+    def ChangeLocation(self, data: ASV) -> None:
         logger.debug(f"ChangeLocation({data})")
 
         self.data = data
@@ -92,7 +95,7 @@ class GeoClueClient(mockobject.DBusMockObject):
         )
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     mock.AddMethods(

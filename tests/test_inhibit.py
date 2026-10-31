@@ -4,6 +4,7 @@
 # This file is formatted with Python Black
 
 from enum import Enum, Flag
+from typing import Any
 
 import dbus
 import pytest
@@ -26,12 +27,14 @@ class SessionState(Enum):
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {"inhibit": {}}
 
 
 class TestInhibit:
-    def set_permissions(self, dbus_con, app_id, permissions):
+    def set_permissions(
+        self, dbus_con: dbus.Bus, app_id: str, permissions: list[str]
+    ) -> None:
         perm_store_intf = xdp.get_permission_store_iface(dbus_con)
         perm_store_intf.SetPermission(
             "inhibit",
@@ -41,10 +44,12 @@ class TestInhibit:
             permissions,
         )
 
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         xdp.check_version(dbus_con, "Inhibit", 3)
 
-    def test_basic(self, portals, dbus_con, xdp_app_info):
+    def test_basic(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -78,7 +83,9 @@ class TestInhibit:
     @pytest.mark.parametrize(
         "token", ("Invalid-Token&", "", "/foo", "something-else", "😄")
     )
-    def test_inhibit_invalid_handle_token(self, portals, dbus_con, token):
+    def test_inhibit_invalid_handle_token(
+        self, portals: Any, dbus_con: dbus.Bus, token: str
+    ) -> None:
         inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
 
         request = xdp.Request(dbus_con, inhibit_intf)
@@ -92,7 +99,9 @@ class TestInhibit:
         assert "Invalid token" in e.get_dbus_message()
 
     @pytest.mark.parametrize("template_params", ({"inhibit": {"response": 1}},))
-    def test_cancel(self, portals, dbus_con, xdp_app_info):
+    def test_cancel(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -125,7 +134,9 @@ class TestInhibit:
         assert args[4]["reason"] == reason
 
     @pytest.mark.parametrize("template_params", ({"inhibit": {"expect-close": True}},))
-    def test_close(self, portals, dbus_con, xdp_app_info):
+    def test_close(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -157,7 +168,9 @@ class TestInhibit:
         assert args[3] == flags.value
         assert args[4]["reason"] == reason
 
-    def test_permission(self, portals, dbus_con, xdp_app_info):
+    def test_permission(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -209,7 +222,9 @@ class TestInhibit:
         _, args = method_calls[-1]
         assert args[3] == allowed_flags.value
 
-    def test_monitor(self, portals, dbus_con, xdp_app_info):
+    def test_monitor(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -239,7 +254,9 @@ class TestInhibit:
         assert args[2] == app_id
         assert args[3] == ""  # parent window
 
-        def state_changed_cb(session_handle, state):
+        def state_changed_cb(
+            session_handle: dbus.ObjectPath, state: dbus.Dictionary
+        ) -> None:
             nonlocal changed_count
 
             assert not state["screensaver-active"]

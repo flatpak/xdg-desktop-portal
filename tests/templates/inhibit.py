@@ -6,12 +6,20 @@
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 import dbus.service
-from dbusmock import MOCK_IFACE
+import dbusmock
 from gi.repository import GLib
 
-from tests.templates.xdp_utils import ImplRequest, ImplSession, Response, init_logger
+from tests.templates.xdp_utils import (
+    AsyncCallback,
+    ImplRequest,
+    ImplSession,
+    Response,
+    init_logger,
+)
+from tests.xdp_utils import ASV
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -36,7 +44,7 @@ class InhibitParameters:
     expect_close: bool
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     logger.debug(f"Loading parameters: {parameters}")
@@ -60,13 +68,22 @@ def load(mock, parameters=None):
     mock.session_timers = {}
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="ossua{sv}",
     out_signature="",
     async_callbacks=("cb_success", "cb_error"),
 )
-def Inhibit(self, handle, app_id, window, flags, options, cb_success, cb_error):
+def Inhibit(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    app_id: str,
+    window: Any,
+    flags: int,
+    options: ASV,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(f"Inhibit({handle}, {app_id}, {window}, {flags}, {options})")
     params = self.inhibit_params
 
@@ -85,12 +102,12 @@ def Inhibit(self, handle, app_id, window, flags, options, cb_success, cb_error):
         request.respond(Response(params.response, {}), delay=params.delay)
 
 
-@dbus.service.method(
-    MOCK_IFACE,
+@dbus.service.method(  # type: ignore [untyped-decorator]
+    dbus.MOCK_IFACE,
     in_signature="s",
     out_signature="",
 )
-def ArmTimer(self, session_handle):
+def ArmTimer(self, session_handle: dbus.ObjectPath) -> None:  # type: ignore [no-untyped-def]
     self.EmitSignal(
         MAIN_IFACE,
         "StateChanged",
@@ -104,7 +121,7 @@ def ArmTimer(self, session_handle):
         ],
     )
 
-    def close_session():
+    def close_session() -> None:
         session = self.sessions[session_handle]
         session.close()
         self.sessions[session_handle] = None
@@ -114,13 +131,22 @@ def ArmTimer(self, session_handle):
     self.session_timers[session_handle] = GLib.timeout_add(700, close_session)
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="ooss",
     out_signature="u",
     async_callbacks=("cb_success", "cb_error"),
 )
-def CreateMonitor(self, handle, session_handle, app_id, window, cb_success, cb_error):
+def CreateMonitor(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    session_handle: dbus.ObjectPath,
+    app_id: str,
+    options: ASV,
+    window: Any,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(f"CreateMonitor({handle}, {session_handle}, {app_id}, {window})")
     params = self.inhibit_params
 
@@ -128,7 +154,7 @@ def CreateMonitor(self, handle, session_handle, app_id, window, cb_success, cb_e
     self.sessions[session_handle] = session
 
     # This is irregular: the backend doesn't return the results vardict
-    def internal_cb_success(response, results):
+    def internal_cb_success(response: Response, results: ASV) -> None:
         cb_success(response)
 
     request = ImplRequest(
@@ -144,7 +170,7 @@ def CreateMonitor(self, handle, session_handle, app_id, window, cb_success, cb_e
         request.wait_for_close()
     else:
 
-        def arm_timer():
+        def arm_timer() -> None:
             self.ArmTimer(session_handle)
 
         request.respond(
@@ -152,12 +178,12 @@ def CreateMonitor(self, handle, session_handle, app_id, window, cb_success, cb_e
         )
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="o",
     out_signature="",
 )
-def QueryEndResponse(self, session_handle):
+def QueryEndResponse(self, session_handle: dbus.ObjectPath):  # type: ignore [no-untyped-def]
     try:
         logger.debug(f"QueryEndResponse({session_handle})")
 

@@ -4,8 +4,10 @@
 # This file is formatted with Python Black
 
 import os
+import subprocess
 import threading
 from pathlib import Path
+from typing import AnyStr
 
 import dbus
 import pytest
@@ -20,7 +22,9 @@ def xdp_app_info() -> xdp.AppInfo:
 
 
 class TestDocuments:
-    def test_version(self, xdg_document_portal, dbus_con):
+    def test_version(
+        self, xdg_document_portal: subprocess.Popen[AnyStr], dbus_con: dbus.Bus
+    ) -> None:
         documents = dbus_con.get_object(
             "org.freedesktop.portal.Documents",
             "/org/freedesktop/portal/documents",
@@ -36,11 +40,16 @@ class TestDocuments:
         )
         assert int(portal_version) == 5
 
-    def test_mount_point(self, xdg_document_portal, dbus_con):
+    def test_mount_point(
+        self, xdg_document_portal: subprocess.Popen[AnyStr], dbus_con: dbus.Bus
+    ) -> None:
+
         documents_intf = xdp.get_document_portal_iface(dbus_con)
         xdp_doc.get_mountpoint(documents_intf)
 
-    def test_create_doc(self, xdg_document_portal, dbus_con):
+    def test_create_doc(
+        self, xdg_document_portal: subprocess.Popen[AnyStr], dbus_con: dbus.Bus
+    ) -> None:
         documents_intf = xdp.get_document_portal_iface(dbus_con)
         mountpoint = xdp_doc.get_mountpoint(documents_intf)
 
@@ -131,7 +140,9 @@ class TestDocuments:
         doc_id5 = xdp_doc.export_file(documents_intf, file_path, unique=True)
         assert doc_id5 != doc_id
 
-    def test_recursive_doc(self, xdg_document_portal, dbus_con):
+    def test_recursive_doc(
+        self, xdg_document_portal: subprocess.Popen[AnyStr], dbus_con: dbus.Bus
+    ) -> None:
         documents_intf = xdp.get_document_portal_iface(dbus_con)
         mountpoint = xdp_doc.get_mountpoint(documents_intf)
 
@@ -155,7 +166,9 @@ class TestDocuments:
         doc_id3 = xdp_doc.export_file(documents_intf, doc_app1_path / file_name)
         assert doc_id3 == doc_id
 
-    def test_create_docs(self, xdg_document_portal, dbus_con):
+    def test_create_docs(
+        self, xdg_document_portal: subprocess.Popen[AnyStr], dbus_con: dbus.Bus
+    ) -> None:
         documents_intf = xdp.get_document_portal_iface(dbus_con)
         mountpoint = xdp_doc.get_mountpoint(documents_intf)
 
@@ -196,7 +209,9 @@ class TestDocuments:
             with pytest.raises(PermissionError):
                 other_app_path.write_bytes(b"new-content")
 
-    def test_add_named(self, xdg_document_portal, dbus_con):
+    def test_add_named(
+        self, xdg_document_portal: subprocess.Popen[AnyStr], dbus_con: dbus.Bus
+    ) -> None:
         documents_intf = xdp.get_document_portal_iface(dbus_con)
         mountpoint = xdp_doc.get_mountpoint(documents_intf)
 
@@ -292,7 +307,9 @@ class TestDocuments:
         assert (doc_app1_path / file_name).read_bytes() == content
         assert not (doc_app2_path / file_name).exists()
 
-    def test_get_host_paths(self, xdg_document_portal, dbus_con):
+    def test_get_host_paths(
+        self, xdg_document_portal: subprocess.Popen[AnyStr], dbus_con: dbus.Bus
+    ) -> None:
         documents_intf = xdp.get_document_portal_iface(dbus_con)
 
         content = b"content"
@@ -307,7 +324,9 @@ class TestDocuments:
         doc_host_path = xdp_doc.path_from_null_term_bytes(host_paths[doc_id])
         assert doc_host_path == file_path
 
-    def test_host_paths_xattr(self, xdg_document_portal, dbus_con):
+    def test_host_paths_xattr(
+        self, xdg_document_portal: subprocess.Popen[AnyStr], dbus_con: dbus.Bus
+    ) -> None:
         documents_intf = xdp.get_document_portal_iface(dbus_con)
         mountpoint = xdp_doc.get_mountpoint(documents_intf)
 
@@ -337,8 +356,11 @@ class TestDocuments:
         assert host_path == base_path / "b" / "c"
 
     def test_concurrent_operations_during_permission_check(
-        self, xdg_document_portal, dbus_con, xdp_bin_path
-    ):
+        self,
+        xdg_document_portal: subprocess.Popen[AnyStr],
+        dbus_con: dbus.Bus,
+        xdp_bin_path: Path,
+    ) -> None:
         """Verify that concurrent D-Bus requests and FUSE operations succeed
         without deadlock while document_add_full() is checking file access
         permissions via an external helper."""
@@ -371,7 +393,7 @@ echo 'read-write'
 
         concurrent_result = []
 
-        def call_concurrent_ops():
+        def call_concurrent_ops() -> None:
             path, _apps = concurrent_intf.Info(doc_id1)
             fuse_content = (mountpoint / doc_id1 / file1.name).read_bytes()
             concurrent_result.append((path, fuse_content))

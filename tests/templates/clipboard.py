@@ -9,9 +9,10 @@ from dataclasses import dataclass
 
 import dbus
 import dbus.service
+import dbusmock
 from gi.repository import GLib
 
-from tests.templates.xdp_utils import init_logger
+from tests.templates.xdp_utils import AsyncCallback, init_logger
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -30,7 +31,7 @@ class ClipboardParameters:
     expect_close: bool
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     logger.debug(f"Loading parameters: {parameters}")
@@ -52,13 +53,19 @@ def load(mock, parameters=None):
     )
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oa{sv}",
     out_signature="",
     async_callbacks=("cb_success", "cb_error"),
 )
-def RequestClipboard(self, session_handle, options, cb_success, cb_error):
+def RequestClipboard(  # type: ignore [no-untyped-def]
+    self,
+    session_handle: dbus.ObjectPath,
+    options: dbus.Dictionary,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     try:
         logger.debug(f"RequestClipboard({session_handle}, {options})")
         params = self.clipboard_params
@@ -73,13 +80,19 @@ def RequestClipboard(self, session_handle, options, cb_success, cb_error):
         cb_error(e)
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oa{sv}",
     out_signature="",
     async_callbacks=("cb_success", "cb_error"),
 )
-def SetSelection(self, session_handle, options, cb_success, cb_error):
+def SetSelection(  # type: ignore [no-untyped-def]
+    self,
+    session_handle: dbus.ObjectPath,
+    options: dbus.Dictionary,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     try:
         logger.debug(f"SetSelection({session_handle}, {options})")
         params = self.clipboard_params
@@ -94,13 +107,19 @@ def SetSelection(self, session_handle, options, cb_success, cb_error):
         cb_error(e)
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="ou",
     out_signature="h",
     async_callbacks=("cb_success", "cb_error"),
 )
-def SelectionWrite(self, session_handle, serial, cb_success, cb_error):
+def SelectionWrite(  # type: ignore [no-untyped-def]
+    self,
+    session_handle: dbus.ObjectPath,
+    serial: int,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     try:
         logger.debug(f"SelectionWrite({session_handle}, {serial})")
         params = self.clipboard_params
@@ -112,7 +131,7 @@ def SelectionWrite(self, session_handle, serial, cb_success, cb_error):
             cb_success(fd)
         else:
 
-            def reply():
+            def reply() -> None:
                 cb_success(fd)
 
             logger.debug(f"scheduling delay of {params.delay}")
@@ -122,13 +141,20 @@ def SelectionWrite(self, session_handle, serial, cb_success, cb_error):
         cb_error(e)
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oub",
     out_signature="",
     async_callbacks=("cb_success", "cb_error"),
 )
-def SelectionWriteDone(self, session_handle, serial, success, cb_success, cb_error):
+def SelectionWriteDone(  # type: ignore [no-untyped-def]
+    self,
+    session_handle: dbus.ObjectPath,
+    serial: int,
+    success: bool,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     try:
         logger.debug(f"SelectionWriteDone({session_handle}, {serial}, {success})")
         params = self.clipboard_params
@@ -143,13 +169,19 @@ def SelectionWriteDone(self, session_handle, serial, success, cb_success, cb_err
         cb_error(e)
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="os",
     out_signature="h",
     async_callbacks=("cb_success", "cb_error"),
 )
-def SelectionRead(self, session_handle, mime_type, cb_success, cb_error):
+def SelectionRead(  # type: ignore [no-untyped-def]
+    self,
+    session_handle: dbus.ObjectPath,
+    mime_type: str,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     try:
         logger.debug(f"SelectionRead({session_handle}, {mime_type})")
         params = self.clipboard_params
@@ -161,7 +193,7 @@ def SelectionRead(self, session_handle, mime_type, cb_success, cb_error):
             cb_success(fd)
         else:
 
-            def reply():
+            def reply() -> None:
                 cb_success(fd)
 
             logger.debug(f"scheduling delay of {params.delay}")

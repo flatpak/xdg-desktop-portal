@@ -5,10 +5,13 @@
 # mypy: disable-error-code="misc"
 
 from dataclasses import dataclass
+from typing import Any
 
 import dbus.service
+import dbusmock
+from gi.repository import GLib
 
-from tests.templates.xdp_utils import ImplRequest, Response, init_logger
+from tests.templates.xdp_utils import AsyncCallback, ImplRequest, Response, init_logger
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -26,7 +29,7 @@ class AccessParameters:
     expect_close: bool
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     logger.debug(f"Loading parameters: {parameters}")
@@ -39,24 +42,24 @@ def load(mock, parameters=None):
     )
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="osssssa{sv}",
     out_signature="ua{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def AccessDialog(
+def AccessDialog(  # type: ignore [no-untyped-def]
     self,
-    handle,
-    app_id,
-    parent_window,
-    title,
-    subtitle,
-    body,
-    options,
-    cb_success,
-    cb_error,
-):
+    handle: dbus.ObjectPath,
+    app_id: str,
+    parent_window: Any | None,
+    title: str,
+    subtitle: str,
+    body: str,
+    options: dbus.Dictionary,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(
         f"AccessDialog({handle}, {app_id}, {parent_window}, {title}, {subtitle}, {body}, {options})"
     )

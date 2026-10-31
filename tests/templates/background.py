@@ -5,12 +5,14 @@
 # mypy: disable-error-code="misc"
 
 from dataclasses import dataclass
+from typing import Any
 
 import dbus
 import dbus.service
+import dbusmock
 from gi.repository import GLib
 
-from tests.templates.xdp_utils import init_logger
+from tests.templates.xdp_utils import AsyncCallback, init_logger
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -27,7 +29,7 @@ class BackgroundParameters:
     delay: int
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     logger.debug(f"Loading parameters: {parameters}")
@@ -38,31 +40,38 @@ def load(mock, parameters=None):
     )
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="",
     out_signature="a{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def GetAppState(self, cb_success, cb_error):
+def GetAppState(self, cb_success: AsyncCallback, cb_error: AsyncCallback) -> None:  # type: ignore [no-untyped-def]
     logger.debug("GetAppState()")
     params = self.background_params
 
     # FIXME: implement?
-    def reply():
+    def reply() -> None:
         cb_success({})
 
     logger.debug(f"scheduling delay of {params.delay}")
     GLib.timeout_add(params.delay, reply)
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oss",
     out_signature="ua{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def NotifyBackground(self, handle, app_id, name, cb_success, cb_error):
+def NotifyBackground(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    app_id: str,
+    name: str,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(f"NotifyBackground({handle}, {app_id}, {name})")
     params = self.background_params
 
@@ -70,10 +79,12 @@ def NotifyBackground(self, handle, app_id, name, cb_success, cb_error):
     GLib.timeout_add(params.delay, cb_success)
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="sbasu",
     out_signature="b",
 )
-def EnableAutostart(self, app_id, enable, commandline, flags):
+def EnableAutostart(  # type: ignore [no-untyped-def]
+    self, app_id: str, enable: bool, commandline: Any, flags: Any
+) -> None:
     raise dbus.exceptions.DBusException("EnableAutostart is deprecated")
