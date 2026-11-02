@@ -9,7 +9,9 @@ import multiprocessing
 import os
 import struct
 import threading
+from collections.abc import Callable, Iterable
 from pathlib import Path
+from typing import Any
 
 import dbus
 import pytest
@@ -24,23 +26,23 @@ def xdp_app_info() -> xdp.AppInfo:
 
 
 @pytest.fixture
-def documents_intf(xdg_document_portal, dbus_con):
+def documents_intf(xdg_document_portal: Any, dbus_con: dbus.Bus) -> dbus.Interface:
     return xdp.get_document_portal_iface(dbus_con)
 
 
 @pytest.fixture
-def mountpoint(documents_intf):
+def mountpoint(documents_intf: dbus.Interface) -> Path:
     return xdp_doc.get_mountpoint(documents_intf)
 
 
 @pytest.fixture
-def _tmpfs_file():
+def _tmpfs_file() -> tuple[Path, str]:
     file_path = xdp_doc.make_file("write-data")
     return file_path.parent, file_path.name
 
 
 @pytest.fixture
-def _fuse_file(documents_intf, mountpoint):
+def _fuse_file(documents_intf: dbus.Interface, mountpoint: Path) -> tuple[Path, str]:
     file_path = xdp_doc.make_file("write-data")
     doc_id = xdp_doc.export_file(documents_intf, file_path)
     app_id = "com.test.semantics.File"
@@ -50,17 +52,21 @@ def _fuse_file(documents_intf, mountpoint):
 
 
 @pytest.fixture(params=["_tmpfs_file", "_fuse_file"])
-def writable_file(request):
-    return request.getfixturevalue(request.param)
+def writable_file(request: pytest.FixtureRequest) -> tuple[Path, str]:
+    result = request.getfixturevalue(request.param)
+    assert isinstance(result, tuple)
+    assert isinstance(result[0], Path)
+    assert isinstance(result[1], str)
+    return result
 
 
 @pytest.fixture
-def _tmpfs_dir():
+def _tmpfs_dir() -> Path:
     return xdp_doc.make_dir()
 
 
 @pytest.fixture
-def _fuse_dir(documents_intf, mountpoint):
+def _fuse_dir(documents_intf: dbus.Interface, mountpoint: Path) -> Path:
     dir_path = xdp_doc.make_dir()
     doc_id = xdp_doc.export_dir(documents_intf, dir_path)
     app_id = "com.test.semantics.Dir"
@@ -69,16 +75,18 @@ def _fuse_dir(documents_intf, mountpoint):
 
 
 @pytest.fixture(params=["_tmpfs_dir", "_fuse_dir"])
-def writable_dir_path(request):
-    return request.getfixturevalue(request.param)
+def writable_dir_path(request: pytest.FixtureRequest) -> Path:
+    result = request.getfixturevalue(request.param)
+    assert isinstance(result, Path)
+    return result
 
 
 class TestFileSemantics:
-    def test_read_content(self, writable_file):
+    def test_read_content(self, writable_file: tuple[Path, str]) -> None:
         dirpath, name = writable_file
         assert (dirpath / name).read_text() == "write-data"
 
-    def test_read_multiple_times(self, writable_file):
+    def test_read_multiple_times(self, writable_file: tuple[Path, str]) -> None:
         dirpath, name = writable_file
         fd = os.open(str(dirpath / name), os.O_RDONLY)
         os.lseek(fd, 0, os.SEEK_SET)
@@ -88,14 +96,14 @@ class TestFileSemantics:
         assert content == content2 == b"write-data"
         os.close(fd)
 
-    def test_stat_fields(self, writable_file):
+    def test_stat_fields(self, writable_file: tuple[Path, str]) -> None:
         dirpath, name = writable_file
         info = (dirpath / name).stat()
         assert info.st_uid == os.getuid()
         assert info.st_gid == os.getgid()
         assert info.st_size == len("write-data")
 
-    def test_read_and_write(self, writable_file):
+    def test_read_and_write(self, writable_file: tuple[Path, str]) -> None:
         dirpath, name = writable_file
         filepath = str(dirpath / name)
         fd = os.open(filepath, os.O_RDONLY)
@@ -103,14 +111,16 @@ class TestFileSemantics:
         fd = os.open(filepath, os.O_RDWR)
         os.close(fd)
 
-    def test_access_checks(self, writable_file):
+    def test_access_checks(self, writable_file: tuple[Path, str]) -> None:
         dirpath, name = writable_file
         assert os.access(str(dirpath), os.R_OK)
         assert os.access(str(dirpath), os.W_OK)
         assert os.access(str(dirpath / name), os.R_OK)
         assert os.access(str(dirpath / name), os.W_OK)
 
-    def test_rename_and_still_readable_via_fd(self, writable_file):
+    def test_rename_and_still_readable_via_fd(
+        self, writable_file: tuple[Path, str]
+    ) -> None:
         dirpath, name = writable_file
         filepath = str(dirpath / name)
         fd = os.open(filepath, os.O_RDONLY)
@@ -125,7 +135,9 @@ class TestFileSemantics:
         os.rename(filepath + "_renamed", filepath)
         os.close(fd)
 
-    def test_delete_and_still_readable_via_fd(self, writable_file):
+    def test_delete_and_still_readable_via_fd(
+        self, writable_file: tuple[Path, str]
+    ) -> None:
         dirpath, name = writable_file
         filepath = str(dirpath / name)
         fd = os.open(filepath, os.O_RDONLY)
@@ -137,7 +149,7 @@ class TestFileSemantics:
 
         Path(filepath).write_text("write-data")
 
-    def test_replace_via_tmpfile_rename(self, writable_file):
+    def test_replace_via_tmpfile_rename(self, writable_file: tuple[Path, str]) -> None:
         dirpath, name = writable_file
         filepath = str(dirpath / name)
         tmppath = str(dirpath / "a-tmpfile")
@@ -161,7 +173,7 @@ class TestFileSemantics:
 
         Path(filepath).write_text("write-data")
 
-    def test_replace_tmpfile_sequence(self, writable_file):
+    def test_replace_tmpfile_sequence(self, writable_file: tuple[Path, str]) -> None:
         dirpath, name = writable_file
         filepath = str(dirpath / name)
         tmppath = str(dirpath / "a-tmpfile")
@@ -194,7 +206,7 @@ class TestFileSemantics:
 
         Path(filepath).write_text("write-data")
 
-    def test_append(self, writable_file):
+    def test_append(self, writable_file: tuple[Path, str]) -> None:
         dirpath, name = writable_file
         filepath = str(dirpath / name)
         fd = os.open(filepath, os.O_RDWR)
@@ -206,7 +218,9 @@ class TestFileSemantics:
 
         Path(filepath).write_text("write-data")
 
-    def test_replace_main_file_with_rename(self, writable_file):
+    def test_replace_main_file_with_rename(
+        self, writable_file: tuple[Path, str]
+    ) -> None:
         dirpath, name = writable_file
         filepath = str(dirpath / name)
         tmppath = str(dirpath / "a-tmpfile")
@@ -234,7 +248,9 @@ class TestFileSemantics:
 
         Path(filepath).write_text("write-data")
 
-    def test_tmpfile_create_rename_delete(self, writable_file):
+    def test_tmpfile_create_rename_delete(
+        self, writable_file: tuple[Path, str]
+    ) -> None:
         dirpath, _name = writable_file
         tmppath = dirpath / "a-tmpfile"
         tmppath.write_text("tempdata")
@@ -247,13 +263,13 @@ class TestFileSemantics:
 
 
 class TestDirSemantics:
-    def test_create_file(self, writable_dir_path):
+    def test_create_file(self, writable_dir_path: Path) -> None:
         filepath = writable_dir_path / "a-file"
         filepath.write_text("filedata")
         assert filepath.read_text() == "filedata"
         filepath.unlink()
 
-    def test_fd_operations(self, writable_dir_path):
+    def test_fd_operations(self, writable_dir_path: Path) -> None:
         filepath = str(writable_dir_path / "fd-file")
         Path(filepath).write_text("filedata")
 
@@ -273,7 +289,7 @@ class TestDirSemantics:
         os.close(fd2)
         os.unlink(filepath)
 
-    def test_hardlink(self, writable_dir_path):
+    def test_hardlink(self, writable_dir_path: Path) -> None:
         subdir = writable_dir_path / "hl-dir"
         os.mkdir(str(subdir))
         filepath = writable_dir_path / "hl-file"
@@ -288,7 +304,7 @@ class TestDirSemantics:
         linkpath.unlink()
         subdir.rmdir()
 
-    def test_symlink(self, writable_dir_path):
+    def test_symlink(self, writable_dir_path: Path) -> None:
         (writable_dir_path / "target").write_text("target")
         os.symlink("target", str(writable_dir_path / "symlink2"))
         assert os.readlink(str(writable_dir_path / "symlink2")) == "target"
@@ -300,7 +316,7 @@ class TestDirSemantics:
         os.unlink(str(writable_dir_path / "broken-symlink2"))
         os.unlink(str(writable_dir_path / "target"))
 
-    def test_move_between_dirs(self, writable_dir_path):
+    def test_move_between_dirs(self, writable_dir_path: Path) -> None:
         subdir = writable_dir_path / "mv-dir"
         os.mkdir(str(subdir))
         (subdir / "moveme").write_text("moved")
@@ -312,7 +328,7 @@ class TestDirSemantics:
         os.unlink(str(writable_dir_path / "moved"))
         subdir.rmdir()
 
-    def test_unlink_preserves_fd(self, writable_dir_path):
+    def test_unlink_preserves_fd(self, writable_dir_path: Path) -> None:
         filepath = str(writable_dir_path / "del-fd-file")
         Path(filepath).write_text("filedata-more")
 
@@ -342,10 +358,12 @@ class TestDirSemantics:
 class TestParallelAccess:
     NUM_WORKERS = 8
 
-    def _run_parallel(self, fn, args_list):
+    def _run_parallel(
+        self, fn: Callable[[int], None], args_list: Iterable[Iterable[int]]
+    ) -> None:
         errors = []
 
-        def wrapper(*args):
+        def wrapper(*args: Any) -> None:
             try:
                 fn(*args)
             except Exception as e:  # noqa: BLE001
@@ -361,30 +379,34 @@ class TestParallelAccess:
         if errors:
             raise errors[0]
 
-    def _make_intf(self):
+    def _make_intf(self) -> dbus.Interface:
         addr = os.environ["DBUS_SESSION_BUS_ADDRESS"]
         bus = dbus.bus.BusConnection(addr)
         return xdp.get_document_portal_iface(bus)
 
-    def test_concurrent_export_same_file(self, documents_intf, mountpoint):
+    def test_concurrent_export_same_file(
+        self, documents_intf: dbus.Interface, mountpoint: Path
+    ) -> None:
         file_path = xdp_doc.make_file("same-file-export")
         results = [None] * self.NUM_WORKERS
 
-        def exporter(idx):
+        def exporter(idx: int) -> None:
             intf = self._make_intf()
             results[idx] = xdp_doc.export_file(intf, file_path)
 
         self._run_parallel(exporter, [(i,) for i in range(self.NUM_WORKERS)])
         assert all(r == results[0] for r in results)
         assert (
-            mountpoint / results[0] / file_path.name
+            mountpoint / str(results[0]) / file_path.name
         ).read_text() == "same-file-export"
 
-    def test_concurrent_export_different_files(self, documents_intf, mountpoint):
+    def test_concurrent_export_different_files(
+        self, documents_intf: dbus.Interface, mountpoint: Path
+    ) -> None:
         files = [xdp_doc.make_file(f"par-export-{i}") for i in range(self.NUM_WORKERS)]
         results = [None] * self.NUM_WORKERS
 
-        def exporter(idx):
+        def exporter(idx: int) -> None:
             intf = self._make_intf()
             results[idx] = xdp_doc.export_file(intf, files[idx])
 
@@ -392,10 +414,12 @@ class TestParallelAccess:
         assert len(set(results)) == self.NUM_WORKERS
 
         for idx, doc_id in enumerate(results):
-            fuse_path = mountpoint / doc_id / files[idx].name
+            fuse_path = mountpoint / str(doc_id) / files[idx].name
             assert fuse_path.read_text() == f"par-export-{idx}"
 
-    def test_grant_revoke_while_reading(self, documents_intf, mountpoint):
+    def test_grant_revoke_while_reading(
+        self, documents_intf: dbus.Interface, mountpoint: Path
+    ) -> None:
         file_path = xdp_doc.make_file("grant-revoke-data")
         doc_id = xdp_doc.export_file(documents_intf, file_path)
         app_id = "com.test.parallel.GrantRevoke"
@@ -403,14 +427,14 @@ class TestParallelAccess:
         app_path = mountpoint / "by-app" / app_id / doc_id / file_path.name
         stop = threading.Event()
 
-        def toggler():
+        def toggler() -> None:
             intf = self._make_intf()
             for _ in range(30):
                 intf.RevokePermissions(doc_id, app_id, ["read"])
                 intf.GrantPermissions(doc_id, app_id, ["read"])
             stop.set()
 
-        def reader():
+        def reader() -> None:
             while not stop.is_set():
                 try:
                     data = app_path.read_text()
@@ -426,12 +450,14 @@ class TestParallelAccess:
         for t in threads:
             t.join()
 
-    def test_concurrent_writes_same_doc(self, documents_intf, mountpoint):
+    def test_concurrent_writes_same_doc(
+        self, documents_intf: dbus.Interface, mountpoint: Path
+    ) -> None:
         file_path = xdp_doc.make_file("contested-write")
         doc_id = xdp_doc.export_file(documents_intf, file_path)
         fuse_path = mountpoint / doc_id / file_path.name
 
-        def writer(idx):
+        def writer(idx: int) -> None:
             for j in range(20):
                 tag = f"w{idx}-{j}"
                 xdp_doc.write_bytes_atomic(fuse_path, tag.encode())
@@ -442,7 +468,9 @@ class TestParallelAccess:
         data = fuse_path.read_bytes().decode()
         assert data.startswith("w")
 
-    def test_read_during_atomic_replace(self, documents_intf, mountpoint):
+    def test_read_during_atomic_replace(
+        self, documents_intf: dbus.Interface, mountpoint: Path
+    ) -> None:
         file_path = xdp_doc.make_file("replace-target")
         doc_id = xdp_doc.export_file(documents_intf, file_path)
         app_id = "com.test.parallel.Replace"
@@ -453,12 +481,12 @@ class TestParallelAccess:
         valid_values = {f"version-{j}" for j in range(50)}
         valid_values.add("replace-target")
 
-        def replacer():
+        def replacer() -> None:
             for j in range(50):
                 xdp_doc.write_bytes_atomic(docpath, f"version-{j}".encode())
             stop.set()
 
-        def reader():
+        def reader() -> None:
             while not stop.is_set():
                 try:
                     data = docpath.read_text()
@@ -476,7 +504,7 @@ class TestParallelAccess:
 
 
 @pytest.fixture
-def _tmpfs_lock_file():
+def _tmpfs_lock_file() -> tuple[str, str]:
     file_path = Path(os.environ["TMPDIR"]) / "lock-test-tmpfile"
     file_path.write_bytes(b"data")
     path = str(file_path)
@@ -484,7 +512,9 @@ def _tmpfs_lock_file():
 
 
 @pytest.fixture
-def _fuse_lock_file(documents_intf, mountpoint):
+def _fuse_lock_file(
+    documents_intf: dbus.Interface, mountpoint: Path
+) -> tuple[str, str]:
     file_path = Path(os.environ["TMPDIR"]) / "lock-test-docfile"
     xdp_doc.write_bytes_atomic(file_path, b"data")
     doc_id = xdp_doc.export_file(documents_intf, file_path)
@@ -493,16 +523,20 @@ def _fuse_lock_file(documents_intf, mountpoint):
 
 
 @pytest.fixture(params=["_tmpfs_lock_file", "_fuse_lock_file"])
-def lock_file(request):
+def lock_file(request: pytest.FixtureRequest) -> tuple[Path, str]:
     """Each test runs on both a regular file and a FUSE-mounted document.
     The tmpfile variant serves as a baseline: if it fails, the test's
     assumptions about POSIX lock semantics are wrong, not the portal."""
-    return request.getfixturevalue(request.param)
+    result = request.getfixturevalue(request.param)
+    assert isinstance(result, tuple)
+    assert isinstance(result[0], str)
+    assert isinstance(result[1], str)
+    return result
 
 
 class TestDocumentLocking:
     @staticmethod
-    def _lock_region(fd, lock_type, start=0, length=0):
+    def _lock_region(fd: int, lock_type: int, start: int = 0, length: int = 0) -> bool:
         lockdata = struct.pack("hhllll", lock_type, os.SEEK_SET, start, length, 0, 0)
         try:
             fcntl.fcntl(fd, fcntl.F_SETLK, lockdata)
@@ -513,7 +547,9 @@ class TestDocumentLocking:
             raise
 
     @staticmethod
-    def _child_try_lock(path, result_queue):
+    def _child_try_lock(
+        path: Path, result_queue: multiprocessing.Queue[object]
+    ) -> None:
         fd = os.open(path, os.O_RDWR)
         try:
             got_lock = TestDocumentLocking._lock_region(fd, fcntl.F_WRLCK)
@@ -523,7 +559,9 @@ class TestDocumentLocking:
             os.close(fd)
 
     @staticmethod
-    def _child_lock_then_signal(path, locked_event, release_event):
+    def _child_lock_then_signal(
+        path: Path, locked_event: threading.Event, release_event: threading.Event
+    ) -> None:
         fd = os.open(path, os.O_RDWR)
         try:
             assert TestDocumentLocking._lock_region(fd, fcntl.F_WRLCK)
@@ -533,14 +571,14 @@ class TestDocumentLocking:
             os.close(fd)
 
     @staticmethod
-    def _query_lock(fd, start=0, length=0):
+    def _query_lock(fd: int, start: int = 0, length: int = 0) -> int:
         lockdata = struct.pack(
             "hhllll", fcntl.F_WRLCK, os.SEEK_SET, start, length, 0, 0
         )
         result = fcntl.fcntl(fd, fcntl.F_GETLK, lockdata)
-        return struct.unpack("hhllll", result)[0]
+        return int(struct.unpack("hhllll", result)[0])
 
-    def test_exclusive_locks_conflict(self, lock_file):
+    def test_exclusive_locks_conflict(self, lock_file: tuple[Path, str]) -> None:
         lock_path, _ = lock_file
 
         fd_a = os.open(lock_path, os.O_RDWR)
@@ -563,7 +601,9 @@ class TestDocumentLocking:
         finally:
             os.close(fd_a)
 
-    def test_same_process_can_relock_via_different_fds(self, lock_file):
+    def test_same_process_can_relock_via_different_fds(
+        self, lock_file: tuple[Path, str]
+    ) -> None:
         lock_path, _ = lock_file
 
         fd_a = os.open(lock_path, os.O_RDWR)
@@ -576,7 +616,9 @@ class TestDocumentLocking:
             os.close(fd_a)
             os.close(fd_b)
 
-    def test_closing_any_fd_releases_all_locks_for_same_process(self, lock_file):
+    def test_closing_any_fd_releases_all_locks_for_same_process(
+        self, lock_file: tuple[Path, str]
+    ) -> None:
         lock_path, _ = lock_file
 
         fd_a = os.open(lock_path, os.O_RDWR)
@@ -607,7 +649,9 @@ class TestDocumentLocking:
             if fd_b >= 0:
                 os.close(fd_b)
 
-    def test_closing_one_fd_does_not_release_other_locks(self, lock_file):
+    def test_closing_one_fd_does_not_release_other_locks(
+        self, lock_file: tuple[Path, str]
+    ) -> None:
         lock_path, real_path = lock_file
 
         locked_event = multiprocessing.Event()
@@ -641,7 +685,9 @@ class TestDocumentLocking:
 
 class TestDocumentFlock:
     @staticmethod
-    def _child_try_flock(path, lock_op, result_queue):
+    def _child_try_flock(
+        path: Path, lock_op: int, result_queue: multiprocessing.Queue[object]
+    ) -> None:
         fd = os.open(path, os.O_RDWR)
         try:
             try:
@@ -657,7 +703,12 @@ class TestDocumentFlock:
             os.close(fd)
 
     @staticmethod
-    def _child_flock_then_signal(path, lock_op, locked_event, release_event):
+    def _child_flock_then_signal(
+        path: Path,
+        lock_op: int,
+        locked_event: threading.Event,
+        release_event: threading.Event,
+    ) -> None:
         fd = os.open(path, os.O_RDWR)
         try:
             fcntl.flock(fd, lock_op)
@@ -666,7 +717,7 @@ class TestDocumentFlock:
         finally:
             os.close(fd)
 
-    def test_exclusive_flocks_conflict(self, lock_file):
+    def test_exclusive_flocks_conflict(self, lock_file: tuple[Path, str]) -> None:
         lock_path, _ = lock_file
 
         fd_a = os.open(lock_path, os.O_RDWR)
@@ -690,7 +741,7 @@ class TestDocumentFlock:
         finally:
             os.close(fd_a)
 
-    def test_shared_flocks_do_not_conflict(self, lock_file):
+    def test_shared_flocks_do_not_conflict(self, lock_file: tuple[Path, str]) -> None:
         lock_path, _ = lock_file
 
         fd_a = os.open(lock_path, os.O_RDWR)
@@ -712,7 +763,7 @@ class TestDocumentFlock:
         finally:
             os.close(fd_a)
 
-    def test_closing_fd_releases_flock(self, lock_file):
+    def test_closing_fd_releases_flock(self, lock_file: tuple[Path, str]) -> None:
         lock_path, _ = lock_file
 
         locked_event = multiprocessing.Event()
@@ -741,7 +792,9 @@ class TestDocumentFlock:
                 release_event.set()
                 proc_a.join(timeout=5)
 
-    def test_flock_does_not_leak_across_processes(self, lock_file):
+    def test_flock_does_not_leak_across_processes(
+        self, lock_file: tuple[Path, str]
+    ) -> None:
         lock_path, _ = lock_file
 
         locked_event = multiprocessing.Event()
