@@ -8,13 +8,16 @@ import socket
 from collections import namedtuple
 from dataclasses import dataclass
 from itertools import count
+from typing import Any
 
 import dbus
 import dbus.service
+import dbusmock
 from gi.repository import GLib
 
+import tests.xdp_utils as xdp
 from tests.templates.xdp_utils import ImplSession, Response, init_logger
-from tests.xdp_utils import SessionPersistenceMode, SessionPersistenceModeError
+from tests.xdp_utils import ASV, SessionPersistenceMode, SessionPersistenceModeError
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -32,7 +35,7 @@ serials = count()
 Barrier = namedtuple("Barrier", ["id", "position"])
 
 
-def make_restore_data(data: str):
+def make_restore_data(data: str) -> dbus.Struct:
     RESTORE_DATA_VERSION = dbus.UInt32(7)  # Random-generator generated number, trust me
     return dbus.Struct(
         ("GNOME", RESTORE_DATA_VERSION, dbus.String(data, variant_level=1)),
@@ -43,7 +46,7 @@ def make_restore_data(data: str):
 class RestoreDataError(TypeError):
     """Exception raised when restore data is invalid."""
 
-    def __init__(self, restore_data: tuple) -> None:
+    def __init__(self, restore_data: dbus.Struct) -> None:
         self.restore_data = restore_data
 
     def __str__(self) -> str:
@@ -54,8 +57,8 @@ class RestoreDataError(TypeError):
 class InputcaptureParameters:
     delay: int
     supported_capabilities: int
-    capabilities: int
-    default_zone: list
+    capabilities: int | None
+    default_zone: list[tuple[int, int, int, int]]
     disable_delay: int
     activated_delay: int
     deactivated_delay: int
@@ -64,7 +67,7 @@ class InputcaptureParameters:
     allow_persistence: bool
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     logger.debug(f"Loading parameters: {parameters}")
@@ -104,12 +107,14 @@ def load(mock, parameters=None):
     mock.sessions = {}
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="osa{sv}",
     out_signature="a{sv}",
 )
-def CreateSession2(self, session_handle, app_id, options):
+def CreateSession2(  # type: ignore [no-untyped-def]
+    self, session_handle: dbus.ObjectPath, app_id: str, options: ASV
+) -> dict[str, dbus.ObjectPath] | tuple[int, Any]:
     try:
         logger.debug(f"CreateSession2({session_handle}, {app_id}, {options})")
 
@@ -125,12 +130,19 @@ def CreateSession2(self, session_handle, app_id, options):
         return (2, {})
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oossa{sv}",
     out_signature="ua{sv}",
 )
-def Start(self, handle, session_handle, app_id, parent_window, options):
+def Start(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    session_handle: dbus.ObjectPath,
+    app_id: str,
+    parent_window: Any,
+    options: ASV,
+) -> tuple[int, Any] | tuple[xdp.Response, dict[str, Any]]:
     try:
         logger.debug(f"Start({session_handle}, {app_id}, {parent_window}, {options})")
         params = self.inputcapture_params
@@ -191,12 +203,18 @@ def Start(self, handle, session_handle, app_id, parent_window, options):
         return (2, {})
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oosa{sv}",
     out_signature="ua{sv}",
 )
-def GetZones(self, handle, session_handle, app_id, options):
+def GetZones(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    session_handle: dbus.ObjectPath,
+    app_id: str,
+    options: ASV,
+) -> tuple[int, Any] | tuple[xdp.Response, dict[str, Any]]:
     try:
         logger.debug(f"GetZones({session_handle}, {options})")
         params = self.inputcapture_params
@@ -219,14 +237,20 @@ def GetZones(self, handle, session_handle, app_id, options):
         return (2, {})
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oosa{sv}aa{sv}u",
     out_signature="ua{sv}",
 )
-def SetPointerBarriers(
-    self, handle, session_handle, app_id, options, barriers, zone_set
-):
+def SetPointerBarriers(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    session_handle: dbus.ObjectPath,
+    app_id: str,
+    options: ASV,
+    barriers: Barrier,
+    zone_set: int,
+) -> tuple[int, Any] | tuple[xdp.Response, dict[str, Any]]:
     try:
         logger.debug(
             f"SetPointerBarriers({session_handle}, {options}, {barriers}, {zone_set})"
@@ -288,12 +312,14 @@ def SetPointerBarriers(
         return (2, {})
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="osa{sv}",
     out_signature="ua{sv}",
 )
-def Enable(self, session_handle, app_id, options):
+def Enable(  # type: ignore [no-untyped-def, return]
+    self, session_handle: dbus.ObjectPath, app_id: str, options: ASV
+) -> tuple[int, Any] | None:
     try:
         logger.debug(f"Enable({session_handle}, {options})")
         params = self.inputcapture_params
@@ -307,7 +333,7 @@ def Enable(self, session_handle, app_id, options):
 
         if params.disable_delay > 0:
 
-            def disable():
+            def disable() -> None:
                 logger.debug("emitting Disabled")
                 self.EmitSignal(MAIN_IFACE, "Disabled", "oa{sv}", [session_handle, {}])
 
@@ -315,7 +341,7 @@ def Enable(self, session_handle, app_id, options):
 
         if params.activated_delay > 0:
 
-            def activated():
+            def activated() -> None:
                 logger.debug("emitting Activated")
                 options = {
                     "activation_id": dbus.UInt32(activation_id, variant_level=1),
@@ -332,7 +358,7 @@ def Enable(self, session_handle, app_id, options):
 
         if params.deactivated_delay > 0:
 
-            def deactivated():
+            def deactivated() -> None:
                 logger.debug("emitting Deactivated")
                 options = {
                     "activation_id": dbus.UInt32(activation_id, variant_level=1),
@@ -348,7 +374,7 @@ def Enable(self, session_handle, app_id, options):
 
         if params.zones_changed_delay > 0:
 
-            def zones_changed():
+            def zones_changed() -> None:
                 logger.debug("emitting ZonesChanged")
                 options = {
                     "zone_set": dbus.UInt32(activation_id, variant_level=1),
@@ -364,12 +390,14 @@ def Enable(self, session_handle, app_id, options):
         return (2, {})
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="osa{sv}",
     out_signature="ua{sv}",
 )
-def Disable(self, session_handle, app_id, options):
+def Disable(  # type: ignore [no-untyped-def, return]
+    self, session_handle: dbus.ObjectPath, app_id: str, options: ASV
+) -> tuple[int, Any] | None:
     try:
         logger.debug(f"Disable({session_handle}, {options})")
 
@@ -379,12 +407,14 @@ def Disable(self, session_handle, app_id, options):
         return (2, {})
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="osa{sv}",
     out_signature="ua{sv}",
 )
-def Release(self, session_handle, app_id, options):
+def Release(  # type: ignore [no-untyped-def, return]
+    self, session_handle: dbus.ObjectPath, app_id: str, options: ASV
+) -> tuple[int, Any] | None:
     try:
         logger.debug(f"Release({session_handle}, {options})")
 
@@ -394,12 +424,14 @@ def Release(self, session_handle, app_id, options):
         return (2, {})
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="osa{sv}",
     out_signature="h",
 )
-def ConnectToEIS(self, session_handle, app_id, options):
+def ConnectToEIS(  # type: ignore [no-untyped-def]
+    self, session_handle: dbus.ObjectPath, app_id: str, options: ASV
+) -> int | dbus.types.UnixFd:
     try:
         logger.debug(f"ConnectToEIS({session_handle}, {options})")
 
