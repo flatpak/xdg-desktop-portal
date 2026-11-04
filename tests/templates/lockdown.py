@@ -5,6 +5,8 @@
 # mypy: disable-error-code="misc"
 
 import dbus.service
+import dbusmock
+from gi.repository import GLib
 
 from tests.templates.xdp_utils import init_logger
 
@@ -17,7 +19,7 @@ MAIN_IFACE = "org.freedesktop.impl.portal.Lockdown"
 logger = init_logger(__name__)
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     logger.debug(f"Loading parameters: {parameters}")
