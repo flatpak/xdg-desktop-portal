@@ -5,7 +5,8 @@
 # mypy: disable-error-code="misc"
 
 import dbus.service
-from dbusmock import MOCK_IFACE
+import dbusmock
+from gi.repository import GLib
 
 from tests.templates.xdp_utils import init_logger
 
@@ -19,7 +20,7 @@ VERSION = 2
 logger = init_logger(__name__)
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     logger.debug(f"Loading parameters: {parameters}")
@@ -38,34 +39,38 @@ def load(mock, parameters=None):
     mock.notifications = {}
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="ssa{sv}",
     out_signature="",
 )
-def AddNotification(self, app_id, id, notification):
+def AddNotification(  # type: ignore [no-untyped-def]
+    self, app_id: str, id: str, notification: list[dict[str, GLib.Variant]]
+) -> None:
     logger.debug(f"AddNotification({app_id}, {id}, {notification})")
 
     self.notifications.setdefault(app_id, {})[id] = notification
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="ss",
     out_signature="",
 )
-def RemoveNotification(self, app_id, id):
+def RemoveNotification(self, app_id: str, id: str) -> None:  # type: ignore [no-untyped-def]
     logger.debug(f"AddNotification({app_id}, {id})")
 
     del self.notifications[app_id][id]
 
 
-@dbus.service.method(
-    MOCK_IFACE,
+@dbus.service.method(  # type: ignore [untyped-decorator]
+    dbusmock.MOCK_IFACE,
     in_signature="sssav",
     out_signature="",
 )
-def EmitActionInvoked(self, app_id, id, action, parameter):
+def EmitActionInvoked(  # type: ignore [no-untyped-def]
+    self, app_id: str, id: str, action: str, parameter: list[GLib.Variant]
+) -> None:
     logger.debug(f"EmitActionInvoked({app_id}, {id}, {action}, {parameter})")
 
     # n = self.notifications[app_id][id]
