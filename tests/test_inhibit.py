@@ -23,6 +23,7 @@ class SessionState(Enum):
     RUNNING = 1
     QUERY_END = 2
     ENDING = 3
+    SUSPENDING = 4
 
 
 @pytest.fixture
@@ -42,7 +43,8 @@ class TestInhibit:
         )
 
     def test_version(self, portals, dbus_con):
-        xdp.check_version(dbus_con, "Inhibit", 3)
+        # TODO: compare with logind objects and make sure v3/v4 are exposed appropriately?
+        xdp.check_version(dbus_con, "Inhibit", 4)
 
     def test_basic(self, portals, dbus_con, xdp_app_info):
         app_id = xdp_app_info.app_id

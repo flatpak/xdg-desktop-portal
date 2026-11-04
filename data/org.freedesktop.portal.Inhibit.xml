@@ -12,7 +12,7 @@
       This simple interface lets sandboxed applications inhibit the user
       session from ending, suspending, idling or getting switched away.
 
-      This documentation describes version 3 of this interface.
+      This documentation describes version 4 of this interface.
   -->
   <interface name="org.freedesktop.portal.Inhibit">
     <!--
@@ -83,8 +83,14 @@
           object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
           more information about the session handle.
 
-        The following results get returned via the
-        :ref:`Request::Response <org.freedesktop.portal.Request::Response>` signal:
+        * ``suspend_aware`` (``b``)
+
+          The client would like to be aware of suspend events, and will begin receiving them
+          on StateChanged signals.
+
+          This option was added in version 4.
+
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``session_handle`` (``s``)
 
@@ -121,6 +127,10 @@
         first to inhibit logout, to prevent the session from proceeding to the
         Ending state.
 
+        When the session state changes to 'Suspending', clients with active monitoring
+        sessions are expected to respond by calling
+        :ref:`org.freedesktop.portal.Inhibit.SuspendingResponse` within a second
+        of receiving the StateChanged signal.
         The following information may get returned in the @state vardict:
 
         * ``screensaver-active`` (``b``)
@@ -131,9 +141,18 @@
 
           The state of the session. This member is new in version 3.
 
-          - ``1``: Running
-          - ``2``: Query End
-          - ``3``: Ending
+          `Suspending` was added in version 4 and will only be emitted if
+          the client has created this monitoring session with `suspend_aware`
+          set to true.
+
+          - ``1``: Running: The session is now running normally. This is the default state.
+          - ``2``: Query End: The session may end soon. The system is about to ask the user whether they want to log out. This is the last opportunity for apps to take a log out inhibitor.
+          - ``3``: Ending: The session is ending. This is the last opportunity for apps to exit cleanly before they are killed by the system.
+          - ``4``: Suspending: The session is suspending. This is the last opportunity for apps to react before they will be frozen.
+
+        * ``locked`` (``b``)
+
+          Whether the session is locked. This member was added in version 4 of this interface.
 
     -->
     <signal name="StateChanged">
@@ -155,6 +174,21 @@
         This method was added in version 3 of this interface.
     -->
     <method name="QueryEndResponse">
+      <arg type="o" name="session_handle" direction="in"/>
+    </method>
+
+    <!--
+        SuspendingResponse:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+
+        Acknowledges that the caller received the
+        :ref:`org.freedesktop.portal.Inhibit::StateChanged`
+        signal. This method should be called within one second of receiving a StateChanged
+        signal with the 'Suspending' state.
+
+        This method was added in version 4 of this interface.
+    -->
+    <method name="SuspendingResponse">
       <arg type="o" name="session_handle" direction="in"/>
     </method>
 
