@@ -97,6 +97,7 @@ tests = {
   'dynamiclauncher': {},
   'email': {},
   'filechooser': {},
+  'filetransfer': {},
   'globalshortcuts': {},
   'inhibit': {},
   'inputcapture': {},
