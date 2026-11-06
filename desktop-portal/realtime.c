@@ -233,12 +233,13 @@ realtime_class_init (RealtimeClass *klass)
   object_class->finalize = realtime_finalize;
 }
 
-static void
+static gboolean
 load_all_properties (Realtime *realtime)
 {
   GDBusProxy *proxy = realtime->rtkit_proxy;
   const char * properties[] = { "MaxRealtimePriority", "MinNiceLevel", "RTTimeUSecMax" };
   enum prop_type { MAX_REALTIME_PRIORITY, MIN_NICE_LEVEL, RTTIME_USEC_MAX };
+  gboolean success = TRUE;
 
   for (guint i = 0; i < G_N_ELEMENTS (properties); ++i)
     {
@@ -250,14 +251,15 @@ load_all_properties (Realtime *realtime)
       result = g_dbus_proxy_call_sync (proxy,
                                        DBUS_DBUS_IFACE ".Properties.Get",
                                         g_steal_pointer (&parameters),
-                                        G_DBUS_CALL_FLAGS_NONE,
-                                        -1,
-                                        NULL,
-                                        &error);
+                                       G_DBUS_CALL_FLAGS_NONE,
+                                       -1,
+                                       NULL,
+                                       &error);
 
       if (!result)
         {
           g_warning ("Failed to load RealtimeKit property: %s", error->message);
+          success = FALSE;
         }
       else
         {
@@ -279,14 +281,16 @@ load_all_properties (Realtime *realtime)
           g_dbus_proxy_set_cached_property (proxy, properties[i], value);
         }
     }
+
+  return success;
 }
 
 static Realtime *
 realtime_new (void)
 {
-  Realtime *realtime;
   g_autoptr(GError) error = NULL;
   g_autoptr(GDBusProxy) rtkit_proxy = NULL;
+  g_autoptr(Realtime) realtime = NULL;
 
   rtkit_proxy = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SYSTEM,
                                                G_DBUS_PROXY_FLAGS_NONE,
@@ -298,9 +302,8 @@ realtime_new (void)
                                                &error);
   if (!rtkit_proxy)
     {
-      /* We continue on so the realtime interface remains exported,
-       * however it will fail to do anything */
       g_warning ("Failed to create RealtimeKit proxy: %s", error->message);
+      return NULL;
     }
 
   realtime = g_object_new (realtime_get_type (), NULL);
@@ -308,10 +311,13 @@ realtime_new (void)
 
   xdp_dbus_realtime_set_version (XDP_DBUS_REALTIME (realtime), 1);
 
-  if (realtime->rtkit_proxy)
-    load_all_properties (realtime);
+  if (!load_all_properties (realtime))
+    {
+      g_warning ("Failed to load RealtimeKit properties at startup");
+      return NULL;
+    }
 
-  return realtime;
+  return g_steal_pointer (&realtime);
 }
 
 void
@@ -320,6 +326,8 @@ init_realtime (XdpContext *context)
   g_autoptr(Realtime) realtime = NULL;
 
   realtime = realtime_new ();
+  if (realtime == NULL)
+    return;
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&realtime)),
