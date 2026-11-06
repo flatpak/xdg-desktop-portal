@@ -16,6 +16,7 @@
 
 #include <gio/gio.h>
 
+#include "xdp-app-info.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-documents.h"
@@ -464,6 +465,47 @@ static XdpOptionKey open_file_options[] = {
   { "choices", (const GVariantType *)"a(ssa(ss)s)", validate_choices },
 };
 
+/*
+ * Resolve a path from a sandboxed app to a host path.
+ *
+ * Document portal paths are resolved first. Paths that were not
+ * document portal paths are then remapped from the sandbox mount
+ * namespace to the host. Directories that do not exist on the host
+ * are dropped so the backend falls back to its own default.
+ */
+static char *
+resolve_path_from_app (XdpAppInfo                 *app_info,
+                       const char                 *path_from_app,
+                       XdpResolveDocumentStrategy  strategy)
+{
+  g_autofree char *resolved = NULL;
+  g_autofree char *host_path = NULL;
+
+  resolved = xdp_resolve_document_portal_path (path_from_app, strategy);
+  if (resolved == NULL)
+    return NULL;
+
+  /* A path that came back from the document portal is already a host
+   * path, and must not be translated a second time.
+   */
+  if (g_strcmp0 (resolved, path_from_app) != 0)
+    return g_steal_pointer (&resolved);
+
+  host_path = xdp_app_info_remap_path (app_info, resolved);
+  if (host_path == NULL)
+    return NULL;
+
+  if (strategy == XDP_RESOLVE_DOCUMENT_TO_DIRECTORY &&
+      !g_file_test (host_path, G_FILE_TEST_IS_DIR))
+    {
+      g_debug ("Dropping current folder '%s': '%s' is not a directory on the host",
+               path_from_app, host_path);
+      return NULL;
+    }
+
+  return g_steal_pointer (&host_path);
+}
+
 static gboolean
 handle_open_file (XdpDbusFileChooser *object,
                   GDBusMethodInvocation *invocation,
@@ -500,11 +542,13 @@ handle_open_file (XdpDbusFileChooser *object,
     if (current_folder)
       {
         const char *path_from_app = g_variant_get_bytestring (current_folder);
-        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app,
-                                                                       XDP_RESOLVE_DOCUMENT_TO_DIRECTORY);
+        g_autofree char *host_path = resolve_path_from_app (request->app_info,
+                                                            path_from_app,
+                                                            XDP_RESOLVE_DOCUMENT_TO_DIRECTORY);
 
-        g_variant_builder_add (&options, "{sv}", "current_folder",
-                              g_variant_new_bytestring (host_path));
+        if (host_path != NULL)
+          g_variant_builder_add (&options, "{sv}", "current_folder",
+                                g_variant_new_bytestring (host_path));
       }
   }
 
@@ -632,11 +676,13 @@ handle_save_file (XdpDbusFileChooser *object,
     if (current_file)
       {
         const char *path_from_app = g_variant_get_bytestring (current_file);
-        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app,
-                                                                       XDP_RESOLVE_DOCUMENT_TO_FILE);
+        g_autofree char *host_path = resolve_path_from_app (request->app_info,
+                                                            path_from_app,
+                                                            XDP_RESOLVE_DOCUMENT_TO_FILE);
 
-        g_variant_builder_add (&options, "{sv}", "current_file",
-                              g_variant_new_bytestring (host_path));
+        if (host_path != NULL)
+          g_variant_builder_add (&options, "{sv}", "current_file",
+                                g_variant_new_bytestring (host_path));
       }
   }
   {
@@ -646,11 +692,13 @@ handle_save_file (XdpDbusFileChooser *object,
     if (current_folder)
       {
         const char *path_from_app = g_variant_get_bytestring (current_folder);
-        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app,
-                                                                       XDP_RESOLVE_DOCUMENT_TO_DIRECTORY);
+        g_autofree char *host_path = resolve_path_from_app (request->app_info,
+                                                            path_from_app,
+                                                            XDP_RESOLVE_DOCUMENT_TO_DIRECTORY);
 
-        g_variant_builder_add (&options, "{sv}", "current_folder",
-                              g_variant_new_bytestring (host_path));
+        if (host_path != NULL)
+          g_variant_builder_add (&options, "{sv}", "current_folder",
+                                g_variant_new_bytestring (host_path));
       }
   }
 

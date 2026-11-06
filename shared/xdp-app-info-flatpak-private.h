@@ -19,5 +19,5 @@ G_DECLARE_FINAL_TYPE (XdpAppInfoFlatpak,
 
 XdpAppInfo * xdp_app_info_flatpak_new (const char  *sender,
                                        int          pid,
-                                       int         *pidfd,
+                                       GLnxPidRef  *pidref,
                                        GError     **error);
