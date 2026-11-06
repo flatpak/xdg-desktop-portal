@@ -14,8 +14,36 @@ def required_templates():
     return {"remotedesktop": {}, "screencast": {}}
 
 
-def start_stream(dbus_con, screencast_intf):
+def get_backend_select_options(dbus_con):
+    calls = xdp.get_mock_iface(dbus_con).GetMethodCalls("SelectSources")
+    assert calls
+    _timestamp, args = calls[-1]
+    return args[3]
+
+
+def get_streams_by_media_type(response):
+    streams = {}
+    for node_id, props in response.results["streams"]:
+        media_type = props.get("media_type", "video")
+        assert media_type not in streams
+        streams[media_type] = (node_id, props)
+    return streams
+
+
+def get_available_audio_modes(dbus_con):
+    properties_intf = dbus.Interface(
+        xdp.get_xdp_dbus_object(dbus_con), "org.freedesktop.DBus.Properties"
+    )
+    return properties_intf.Get(
+        "org.freedesktop.portal.ScreenCast", "AvailableAudioModes"
+    )
+
+
+def start_stream(dbus_con, screencast_intf, select_options=None):
     """Drive CreateSession, SelectSources and Start, returning the Start response."""
+    if select_options is None:
+        select_options = {"types": dbus.UInt32(1)}
+
     request = xdp.Request(dbus_con, screencast_intf)
     response = request.call("CreateSession", options={"session_handle_token": "t0"})
     assert response
@@ -27,7 +55,7 @@ def start_stream(dbus_con, screencast_intf):
     response = request.call(
         "SelectSources",
         session_handle=session.handle,
-        options={"types": dbus.UInt32(1)},
+        options=select_options,
     )
     assert response
     assert response.response == 0
@@ -47,7 +75,7 @@ def start_stream(dbus_con, screencast_intf):
 
 class TestScreenCast:
     def test_version(self, portals, dbus_con):
-        # The frontend advertises MIN(impl_version, 6); the backend here
+        # The frontend advertises MIN(impl_version, 7); the backend here
         # implements version 6, so the portal exposes version 6.
         xdp.check_version(dbus_con, "ScreenCast", 6)
 
@@ -136,3 +164,52 @@ class TestScreenCast:
         assert len(streams) == 1
         _node_id, props = streams[0]
         assert "pipewire-serial" not in props
+
+    @pytest.mark.parametrize(
+        "template_params",
+        ({"screencast": {"version": 7}},),
+    )
+    def test_audio_with_v7_backend(self, portals, dbus_con):
+        xdp.check_version(dbus_con, "ScreenCast", 7)
+        assert get_available_audio_modes(dbus_con) == 7
+
+        screencast_intf = xdp.get_portal_iface(dbus_con, "ScreenCast")
+        response = start_stream(
+            dbus_con,
+            screencast_intf,
+            select_options={"types": dbus.UInt32(1), "audio_mode": dbus.UInt32(2)},
+        )
+
+        assert get_backend_select_options(dbus_con)["audio_mode"] == 2
+        streams = get_streams_by_media_type(response)
+        assert set(streams) == {"video", "audio"}
+        _node_id, props = streams["video"]
+        audio_node_id, audio_props = streams["audio"]
+        assert audio_node_id == 77
+        assert audio_props["mapping_id"] == props["mapping_id"]
+
+    def test_no_audio_with_v6_backend(self, portals, dbus_con):
+        assert get_available_audio_modes(dbus_con) == 0
+
+        screencast_intf = xdp.get_portal_iface(dbus_con, "ScreenCast")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        request = xdp.Request(dbus_con, screencast_intf)
+        response = request.call("CreateSession", options={"session_handle_token": "t0"})
+        assert response
+        assert response.response == 0
+        session = xdp.Session.from_response(dbus_con, response)
+
+        request = xdp.Request(dbus_con, screencast_intf)
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
+            request.call(
+                "SelectSources",
+                session_handle=session.handle,
+                options={"types": dbus.UInt32(1), "audio_mode": dbus.UInt32(2)},
+            )
+
+        assert (
+            excinfo.value.get_dbus_name()
+            == "org.freedesktop.portal.Error.InvalidArgument"
+        )
+        assert mock_intf.GetMethodCalls("SelectSources") == []

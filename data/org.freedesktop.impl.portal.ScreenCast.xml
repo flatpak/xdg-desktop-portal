@@ -11,7 +11,7 @@
 
       The Screen cast portal allows to create screen cast sessions.
 
-      This documentation describes version 6 of this interface.
+      This documentation describes version 7 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.ScreenCast">
     <!--
@@ -97,6 +97,22 @@
 
           This option was added in version 4 of this interface.
 
+        * ``audio_mode`` (``u``)
+
+          Whether to include audio in the screen cast, and whether its audio
+          includes the application's own. It must be one of the audio modes
+          advertised in
+          :ref:`org.freedesktop.impl.portal.ScreenCast:AvailableAudioModes`.
+          Setting an audio mode not advertised will cause the screen cast
+          session to be closed. The default audio mode is 'None'.
+
+          Unless it is 'None', the result of
+          :ref:`org.freedesktop.impl.portal.ScreenCast.Start` must contain
+          an audio stream for each selected source whose audio the user
+          agreed to share.
+
+          This option was added in version 7 of this interface.
+
         For available source types, see the
         :ref:`org.freedesktop.impl.portal.ScreenCast:AvailableSourceTypes` property.
     -->
@@ -130,7 +146,7 @@
 
           An array of PipeWire streams. Each stream consists of a PipeWire
           node ID (the first element in the tuple, and a Vardict of
-          properties.
+          properties).
 
           Since version 6 of this interface, the node ID in the stream
           tuple is deprecated for stream targeting. PipeWire node IDs can
@@ -142,7 +158,24 @@
           :ref:`org.freedesktop.impl.portal.ScreenCast.SelectSources`) was set to 'false', or at least one stream if
           ``multiple`` was set to 'true' as part of the :ref:`org.freedesktop.impl.portal.ScreenCast.SelectSources` method.
 
+          Since version 7, a selected source may also have an audio stream,
+          as described for the ``audio_mode`` option of
+          :ref:`org.freedesktop.impl.portal.ScreenCast.SelectSources`: the
+          PipeWire node that carries the audio output of the applications the
+          source shows: for a window, its application; for a monitor or an
+          area, the applications with a window on it, and those without any
+          window.
+
           Each stream contains the following properties:
+
+          * ``media_type`` (``s``)
+
+            The type of media carried by this stream. Valid values are
+            ``video`` and ``audio``.
+
+            If this property is absent, the stream is a video stream.
+
+            This property was added in version 7 of this interface.
 
           * ``position`` (``(ii)``)
 
@@ -172,6 +205,9 @@
 
             An optional identifier used to map different aspects of the
             resource this stream corresponds to.
+
+            An audio stream must have the same ``mapping_id`` as the video
+            stream of its source.
 
             When used in a remote desktop session, the ``mapping_id`` can be used to
             match a libei region of absolute libei devices. There may be
@@ -260,6 +296,18 @@
         - ``4``: Metadata: The cursor is not part of the screen cast stream, but sent as PipeWire stream metadata.
     -->
     <property name="AvailableCursorModes" type="u" access="read"/>
+    <!--
+        AvailableAudioModes:
+
+        Available audio mode values:
+
+        - ``1``: None: The screen cast has no audio stream.
+        - ``2``: ExcludeSelf: The audio streams leave out the application's own audio output streams.
+        - ``4``: IncludeSelf: The audio streams include the application's own audio output streams, like any other application's.
+
+        This property was added in version 7 of this interface.
+    -->
+    <property name="AvailableAudioModes" type="u" access="read"/>
     <property name="version" type="u" access="read"/>
   </interface>
 </node>
