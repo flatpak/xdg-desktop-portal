@@ -32,12 +32,7 @@ struct _Camera
   XdpDbusImplAccess *access_impl;
   XdpDbusImplLockdown *lockdown_impl;
 
-  PipeWireRemote *pipewire_remote;
-  GSource *pipewire_source;
-  GFileMonitor *pipewire_socket_monitor;
-  int64_t connect_timestamps[10];
-  int connect_timestamps_i;
-  GHashTable *cameras;
+  GBinding *is_camera_present;
 };
 
 struct _CameraClass
@@ -53,10 +48,6 @@ G_DEFINE_TYPE_WITH_CODE (Camera, camera, XDP_DBUS_TYPE_CAMERA_SKELETON,
                                                 camera_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Camera, g_object_unref)
-
-static gboolean
-create_pipewire_remote (Camera *camera,
-                        GError **error);
 
 static gboolean
 query_permission_sync (Camera     *camera,
@@ -325,152 +316,12 @@ camera_iface_init (XdpDbusCameraIface *iface)
 }
 
 static void
-global_added_cb (PipeWireRemote *remote,
-                 uint32_t id,
-                 const char *type,
-                 const struct spa_dict *props,
-                 gpointer user_data)
-{
-  Camera *camera = user_data;
-  const struct spa_dict_item *media_class;
-  const struct spa_dict_item *media_role;
-
-  if (g_strcmp0(type, PW_TYPE_INTERFACE_Node) != 0)
-    return;
-
-  if (!props)
-    return;
-
-  media_class = spa_dict_lookup_item (props, PW_KEY_MEDIA_CLASS);
-  if (!media_class)
-    return;
-
-  if (g_strcmp0 (media_class->value, "Video/Source") != 0)
-    return;
-
-  media_role = spa_dict_lookup_item (props, PW_KEY_MEDIA_ROLE);
-  if (!media_role)
-    return;
-
-  if (g_strcmp0 (media_role->value, "Camera") != 0)
-    return;
-
-  g_hash_table_add (camera->cameras, GINT_TO_POINTER (id));
-
-  xdp_dbus_camera_set_is_camera_present (XDP_DBUS_CAMERA (camera),
-                                         g_hash_table_size (camera->cameras) > 0);
-}
-
-static void global_removed_cb (PipeWireRemote *remote,
-                               uint32_t id,
-                               gpointer user_data)
-{
-  Camera *camera = user_data;
-
-  g_hash_table_remove (camera->cameras, GINT_TO_POINTER (id));
-
-  xdp_dbus_camera_set_is_camera_present (XDP_DBUS_CAMERA (camera),
-                                         g_hash_table_size (camera->cameras) > 0);
-}
-
-static void
-pipewire_remote_error_cb (gpointer data,
-                          gpointer user_data)
-{
-  Camera *camera = user_data;
-  g_autoptr(GError) error = NULL;
-
-  g_hash_table_remove_all (camera->cameras);
-  xdp_dbus_camera_set_is_camera_present (XDP_DBUS_CAMERA (camera), FALSE);
-
-  g_clear_pointer (&camera->pipewire_source, g_source_destroy);
-  g_clear_pointer (&camera->pipewire_remote, pipewire_remote_destroy);
-
-  if (!create_pipewire_remote (camera, &error))
-    g_warning ("Failed connect to PipeWire: %s", error->message);
-}
-
-static gboolean
-create_pipewire_remote (Camera *camera,
-                        GError **error)
-{
-  struct pw_properties *pipewire_properties;
-  const int n_connect_retries = G_N_ELEMENTS (camera->connect_timestamps);
-  int64_t now;
-  int max_retries_ago_i;
-  int64_t max_retries_ago;
-
-  now = g_get_monotonic_time ();
-  camera->connect_timestamps[camera->connect_timestamps_i] = now;
-
-  max_retries_ago_i = (camera->connect_timestamps_i + 1) % n_connect_retries;
-  max_retries_ago = camera->connect_timestamps[max_retries_ago_i];
-
-  camera->connect_timestamps_i =
-    (camera->connect_timestamps_i + 1) % n_connect_retries;
-
-  if (max_retries_ago &&
-      now - max_retries_ago < G_USEC_PER_SEC * 10)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Tried to reconnect to PipeWire too often, giving up");
-      return FALSE;
-    }
-
-  pipewire_properties = pw_properties_new (XDP_PW_NAMESPACE ".is_portal", "true",
-                                           XDP_PW_NAMESPACE ".monitor", "Camera",
-                                           NULL);
-  camera->pipewire_remote = pipewire_remote_new_sync (pipewire_properties,
-                                                      global_added_cb,
-                                                      global_removed_cb,
-                                                      pipewire_remote_error_cb,
-                                                      camera,
-                                                      error);
-  if (!camera->pipewire_remote)
-    return FALSE;
-
-  camera->pipewire_source =
-    pipewire_remote_create_source (camera->pipewire_remote);
-
-  return TRUE;
-}
-
-static void
-on_pipewire_socket_changed (GFileMonitor *monitor,
-                            GFile *file,
-                            GFile *other_file,
-                            GFileMonitorEvent event_type,
-                            Camera *camera)
-{
-  g_autoptr(GError) error = NULL;
-
-  if (event_type != G_FILE_MONITOR_EVENT_CREATED)
-    return;
-
-  if (camera->pipewire_remote)
-    {
-      g_debug ("PipeWire socket created after remote was created");
-      return;
-    }
-
-  g_debug ("PipeWireSocket created, tracking cameras");
-
-  if (!create_pipewire_remote (camera, &error))
-    g_warning ("Failed connect to PipeWire: %s", error->message);
-}
-
-static void
 camera_finalize (GObject *object)
 {
   Camera *camera = (Camera *)object;
 
   g_clear_object (&camera->access_impl);
   g_clear_object (&camera->lockdown_impl);
-  g_clear_object (&camera->pipewire_socket_monitor);
-
-  g_clear_pointer (&camera->pipewire_source, g_source_destroy);
-  g_clear_pointer (&camera->pipewire_remote, pipewire_remote_destroy);
-  g_clear_pointer (&camera->cameras, g_hash_table_unref);
 
   G_OBJECT_CLASS (camera_parent_class)->finalize (object);
 }
@@ -489,13 +340,20 @@ camera_class_init (CameraClass *klass)
 }
 
 static Camera *
-camera_new (XdpDbusImplAccess   *access_impl,
-            XdpDbusImplLockdown *lockdown_impl)
+camera_new (XdpContext *context)
 {
   Camera *camera;
-  g_autofree char *pipewire_socket_path = NULL;
-  g_autoptr(GFile) pipewire_socket = NULL;
-  g_autoptr(GError) error = NULL;
+  XdpDbusImplAccess *access_impl;
+  XdpDbusImplLockdown *lockdown_impl;
+
+  access_impl = xdp_context_get_access_impl (context);
+  if (access_impl == NULL)
+    {
+      g_warning ("The camera portal requires an access impl");
+      return NULL;
+    }
+
+  lockdown_impl = xdp_context_get_lockdown_impl (context);
 
   camera = g_object_new (camera_get_type (), NULL);
   camera->access_impl = g_object_ref (access_impl);
@@ -503,27 +361,11 @@ camera_new (XdpDbusImplAccess   *access_impl,
 
   xdp_dbus_camera_set_version (XDP_DBUS_CAMERA (camera), 1);
 
-  pipewire_socket_path = g_strdup_printf ("%s/pipewire-0",
-                                          g_get_user_runtime_dir ());
-  pipewire_socket = g_file_new_for_path (pipewire_socket_path);
-  camera->pipewire_socket_monitor =
-    g_file_monitor_file (pipewire_socket, G_FILE_MONITOR_NONE, NULL, &error);
-  if (!camera->pipewire_socket_monitor)
-    {
-      g_warning ("Failed to track cameras: %s", error->message);
-    }
-  else
-    {
-      g_signal_connect_object (camera->pipewire_socket_monitor, "changed",
-                               G_CALLBACK (on_pipewire_socket_changed),
-                               camera,
-                               G_CONNECT_DEFAULT);
-
-      camera->cameras = g_hash_table_new (NULL, NULL);
-
-      if (!create_pipewire_remote (camera, &error))
-        g_warning ("Failed to connect to PipeWire: %s", error->message);
-    }
+  camera->is_camera_present = g_object_bind_property (context,
+                                                      "camera-present",
+                                                      camera,
+                                                      "is-camera-present",
+                                                      G_BINDING_SYNC_CREATE);
 
   return camera;
 }
@@ -532,21 +374,10 @@ void
 init_camera (XdpContext *context)
 {
   g_autoptr(Camera) camera = NULL;
-  XdpDbusImplAccess *access_impl;
-  XdpDbusImplLockdown *lockdown_impl;
 
-  access_impl = xdp_context_get_access_impl (context);
-  if (access_impl == NULL)
-    {
-      g_warning ("The camera portal requires an access impl");
-      return;
-    }
-
-  lockdown_impl = xdp_context_get_lockdown_impl (context);
-
-  camera = camera_new (access_impl, lockdown_impl);
-
-  xdp_context_take_and_export_portal (context,
-                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&camera)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
+  camera = camera_new (context);
+  if (camera != NULL)
+    xdp_context_take_and_export_portal (context,
+                                        G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&camera)),
+                                        XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
 }
