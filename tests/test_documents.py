@@ -360,7 +360,7 @@ echo 'read-write'
 """)
         mock_flatpak.chmod(0o755)
 
-        concurrent_bus = dbus.SessionBus(private=True)
+        concurrent_bus = dbus.bus.BusConnection(os.environ["DBUS_SESSION_BUS_ADDRESS"])
         concurrent_intf = dbus.Interface(
             concurrent_bus.get_object(
                 "org.freedesktop.portal.Documents",
