@@ -12,6 +12,8 @@
 #include <gio/gio.h>
 #include <libdex.h>
 
+#include "xdp-types.h"
+
 typedef enum _XdpAppInfoError
 {
   XDP_APP_INFO_ERROR_WRONG_APP_KIND,
@@ -73,4 +75,4 @@ gboolean xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
                                                  GKeyFile    *key_file,
                                                  GError     **error);
 
-const GPtrArray * xdp_app_info_get_usb_queries (XdpAppInfo *app_info);
+XdpEntitlements * xdp_app_info_get_entitlements (XdpAppInfo *app_info);

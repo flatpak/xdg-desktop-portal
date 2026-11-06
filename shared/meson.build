@@ -10,6 +10,7 @@ xdp_utils_sources = files(
   'xdp-app-info-registry.c',
   'xdp-app-info-snap.c',
   'xdp-app-info-linyaps.c',
+  'xdp-entitlements.c',
   'xdp-sealed-fd.c',
   'xdp-usb-query.c',
   'xdp-utils.c',

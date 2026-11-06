@@ -22,4 +22,5 @@ loosen their sandbox restrictions.
 
    reasons-to-use-portals
    convenience-libraries
+   entitlements
    api-reference

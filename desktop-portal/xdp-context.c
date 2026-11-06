@@ -40,6 +40,7 @@
 #include "xdp-app-info-registry.h"
 #include "xdp-dbus.h"
 #include "xdp-documents.h"
+#include "xdp-entitlements.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-method-info.h"
 #include "xdp-permissions.h"
@@ -91,6 +92,8 @@ struct _XdpContext
 G_DEFINE_FINAL_TYPE (XdpContext,
                      xdp_context,
                      G_TYPE_OBJECT);
+
+static GQuark quark_skeleton_entitlement;
 
 static void
 xdp_env_override_clear (gpointer data)
@@ -210,6 +213,9 @@ xdp_context_class_init (XdpContextClass *klass)
                   0, NULL, NULL, NULL,
                   G_TYPE_NONE, 1,
                   G_TYPE_STRING);
+
+  quark_skeleton_entitlement =
+    g_quark_from_static_string ("-xdp-skeleton-entitlement");
 }
 
 static void
@@ -312,6 +318,31 @@ method_needs_request (GDBusMethodInvocation *invocation)
 }
 
 static gboolean
+check_entitlement (GDBusInterfaceSkeleton *interface,
+                   GDBusMethodInvocation  *invocation,
+                   XdpAppInfo             *app_info)
+{
+  XdpEntitlement entitlement;
+  XdpEntitlements *entitlements;
+  g_autoptr(GError) error = NULL;
+
+  entitlement = GPOINTER_TO_UINT (g_object_get_qdata (G_OBJECT (interface),
+                                                      quark_skeleton_entitlement));
+  if (entitlement == XDP_ENTITLEMENT_NONE)
+    return TRUE;
+
+  entitlements = xdp_app_info_get_entitlements (app_info);
+
+  if (!xdp_entitlements_check (entitlements, &error, entitlement, NULL))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
 authorize_callback_fiber (GDBusInterfaceSkeleton *interface,
                           GDBusMethodInvocation  *invocation,
                           gpointer                user_data)
@@ -336,7 +367,7 @@ authorize_callback_fiber (GDBusInterfaceSkeleton *interface,
 
   g_object_set_data (G_OBJECT (invocation), "xdp-app-info", app_info);
 
-  return TRUE;
+  return check_entitlement (interface, invocation, app_info);
 }
 
 static gboolean
@@ -366,6 +397,9 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
   g_object_set_data_full (G_OBJECT (invocation), "xdp-app-info",
                           g_object_ref (app_info), g_object_unref);
 
+  if (!check_entitlement (interface, invocation, app_info))
+    return FALSE;
+
   if (method_needs_request (invocation))
     {
       if (!xdp_request_init_invocation (invocation, context, app_info, &error))
@@ -381,6 +415,7 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
 void
 xdp_context_take_and_export_portal (XdpContext             *context,
                                     GDBusInterfaceSkeleton *skeleton_,
+                                    XdpEntitlement          entitlement,
                                     XdpContextExportFlags   flags)
 {
   g_autoptr(GDBusInterfaceSkeleton) skeleton = skeleton_;
@@ -389,6 +424,9 @@ xdp_context_take_and_export_portal (XdpContext             *context,
 
   g_return_if_fail (XDP_IS_CONTEXT (context));
   g_return_if_fail (G_IS_DBUS_INTERFACE_SKELETON (skeleton));
+
+  g_object_set_qdata (G_OBJECT (skeleton), quark_skeleton_entitlement,
+                      GUINT_TO_POINTER (entitlement));
 
   name = g_dbus_interface_skeleton_get_info (skeleton)->name;
 

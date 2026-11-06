@@ -20,6 +20,15 @@
 
       This documentation describes version 1 of this interface.
 
+      Entitlements
+      ~~~~~~~~~~~~
+
+      ``org.freedesktop.portal.Clipboard`` · version 1
+        Gates general access to the Clipboard portal.
+
+      See :doc:`entitlements` for general information about the
+      entitlement system.
+
       Setting up clipboard access
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

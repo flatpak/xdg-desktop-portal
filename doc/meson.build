@@ -97,6 +97,7 @@ if build_documentation
     'configuration-file.rst',
     'convenience-libraries.rst',
     'documents-and-fuse.rst',
+    'entitlements.rst',
     'experimental-portals.rst',
     'for-app-developers.rst',
     'for-contributors.rst',
