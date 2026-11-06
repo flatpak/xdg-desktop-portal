@@ -6,13 +6,21 @@
 
 import socket
 from dataclasses import dataclass
+from typing import Any
 
 import dbus
 import dbus.service
-from dbusmock import MOCK_IFACE
+import dbusmock
 from gi.repository import GLib
 
-from tests.templates.xdp_utils import ImplRequest, ImplSession, Response, init_logger
+from tests.templates.xdp_utils import (
+    AsyncCallback,
+    ImplRequest,
+    ImplSession,
+    Response,
+    init_logger,
+)
+from tests.xdp_utils import ASV
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -34,7 +42,7 @@ class RemotedesktopParameters:
     fail_connect_to_eis: bool
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     logger.debug(f"Loading parameters: {parameters}")
@@ -60,13 +68,21 @@ def load(mock, parameters=None):
     mock.sessions: dict[str, ImplSession] = {}
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oosa{sv}",
     out_signature="ua{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_error):
+def CreateSession(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    session_handle: dbus.ObjectPath,
+    app_id: str,
+    options: ASV,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(f"CreateSession({handle}, {session_handle}, {app_id}, {options})")
     params = self.remotedesktop_params
 
@@ -93,13 +109,21 @@ def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_
             GLib.timeout_add(params.force_close, session.close)
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oosa{sv}",
     out_signature="ua{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def SelectDevices(self, handle, session_handle, app_id, options, cb_success, cb_error):
+def SelectDevices(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    session_handle: dbus.ObjectPath,
+    app_id: str,
+    options: ASV,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(f"SelectDevices({handle}, {session_handle}, {app_id}, {options})")
     params = self.remotedesktop_params
 
@@ -120,15 +144,22 @@ def SelectDevices(self, handle, session_handle, app_id, options, cb_success, cb_
         request.respond(Response(params.response, {}), delay=params.delay)
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oossa{sv}",
     out_signature="ua{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def Start(
-    self, handle, session_handle, app_id, parent_window, options, cb_success, cb_error
-):
+def Start(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    session_handle: dbus.ObjectPath,
+    app_id: str,
+    parent_window: Any,
+    options: ASV,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(
         f"Start({handle}, {session_handle}, {parent_window}, {app_id}, {options})"
     )
@@ -155,12 +186,14 @@ def Start(
         request.respond(response, delay=params.delay)
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="osa{sv}",
     out_signature="h",
 )
-def ConnectToEIS(self, session_handle, app_id, options):
+def ConnectToEIS(  # type: ignore [no-untyped-def]
+    self, session_handle: dbus.ObjectPath, app_id: str, options: ASV
+) -> dbus.types.UnixFd:
     try:
         logger.debug(f"ConnectToEIS({session_handle}, {app_id}, {options})")
         params = self.remotedesktop_params
@@ -180,9 +213,13 @@ def ConnectToEIS(self, session_handle, app_id, options):
         raise
 
 
-@dbus.service.method(MOCK_IFACE, in_signature="s", out_signature="s")
-def GetSessionAppId(self, session_handle):
+@dbus.service.method(  # type: ignore [untyped-decorator]
+    dbusmock.MOCK_IFACE,
+    in_signature="o",
+    out_signature="s",
+)
+def GetSessionAppId(self, session_handle: dbus.ObjectPath) -> str:  # type: ignore [no-untyped-def]
     logger.debug(f"GetSessionAppId({session_handle})")
 
     assert session_handle in self.sessions
-    return self.sessions[session_handle].app_id
+    return str(self.sessions[session_handle].app_id)

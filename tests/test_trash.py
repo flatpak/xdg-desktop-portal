@@ -6,7 +6,9 @@
 import os
 import tempfile
 from pathlib import Path
+from typing import Any
 
+import dbus
 import pytest
 from gi.repository import GLib
 
@@ -14,10 +16,10 @@ import tests.xdp_utils as xdp
 
 
 class TestTrash:
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         xdp.check_version(dbus_con, "Trash", 1)
 
-    def test_trash_file_fails(self, portals, dbus_con):
+    def test_trash_file_fails(self, portals: Any, dbus_con: dbus.Bus) -> None:
         trash_intf = xdp.get_portal_iface(dbus_con, "Trash")
         try:
             with open("/proc/cmdline") as fd:
@@ -27,7 +29,7 @@ class TestTrash:
 
         assert result == 0
 
-    def test_trash_file(self, portals, dbus_con):
+    def test_trash_file(self, portals: Any, dbus_con: dbus.Bus) -> None:
         trash_intf = xdp.get_portal_iface(dbus_con, "Trash")
 
         fd, name = tempfile.mkstemp(prefix="trash_portal_mock_", dir=Path.home())
@@ -59,7 +61,7 @@ class TestTrash:
             next(trashed_files)
 
     @pytest.mark.skip(reason="Portal requires write perm, so dirs are not supported")
-    def test_trash_folder(self, portals, dbus_con):
+    def test_trash_folder(self, portals: Any, dbus_con: dbus.Bus) -> None:
         trash_intf = xdp.get_portal_iface(dbus_con, "Trash")
 
         folder = Path(os.environ["HOME"]) / "folder-to-trash"

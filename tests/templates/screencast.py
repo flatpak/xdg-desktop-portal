@@ -5,11 +5,21 @@
 # mypy: disable-error-code="misc"
 
 from dataclasses import dataclass
+from typing import Any
 
 import dbus
 import dbus.service
+import dbusmock
+from gi.repository import GLib
 
-from tests.templates.xdp_utils import ImplRequest, ImplSession, Response, init_logger
+from tests.templates.xdp_utils import (
+    AsyncCallback,
+    ImplRequest,
+    ImplSession,
+    Response,
+    init_logger,
+)
+from tests.xdp_utils import ASV
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -31,7 +41,7 @@ class ScreenCastParameters:
     pipewire_serial: int
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     logger.debug(f"Loading parameters: {parameters}")
@@ -60,13 +70,21 @@ def load(mock, parameters=None):
     mock.sessions = {}
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oosa{sv}",
     out_signature="ua{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_error):
+def CreateSession(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    session_handle: dbus.ObjectPath,
+    app_id: str,
+    options: ASV,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(f"CreateSession({handle}, {session_handle}, {app_id}, {options})")
     params = self.screencast_params
 
@@ -84,13 +102,21 @@ def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_
         )
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oosa{sv}",
     out_signature="ua{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def SelectSources(self, handle, session_handle, app_id, options, cb_success, cb_error):
+def SelectSources(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    session_handle: dbus.ObjectPath,
+    app_id: str,
+    options: ASV,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(f"SelectSources({handle}, {session_handle}, {app_id}, {options})")
     params = self.screencast_params
 
@@ -104,15 +130,22 @@ def SelectSources(self, handle, session_handle, app_id, options, cb_success, cb_
         request.respond(Response(params.response, {}), delay=params.delay)
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="oossa{sv}",
     out_signature="ua{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def Start(
-    self, handle, session_handle, app_id, parent_window, options, cb_success, cb_error
-):
+def Start(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    session_handle: dbus.ObjectPath,
+    app_id: str,
+    parent_window: Any,
+    options: ASV,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(
         f"Start({handle}, {session_handle}, {app_id}, {parent_window}, {options})"
     )
