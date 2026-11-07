@@ -5,12 +5,15 @@
 # mypy: disable-error-code="misc"
 
 from dataclasses import dataclass
+from typing import Any
 
 import dbus
 import dbus.service
-from dbusmock import MOCK_IFACE
+import dbusmock
+from gi.repository import GLib
 
-from tests.templates.xdp_utils import ImplRequest, Response, init_logger
+from tests.templates.xdp_utils import AsyncCallback, ImplRequest, Response, init_logger
+from tests.xdp_utils import ASV
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -27,10 +30,10 @@ class UsbParameters:
     delay: int
     response: int
     expect_close: bool
-    filters: dict
+    filters: dict[str, Any]
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     logger.debug(f"Loading parameters: {parameters}")
@@ -54,22 +57,22 @@ def load(mock, parameters=None):
     )
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="ossa(sa{sv}a{sv})a{sv}",
     out_signature="ua{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def AcquireDevices(
+def AcquireDevices(  # type: ignore [no-untyped-def]
     self,
-    handle,
-    parent_window,
-    app_id,
-    devices,
-    options,
-    cb_success,
-    cb_error,
-):
+    handle: dbus.ObjectPath,
+    parent_window: Any,
+    app_id: str,
+    devices: list[tuple[int, dict[str, Any]]],
+    options: ASV,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(
         f"AcquireDevices({handle}, {parent_window}, {app_id}, {devices}, {options})"
     )
@@ -84,7 +87,7 @@ def AcquireDevices(
         cb_error,
     )
 
-    def reply():
+    def reply() -> Response:
         # no options supported
         assert not options
         devices_out = []
@@ -138,12 +141,12 @@ def AcquireDevices(
         request.respond(reply, delay=params.delay)
 
 
-@dbus.service.method(
-    MOCK_IFACE,
+@dbus.service.method(  # type: ignore [untyped-decorator]
+    dbusmock.MOCK_IFACE,
     in_signature="a{sv}",
     out_signature="",
 )
-def SetSelectionFilters(self, filters):
+def SetSelectionFilters(self, filters: dict[str, GLib.Variant]) -> None:  # type: ignore [no-untyped-def]
     logger.debug(f"SetSelectionFilters({filters})")
     params = self.usb_params
 
