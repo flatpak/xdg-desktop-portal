@@ -134,19 +134,22 @@ class TestInhibit:
         flags = InhibitFlags.ALL
 
         request = xdp.Request(dbus_con, inhibit_intf)
-        request.schedule_close(1000)
         options = {
             "reason": reason,
         }
-        request.call(
+        response = request.call(
             "Inhibit",
             window="",
             flags=flags.value,
             options=options,
         )
 
+        assert response
+        assert response.response == 0
+
+        request.close()
         # Only true if the impl.Request was closed too
-        assert request.closed
+        xdp.wait_for(lambda: request.closed)
 
         # Check the impl portal was called with the right args
         method_calls = mock_intf.GetMethodCalls("Inhibit")
@@ -156,6 +159,97 @@ class TestInhibit:
         assert args[2] == ""  # parent window
         assert args[3] == flags.value
         assert args[4]["reason"] == reason
+
+    @pytest.mark.parametrize(
+        "template_params", ({"inhibit": {"expect-close": True, "delay": 200}},)
+    )
+    def test_close_right_after_inhibit(self, portals, dbus_con):
+        """
+        A Close() right after Inhibit() returned closes the request of the
+        backend too, as GTK does when it uninhibits at once. The inhibition
+        would stay otherwise.
+
+        The delay simulates a slow backend, so that a Close() which reaches
+        the backend before it finished handling Inhibit() makes the test fail.
+        """
+        inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
+
+        request = xdp.Request(dbus_con, inhibit_intf)
+        handle = inhibit_intf.Inhibit(
+            "",
+            InhibitFlags.LOGOUT.value,
+            {"handle_token": request.handle_token},
+        )
+        assert handle == request.handle
+
+        request.close()
+        xdp.wait_for(lambda: request.closed)
+
+    @pytest.mark.parametrize(
+        "template_params", ({"inhibit": {"query-end-timeout": 10000}},)
+    )
+    def test_inhibit_before_query_end_response(self, portals, dbus_con):
+        """
+        A client which inhibits when the session is about to end, and calls
+        QueryEndResponse() once Inhibit() returned, without waiting for the
+        Response signal, has the backend receive the Inhibit() call before the
+        QueryEndResponse() call, so the session cannot end without the
+        inhibition. The order is checked in several rounds, as it is random
+        when the frontend answers Inhibit() before it calls the backend.
+
+        The long timeout keeps the backend from ending the session while a
+        slow test run is still inhibiting.
+        """
+        inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        request = xdp.Request(dbus_con, inhibit_intf)
+        response = request.call(
+            "CreateMonitor",
+            window="",
+            options={"session_handle_token": "session_token0"},
+        )
+        assert response
+        assert response.response == 0
+        session = xdp.Session.from_response(dbus_con, response)
+
+        query_end_count = 0
+
+        def state_changed_cb(session_handle, state):
+            nonlocal query_end_count
+
+            if state["session-state"] == SessionState.QUERY_END.value:
+                query_end_count += 1
+
+        inhibit_intf.connect_to_signal("StateChanged", state_changed_cb)
+
+        def calls():
+            return [
+                name
+                for _, name, _ in mock_intf.GetCalls()
+                if name in ("Inhibit", "QueryEndResponse")
+            ]
+
+        def wait_for_query_end(count):
+            xdp.wait_for(lambda: query_end_count == count)
+
+        def wait_for_calls(count):
+            xdp.wait_for(lambda: len(calls()) == count)
+
+        # The backend enters Query End again after every QueryEndResponse().
+        for i in range(5):
+            wait_for_query_end(i + 1)
+
+            inhibit_request = xdp.Request(dbus_con, inhibit_intf)
+            inhibit_intf.Inhibit(
+                "",
+                InhibitFlags.LOGOUT.value,
+                {"handle_token": inhibit_request.handle_token},
+            )
+            inhibit_intf.QueryEndResponse(session.handle)
+
+            wait_for_calls(2 * (i + 1))
+            assert calls()[-2:] == ["Inhibit", "QueryEndResponse"]
 
     def test_permission(self, portals, dbus_con, xdp_app_info):
         app_id = xdp_app_info.app_id

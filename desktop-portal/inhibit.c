@@ -54,36 +54,6 @@ G_DEFINE_TYPE_WITH_CODE (Inhibit, inhibit, XDP_DBUS_TYPE_INHIBIT_SKELETON,
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Inhibit, g_object_unref)
 
-static void
-inhibit_done (GObject *source,
-              GAsyncResult *result,
-              gpointer data)
-{
-  XdpDbusImplInhibit *impl = (XdpDbusImplInhibit *) source;
-  g_autoptr(GError) error = NULL;
-  XdpRequest *request = data;
-  int response = 0;
-
-  REQUEST_AUTOLOCK (request);
-
-  if (!xdp_dbus_impl_inhibit_call_inhibit_finish (impl, result, &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_warning ("A backend call failed: %s", error->message);
-      response = 2;
-    }
-
-  if (request->exported)
-    {
-      g_auto(GVariantBuilder) new_results =
-        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-
-      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                      response,
-                                      g_variant_builder_end (&new_results));
-    }
-}
-
 static guint32
 get_allowed_inhibit (XdpAppInfo *app_info)
 {
@@ -121,43 +91,6 @@ get_allowed_inhibit (XdpAppInfo *app_info)
   return ret;
 }
 
-static void
-handle_inhibit_in_thread_func (GTask *task,
-                               gpointer source_object,
-                               gpointer task_data,
-                               GCancellable *cancellable)
-{
-  Inhibit *inhibit = (Inhibit *) source_object;
-  XdpRequest *request = XDP_REQUEST (task_data);
-  const char *window;
-  guint32 flags;
-  GVariant *options;
-  const char *app_id;
-
-  REQUEST_AUTOLOCK (request);
-
-  window = (const char *)g_object_get_data (G_OBJECT (request), "window");
-  flags = GPOINTER_TO_UINT (g_object_get_data (G_OBJECT (request), "flags"));
-  options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
-
-  app_id = xdp_app_info_get_id (request->app_info);
-  flags = flags & get_allowed_inhibit (request->app_info);
-
-  if (flags == 0)
-    return;
-
-  g_debug ("Calling inhibit backend for %s: %d", app_id, flags);
-  xdp_dbus_impl_inhibit_call_inhibit (inhibit->impl,
-                                      xdp_request_get_object_path (request),
-                                      app_id,
-                                      window,
-                                      flags,
-                                      options,
-                                      NULL,
-                                      inhibit_done,
-                                      g_object_ref (request));
-}
-
 static gboolean
 validate_reason (const char  *key,
                  GVariant    *value,
@@ -192,10 +125,12 @@ handle_inhibit (XdpDbusInhibit *object,
   XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  g_autoptr(GTask) task = NULL;
   g_auto(GVariantBuilder) opt_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
+  const char *app_id;
+  guint32 flags;
+  XdgDesktopPortalResponseEnum response = XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS;
 
   REQUEST_AUTOLOCK (request);
 
@@ -214,10 +149,6 @@ handle_inhibit (XdpDbusInhibit *object,
 
   options = g_variant_ref_sink (g_variant_builder_end (&opt_builder));
 
-  g_object_set_data_full (G_OBJECT (request), "window", g_strdup (arg_window), g_free);
-  g_object_set_data (G_OBJECT (request), "flags", GUINT_TO_POINTER (arg_flags));
-  g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
-
   impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (inhibit->impl)),
                                                        G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                                        g_dbus_proxy_get_name (G_DBUS_PROXY (inhibit->impl)),
@@ -230,14 +161,46 @@ handle_inhibit (XdpDbusInhibit *object,
     }
 
   xdp_request_set_impl_request (request, impl_request);
+
+  app_id = xdp_app_info_get_id (request->app_info);
+  flags = arg_flags & get_allowed_inhibit (request->app_info);
+
+  /* The backend exports its request object while it handles the call, so the
+   * request is exported only once the call returned. Otherwise the caller
+   * could close the request before the backend has it, closing it in the
+   * backend would fail, and the inhibition would stay until the caller
+   * disconnects. */
+  if (flags != 0)
+    {
+      g_debug ("Calling inhibit backend for %s: %d", app_id, flags);
+      if (!xdp_dbus_impl_inhibit_call_inhibit_sync (inhibit->impl,
+                                                    xdp_request_get_object_path (request),
+                                                    app_id,
+                                                    arg_window,
+                                                    flags,
+                                                    options,
+                                                    NULL,
+                                                    &error))
+        {
+          g_dbus_error_strip_remote_error (error);
+          g_warning ("A backend call failed: %s", error->message);
+          response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
+        }
+    }
+
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  task = g_task_new (inhibit, NULL, NULL, NULL);
-  g_task_set_source_tag (task, handle_inhibit);
-  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
-  g_task_run_in_thread (task, handle_inhibit_in_thread_func);
-
   xdp_dbus_inhibit_complete_inhibit (object, invocation, xdp_request_get_object_path (request));
+
+  if (flags != 0)
+    {
+      g_auto(GVariantBuilder) results =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response,
+                                      g_variant_builder_end (&results));
+    }
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
