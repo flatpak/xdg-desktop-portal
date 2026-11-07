@@ -145,6 +145,38 @@ class ImplRequest:
         logger.debug(f"Request {self.handle}: waiting for x-d-p to call close")
         self.mock_interface.connect_to_signal("MethodCalled", cb_methodcall)
 
+    def respond_and_wait_for_close(self, response: Response, delay: int = 0) -> None:
+        """
+        Exports the request and responds after ``delay`` milliseconds, and keeps
+        the request exported until x-d-p closes it, as a backend does whose
+        request stands for something which lasts after the method call
+        returned, like an inhibition.
+        """
+
+        def cb_methodcall(name, args):
+            if name == "Close":
+                logger.debug(f"Request {self.handle}: closed")
+                self.mock.EmitSignal(
+                    "org.freedesktop.impl.portal.Mock",
+                    "RequestClosed",
+                    "s",
+                    (self.handle,),
+                )
+                self._unexport()
+
+        def reply():
+            self._export()
+
+            logger.debug(f"Request {self.handle}: replying {response}")
+            self.mock_interface.connect_to_signal("MethodCalled", cb_methodcall)
+            self.cb_success(response.response, response.results)
+
+        if delay > 0:
+            logger.debug(f"Request {self.handle}: scheduling delay of {delay}ms")
+            GLib.timeout_add(delay, reply)
+        else:
+            reply()
+
     def _export(self):
         # In the future we can pass a class extending
         # dbusmock.mockobject.DBusMockObject as mock_class to avoid going

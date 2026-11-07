@@ -34,6 +34,7 @@ class InhibitParameters:
     delay: int
     response: int
     expect_close: bool
+    query_end_timeout: int
 
 
 def load(mock, parameters=None):
@@ -46,6 +47,7 @@ def load(mock, parameters=None):
         delay=parameters.get("delay", 200),
         response=parameters.get("response", 0),
         expect_close=parameters.get("expect-close", False),
+        query_end_timeout=parameters.get("query-end-timeout", 700),
     )
 
     mock.AddProperties(
@@ -80,7 +82,11 @@ def Inhibit(self, handle, app_id, window, flags, options, cb_success, cb_error):
     )
 
     if params.expect_close:
-        request.wait_for_close()
+        # The request is exported as a side effect of the call, and the
+        # inhibition lasts until x-d-p closes it.
+        request.respond_and_wait_for_close(
+            Response(params.response, {}), delay=params.delay
+        )
     else:
         request.respond(Response(params.response, {}), delay=params.delay)
 
@@ -111,7 +117,9 @@ def ArmTimer(self, session_handle):
 
     if session_handle in self.session_timers:
         GLib.source_remove(self.session_timers[session_handle])
-    self.session_timers[session_handle] = GLib.timeout_add(700, close_session)
+    self.session_timers[session_handle] = GLib.timeout_add(
+        self.inhibit_params.query_end_timeout, close_session
+    )
 
 
 @dbus.service.method(
