@@ -17,7 +17,7 @@ BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
 SYSTEM_BUS = False
 MAIN_IFACE = "org.freedesktop.impl.portal.Inhibit"
-VERSION = 3
+VERSION = 4
 
 
 logger = init_logger(__name__)
@@ -27,6 +27,8 @@ class SessionState(Enum):
     RUNNING = 1
     QUERY_END = 2
     ENDING = 3
+    # TODO: test suspending
+    SUSPENDING = 4
 
 
 @dataclass
@@ -100,6 +102,7 @@ def ArmTimer(self, session_handle):
             {
                 "screensaver-active": False,
                 "session-state": SessionState.QUERY_END.value,
+                "locked": False,
             },
         ],
     )
@@ -160,6 +163,21 @@ def CreateMonitor(self, handle, session_handle, app_id, window, cb_success, cb_e
 def QueryEndResponse(self, session_handle):
     try:
         logger.debug(f"QueryEndResponse({session_handle})")
+
+        self.ArmTimer(session_handle)
+
+    except dbus.exceptions.DBusException as e:
+        logger.critical(e)
+
+
+@dbus.service.method(
+    MAIN_IFACE,
+    in_signature="o",
+    out_signature="",
+)
+def SuspendingResponse(self, session_handle):
+    try:
+        logger.debug(f"SuspendingResponse({session_handle})")
 
         self.ArmTimer(session_handle)
 
