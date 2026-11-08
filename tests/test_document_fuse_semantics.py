@@ -338,6 +338,30 @@ class TestDirSemantics:
         os.close(fd2)
         os.unlink(linkpath)
 
+    def test_getcwd(self, writable_dir_path):
+        # Looking up an entry queues a notification to the kernel that is sent
+        # 10 ms later. It must not make the working directory of a process
+        # unreachable: https://github.com/flatpak/xdg-desktop-portal/issues/1812
+        import time
+
+        subdir = writable_dir_path / "cwd-dir"
+        subdir.mkdir()
+
+        old_cwd = Path.cwd()
+        try:
+            for path in [writable_dir_path, subdir]:
+                # Resolve the expected path up front: doing it after chdir would
+                # re-look-up the cwd dentry and mask the bug being tested for.
+                expected = path.resolve()
+                os.chdir(path)
+                # Wait past the 10 ms dentry-notification window.
+                time.sleep(0.5)
+                assert Path.cwd() == expected
+        finally:
+            os.chdir(old_cwd)
+
+        subdir.rmdir()
+
 
 class TestParallelAccess:
     NUM_WORKERS = 8
