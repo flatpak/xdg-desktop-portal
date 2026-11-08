@@ -311,6 +311,8 @@ xdp_request_dex_emit_response (XdpRequestDex                *request,
                                XdgDesktopPortalResponseEnum  response,
                                GVariant                     *results)
 {
+  g_autoptr(GVariant) results_owned = NULL;
+
   g_return_if_fail (!request->responded);
 
   if (!request->exported)
@@ -324,7 +326,8 @@ xdp_request_dex_emit_response (XdpRequestDex                *request,
       g_auto(GVariantBuilder) empty_results_builder =
         G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-      results = g_variant_builder_end (&empty_results_builder);
+      results = results_owned =
+        g_variant_ref_sink (g_variant_builder_end (&empty_results_builder));
     }
 
   request->responded = TRUE;
