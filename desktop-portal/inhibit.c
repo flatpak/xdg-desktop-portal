@@ -260,13 +260,13 @@ G_DEFINE_TYPE (InhibitSession, inhibit_session, xdp_session_get_type ())
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (InhibitSession, g_object_unref)
 
-G_GNUC_UNUSED static inline InhibitSession *
+static inline InhibitSession *
 INHIBIT_SESSION (gpointer ptr)
 {
   return G_TYPE_CHECK_INSTANCE_CAST (ptr, inhibit_session_get_type (), InhibitSession);
 }
 
-G_GNUC_UNUSED static inline gboolean
+static inline gboolean
 IS_INHIBIT_SESSION (gpointer ptr)
 {
   return G_TYPE_CHECK_INSTANCE_TYPE (ptr, inhibit_session_get_type ());
@@ -283,12 +283,6 @@ inhibit_session_close (XdpSession *session)
 }
 
 static void
-inhibit_session_finalize (GObject *object)
-{
-  G_OBJECT_CLASS (inhibit_session_parent_class)->finalize (object);
-}
-
-static void
 inhibit_session_init (InhibitSession *inhibit_session)
 {
 }
@@ -296,11 +290,7 @@ inhibit_session_init (InhibitSession *inhibit_session)
 static void
 inhibit_session_class_init (InhibitSessionClass *klass)
 {
-  GObjectClass *object_class;
   XdpSessionClass *session_class;
-
-  object_class = G_OBJECT_CLASS (klass);
-  object_class->finalize = inhibit_session_finalize;
 
   session_class = (XdpSessionClass *)klass;
   session_class->close = inhibit_session_close;
@@ -457,7 +447,7 @@ handle_query_end_response (XdpDbusInhibit        *object,
   Inhibit *inhibit = (Inhibit *) object;
   g_autoptr(XdpSession) session = xdp_session_lookup (session_id);
 
-  if (!session)
+  if (!session || !IS_INHIBIT_SESSION (session))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
