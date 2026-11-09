@@ -33,6 +33,7 @@ struct _Secret
   XdpDbusSecretSkeleton parent_instance;
 
   XdpDbusImplSecret *impl;
+  unsigned int impl_version;
 };
 
 struct _SecretClass
@@ -49,8 +50,14 @@ G_DEFINE_TYPE_WITH_CODE (Secret, secret, XDP_DBUS_TYPE_SECRET_SKELETON,
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Secret, g_object_unref)
 
-static XdpOptionKey retrieve_secret_options[] = {
+static XdpOptionKey retrieve_secret_options_v1[] = {
   { "token", G_VARIANT_TYPE_STRING, NULL },
+};
+
+static XdpOptionKey retrieve_secret_options_v2[] = {
+  { "token", G_VARIANT_TYPE_STRING, NULL },
+  { "activation_token", G_VARIANT_TYPE_STRING, NULL },
+  { "parent_window", G_VARIANT_TYPE_STRING, NULL },
 };
 
 static void
@@ -119,10 +126,23 @@ handle_retrieve_secret (XdpDbusSecret         *object,
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
+  const XdpOptionKey *option_keys;
+  int n_option_keys;
   g_auto(GVariantBuilder) options =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
   REQUEST_AUTOLOCK (request);
+
+  if (secret->impl_version >= 2)
+    {
+      option_keys = retrieve_secret_options_v2;
+      n_option_keys = G_N_ELEMENTS (retrieve_secret_options_v2);
+    }
+  else
+    {
+      option_keys = retrieve_secret_options_v1;
+      n_option_keys = G_N_ELEMENTS (retrieve_secret_options_v1);
+    }
 
   impl_request = xdp_dbus_impl_request_proxy_new_sync (
     g_dbus_proxy_get_connection (G_DBUS_PROXY (secret->impl)),
@@ -138,7 +158,7 @@ handle_retrieve_secret (XdpDbusSecret         *object,
     }
 
   if (!xdp_filter_options (arg_options, &options,
-                           retrieve_secret_options, G_N_ELEMENTS (retrieve_secret_options),
+                           option_keys, n_option_keys,
                            NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -202,7 +222,10 @@ secret_new (XdpDbusImplSecret *impl)
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (secret->impl), G_MAXINT);
 
-  xdp_dbus_secret_set_version (XDP_DBUS_SECRET (secret), 1);
+  secret->impl_version =
+    MAX (xdp_dbus_impl_secret_get_version (secret->impl), 1);
+  xdp_dbus_secret_set_version (XDP_DBUS_SECRET (secret),
+                               MIN (secret->impl_version, 2));
 
   return secret;
 }
