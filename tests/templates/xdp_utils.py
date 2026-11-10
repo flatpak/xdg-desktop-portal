@@ -5,11 +5,13 @@
 
 import logging
 from collections.abc import Callable
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import dbus
 import dbusmock
 from gi.repository import GLib
+
+from tests.xdp_utils import ASV
 
 
 def init_logger(name: str) -> logging.Logger:
@@ -34,7 +36,10 @@ logger = init_logger("utils")
 
 class Response(NamedTuple):
     response: int
-    results: dict
+    results: ASV
+
+
+type AsyncCallback = Callable[..., None]
 
 
 class ImplRequest:
@@ -55,9 +60,9 @@ class ImplRequest:
         busname: str,
         handle: str,
         logger: logging.Logger,
-        cb_success: Callable,
-        cb_error: Callable,
-    ):
+        cb_success: AsyncCallback,
+        cb_error: AsyncCallback,
+    ) -> None:
         self.mock = mock
         bus = mock.connection
         proxy = bus.get_object(busname, handle)
@@ -69,11 +74,11 @@ class ImplRequest:
 
     def respond(
         self,
-        response: Callable | Response,
+        response: Callable[..., Any] | Response,
         delay: int = 0,
-        done_cb: Callable | None = None,
+        done_cb: Callable[..., Any] | None = None,
     ) -> None:
-        def reply():
+        def reply() -> None:
             nonlocal response
             res = None
             logger.debug(f"Request {self.handle}: trying to reply")
@@ -109,9 +114,9 @@ class ImplRequest:
 
     def wait_for_close(
         self,
-        close_callback: Callable | None = None,
+        close_callback: Callable[..., Any] | None = None,
     ) -> None:
-        def closed():
+        def closed() -> None:
             logger.debug(f"Request {self.handle}: closed")
 
             self.mock.EmitSignal(
@@ -136,7 +141,7 @@ class ImplRequest:
             self.cb_success(response.response, response.results)
             self._unexport()
 
-        def cb_methodcall(name, args):
+        def cb_methodcall(name: str, *_: Any) -> None:
             if name == "Close":
                 closed()
 
@@ -145,7 +150,7 @@ class ImplRequest:
         logger.debug(f"Request {self.handle}: waiting for x-d-p to call close")
         self.mock_interface.connect_to_signal("MethodCalled", cb_methodcall)
 
-    def _export(self):
+    def _export(self) -> None:
         # In the future we can pass a class extending
         # dbusmock.mockobject.DBusMockObject as mock_class to avoid going
         # through the mock MethodCalled signal
@@ -163,10 +168,10 @@ class ImplRequest:
             ],
         )
 
-    def _unexport(self):
+    def _unexport(self) -> None:
         self.mock.RemoveObject(self.handle)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"ImplRequest {self.handle}"
 
 
@@ -207,7 +212,7 @@ class ImplSession:
         self.handle = handle
         self.app_id = app_id
         self.closed = False
-        self._close_callback: Callable | None = None
+        self._close_callback: Callable[..., Any] | None = None
 
         self.mock_object: dbusmock.DBusMockObject | None = None
 
@@ -219,7 +224,7 @@ class ImplSession:
         # called, use the side-channel SessionClosed signal so we can notify
         # the test that the impl.Session was actually closed by the
         # xdg-desktop-portal
-        def cb_methodcall(name, args):
+        def cb_methodcall(name: str, *_: Any) -> None:
             if name == "Close":
                 self.closed = True
                 logger.debug(f"Session.Close() on {self.handle}")
@@ -237,7 +242,7 @@ class ImplSession:
 
     def export(
         self,
-        close_callback: Callable | None = None,
+        close_callback: Callable[..., Any] | None = None,
     ) -> "ImplSession":
         """
         Create the session on the bus. If ``close_callback`` is not None, that
@@ -267,10 +272,10 @@ class ImplSession:
         self._close_callback = close_callback
         return self
 
-    def _unexport(self):
+    def _unexport(self) -> None:
         self.mock.RemoveObject(path=self.handle)
 
-    def close(self):
+    def close(self) -> None:
         """
         Send out Closed signal and remove this session from the bus.
         """
@@ -285,5 +290,5 @@ class ImplSession:
         self.closed = True
         self._unexport()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"ImplSession {self.handle}"

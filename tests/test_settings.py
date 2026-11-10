@@ -3,6 +3,10 @@
 #
 # This file is formatted with Python Black
 
+
+from collections.abc import Generator
+from typing import Any
+
 import dbus
 import pytest
 
@@ -76,7 +80,7 @@ SETTINGS_DATA = {
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {
         "settings:org.freedesktop.impl.portal.Test1": {
             "settings": SETTINGS_DATA_TEST1,
@@ -114,7 +118,7 @@ Interfaces=org.freedesktop.impl.portal.NonExistant;
 }
 
 
-def portal_config_good():
+def portal_config_good() -> Generator[dict[str, bytes]]:
     # test1 merged with test2 should result in the correct output
     files = PORTAL_CONFIG_FILES.copy()
     files["test-portals.conf"] = b"""
@@ -151,7 +155,7 @@ org.freedesktop.impl.portal.Settings=*;
     yield files
 
 
-def portal_config_bad():
+def portal_config_bad() -> Generator[dict[str, bytes]]:
     # test1 alone should result in bad output
     files = PORTAL_CONFIG_FILES.copy()
     files["test-portals.conf"] = b"""
@@ -205,7 +209,7 @@ org.freedesktop.impl.portal.Settings=*;
     yield files
 
 
-def portal_config_twice():
+def portal_config_twice() -> Generator[dict[str, bytes]]:
     # check that test1 gets picked up only once
     files = PORTAL_CONFIG_FILES.copy()
     del files["test_bad.portal"]
@@ -218,19 +222,19 @@ org.freedesktop.impl.portal.Settings=test1;*;
 
 
 @pytest.fixture
-def xdg_desktop_portal_dir_default_files():
+def xdg_desktop_portal_dir_default_files() -> dict[str, bytes]:
     return next(portal_config_good())
 
 
 class TestSettings:
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         xdp.check_version(dbus_con, "Settings", 2)
 
     @pytest.mark.parametrize(
         "xdg_desktop_portal_dir_default_files",
         portal_config_good(),
     )
-    def test_read_all(self, portals, dbus_con):
+    def test_read_all(self, portals: Any, dbus_con: dbus.Bus) -> None:
         settings_intf = xdp.get_portal_iface(dbus_con, "Settings")
 
         value = settings_intf.ReadAll([])
@@ -265,7 +269,7 @@ class TestSettings:
         "xdg_desktop_portal_dir_default_files",
         portal_config_bad(),
     )
-    def test_read_all_bad_config(self, portals, dbus_con):
+    def test_read_all_bad_config(self, portals: Any, dbus_con: dbus.Bus) -> None:
         settings_intf = xdp.get_portal_iface(dbus_con, "Settings")
 
         value = settings_intf.ReadAll([])
@@ -275,7 +279,7 @@ class TestSettings:
         "xdg_desktop_portal_dir_default_files",
         portal_config_twice(),
     )
-    def test_config_twice(self, portals, dbus_con):
+    def test_config_twice(self, portals: Any, dbus_con: dbus.Bus) -> None:
         settings_intf = xdp.get_portal_iface(dbus_con, "Settings")
         mock_intf = xdp.get_mock_iface(dbus_con, "org.freedesktop.impl.portal.Test1")
 
@@ -286,7 +290,7 @@ class TestSettings:
         method_calls = mock_intf.GetMethodCalls("ReadAll")
         assert len(method_calls) == 1
 
-    def test_read(self, portals, dbus_con):
+    def test_read(self, portals: Any, dbus_con: dbus.Bus) -> None:
         settings_intf = xdp.get_portal_iface(dbus_con, "Settings")
 
         color_scheme = SETTINGS_DATA["org.freedesktop.appearance"]["color-scheme"]
@@ -311,7 +315,7 @@ class TestSettings:
         assert value.variant_level == 2
         assert value == color_scheme
 
-    def test_changed(self, portals, dbus_con):
+    def test_changed(self, portals: Any, dbus_con: dbus.Bus) -> None:
         settings_intf = xdp.get_portal_iface(dbus_con, "Settings")
         mock_intf = xdp.get_mock_iface(dbus_con, "org.freedesktop.impl.portal.Test1")
         changed_count = 0
@@ -325,7 +329,9 @@ class TestSettings:
         value = settings_intf.ReadOne(ns, key)
         assert value == current_value
 
-        def cb_settings_changed(changed_ns, changed_key, changed_value):
+        def cb_settings_changed(
+            changed_ns: dbus.String, changed_key: dbus.String, changed_value: dbus.Int32
+        ) -> None:
             nonlocal changed_count
             changed_count += 1
             assert changed_ns == ns

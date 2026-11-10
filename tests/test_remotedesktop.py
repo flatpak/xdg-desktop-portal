@@ -13,15 +13,15 @@ import tests.xdp_utils as xdp
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {"remotedesktop": {}}
 
 
 class TestRemoteDesktop:
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         xdp.check_version(dbus_con, "RemoteDesktop", 2)
 
-    def test_create_close_session(self, portals, dbus_con):
+    def test_create_close_session(self, portals: Any, dbus_con: dbus.Bus) -> None:
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -51,7 +51,9 @@ class TestRemoteDesktop:
     @pytest.mark.parametrize(
         "token", ("Invalid-Token&", "", "/foo", "something-else", "😄")
     )
-    def test_remote_desktop_create_session_invalid(self, portals, dbus_con, token):
+    def test_remote_desktop_create_session_invalid(
+        self, portals: Any, dbus_con: dbus.Bus, token: str
+    ) -> None:
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
 
         request = xdp.Request(dbus_con, remotedesktop_intf)
@@ -67,7 +69,9 @@ class TestRemoteDesktop:
     @pytest.mark.parametrize(
         "template_params", ({"remotedesktop": {"force-close": 500}},)
     )
-    def test_create_session_signal_closed(self, portals, dbus_con):
+    def test_create_session_signal_closed(
+        self, portals: Any, dbus_con: dbus.Bus
+    ) -> None:
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -94,7 +98,7 @@ class TestRemoteDesktop:
         # Now expect the backend to close it
         xdp.wait_for(lambda: session.closed)
 
-    def test_connect_to_eis(self, portals, dbus_con):
+    def test_connect_to_eis(self, portals: Any, dbus_con: dbus.Bus) -> None:
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
 
         request = xdp.Request(dbus_con, remotedesktop_intf)
@@ -143,7 +147,7 @@ class TestRemoteDesktop:
     @pytest.mark.parametrize(
         "template_params", ({"remotedesktop": {"fail-connect-to-eis": True}},)
     )
-    def test_connect_to_eis_fail(self, portals, dbus_con):
+    def test_connect_to_eis_fail(self, portals: Any, dbus_con: dbus.Bus) -> None:
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
 
         request = xdp.Request(dbus_con, remotedesktop_intf)
@@ -188,7 +192,9 @@ class TestRemoteDesktop:
             )
         assert "Purposely failing ConnectToEIS" in excinfo.value.get_dbus_message()
 
-    def test_connect_to_eis_fail_notifies(self, portals, dbus_con):
+    def test_connect_to_eis_fail_notifies(
+        self, portals: Any, dbus_con: dbus.Bus
+    ) -> None:
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
 
         request = xdp.Request(dbus_con, remotedesktop_intf)

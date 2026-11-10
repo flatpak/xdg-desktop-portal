@@ -5,11 +5,14 @@
 # mypy: disable-error-code="misc"
 
 from dataclasses import dataclass
+from typing import Any
 
 import dbus
 import dbus.service
+import dbusmock
+from gi.repository import GLib
 
-from tests.templates.xdp_utils import ImplRequest, Response, init_logger
+from tests.templates.xdp_utils import AsyncCallback, ImplRequest, Response, init_logger
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -24,11 +27,11 @@ logger = init_logger(__name__)
 class AccountParameters:
     delay: int
     response: int
-    results: dict
+    results: dict[str, Any]
     expect_close: bool
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     logger.debug(f"Loading parameters: {parameters}")
@@ -42,13 +45,21 @@ def load(mock, parameters=None):
     )
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="ossa{sv}",
     out_signature="ua{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def GetUserInformation(self, handle, app_id, window, options, cb_success, cb_error):
+def GetUserInformation(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    app_id: str,
+    window: Any | None,
+    options: dbus.Dictionary,
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(f"GetUserInformation({handle}, {app_id}, {window}, {options})")
     params = self.account_params
 

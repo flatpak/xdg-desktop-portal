@@ -17,7 +17,7 @@ filename_prefix = sys.argv[2]
 SECTION_NAMES = {"Properties", "Methods", "Signals"}
 
 
-def is_section_label(line):
+def is_section_label(line: str) -> bool:
     """Check if a line is a .. _Name Section: label for a known section."""
     if not line.startswith(".. _"):
         return False
@@ -27,7 +27,9 @@ def is_section_label(line):
     return False
 
 
-def split_sections(lines, output_prefix, interface_name):
+def split_sections(
+    lines: list[str], output_prefix: str, interface_name: str
+) -> tuple[list[str], set[str]]:
     """Split Properties, Methods, Signals into separate fragment files.
 
     Returns (desc_lines, found_sections)."""
@@ -120,7 +122,7 @@ def split_sections(lines, output_prefix, interface_name):
     return desc_lines, set(sections.keys())
 
 
-def adjust_title(lines):
+def adjust_title(lines: list[str]) -> None:
     title = lines[3].strip()
     suffix = ""
 
@@ -153,7 +155,7 @@ def adjust_title(lines):
 inputs = sys.argv[3:]
 
 
-def strip_description_heading(desc_lines):
+def strip_description_heading(desc_lines: list[str]) -> list[str]:
     """Remove the Description heading and its label from desc_lines."""
     out: list[str] = []
     i = 0
