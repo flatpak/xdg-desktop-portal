@@ -51,31 +51,70 @@ xdp_init_document_proxy (GDBusConnection  *connection,
   return TRUE;
 }
 
-char *
-xdp_register_document_sync (const char        *uri,
-                            const char        *app_id,
-                            GDesktopAppInfo   *app_info,
-                            XdpDocumentFlags   flags,
-                            GError           **error)
+static DocumentAddFullFlags
+get_document_add_flags (XdpDocumentFlags  flags,
+                        const char      **permissions)
 {
-  g_autofree char *doc_id = NULL;
-  g_auto(GStrv) doc_ids = NULL;
+  int i = 0;
+  DocumentAddFullFlags full_flags;
+
+  permissions[i++] = "read";
+  if ((flags & XDP_DOCUMENT_FLAG_WRITABLE) || (flags & XDP_DOCUMENT_FLAG_FOR_SAVE))
+    permissions[i++] = "write";
+  permissions[i++] = "grant-permissions";
+  if (flags & XDP_DOCUMENT_FLAG_DELETABLE)
+    permissions[i++] = "delete";
+  permissions[i++] = NULL;
+
+  full_flags = DOCUMENT_ADD_FLAGS_REUSE_EXISTING |
+               DOCUMENT_ADD_FLAGS_PERSISTENT |
+               DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP;
+  if (flags & XDP_DOCUMENT_FLAG_DIRECTORY)
+    full_flags |= DOCUMENT_ADD_FLAGS_DIRECTORY;
+
+  return full_flags;
+}
+
+static char *
+get_document_uri (const char       *path,
+                  const char       *basename,
+                  const char       *doc_id,
+                  GDesktopAppInfo  *app_info,
+                  GError          **error)
+{
+  g_autofree char *doc_path = NULL;
+
+  if (g_strcmp0 (doc_id, "") == 0)
+    doc_path = g_build_filename (path, NULL);
+  else
+    {
+      g_autofree char *fuse_path = xdp_desktop_app_info_get_doc_mountpoint (app_info);
+
+      doc_path = g_build_filename (fuse_path, doc_id, basename, NULL);
+    }
+
+  return g_filename_to_uri (doc_path, NULL, error);
+}
+
+static gboolean
+prepare_document_for_registration (const char        *uri,
+                                   const char        *app_id,
+                                   XdpDocumentFlags   flags,
+                                   char             **path_out,
+                                   char             **basename_out,
+                                   GUnixFDList      **fd_list_out,
+                                   int               *fd_in_out,
+                                   GError           **error)
+{
+  g_autoptr(GFile) file = NULL;
   g_autofree char *path = NULL;
   g_autofree char *basename = NULL;
   g_autofree char *dirname = NULL;
   g_autoptr(GUnixFDList) fd_list = NULL;
-  int fd, fd_in;
-  g_autoptr(GFile) file = NULL;
-  gboolean ret = FALSE;
-  const char *permissions[5];
-  g_autofree char *doc_path = NULL;
-  int i;
-  int version;
-  gboolean handled_permissions = FALSE;
-  DocumentAddFullFlags full_flags;
-  g_autofree char *fuse_path = NULL;
+  int fd;
+  int fd_in;
 
-  g_return_val_if_fail (app_id != NULL && *app_id != '\0', NULL);
+  g_return_val_if_fail (app_id != NULL && *app_id != '\0', FALSE);
 
   file = g_file_new_for_uri (uri);
   path = g_file_get_path (file);
@@ -83,7 +122,7 @@ xdp_register_document_sync (const char        *uri,
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
                    "URI %s not supported by the document portal", uri);
-      return NULL;
+      return FALSE;
     }
   basename = g_path_get_basename (path);
   dirname = g_path_get_dirname (path);
@@ -97,28 +136,55 @@ xdp_register_document_sync (const char        *uri,
     {
       g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
                    "Failed to open %s", uri);
-      return NULL;
+      return FALSE;
     }
+
   fd_list = g_unix_fd_list_new ();
   fd_in = g_unix_fd_list_append (fd_list, fd, error);
   close (fd);
 
   if (fd_in == -1)
+    return FALSE;
+
+  *path_out = g_steal_pointer (&path);
+  *basename_out = g_steal_pointer (&basename);
+  *fd_list_out = g_steal_pointer (&fd_list);
+  *fd_in_out = fd_in;
+
+  return TRUE;
+}
+
+char *
+xdp_register_document_sync (const char        *uri,
+                            const char        *app_id,
+                            GDesktopAppInfo   *app_info,
+                            XdpDocumentFlags   flags,
+                            GError           **error)
+{
+  g_autofree char *doc_id = NULL;
+  g_auto(GStrv) doc_ids = NULL;
+  g_autofree char *path = NULL;
+  g_autofree char *basename = NULL;
+  g_autoptr(GUnixFDList) fd_list = NULL;
+  int fd_in;
+  gboolean ret = FALSE;
+  const char *permissions[5];
+  int version;
+  gboolean handled_permissions = FALSE;
+  DocumentAddFullFlags full_flags;
+
+  if (!prepare_document_for_registration (uri,
+                                          app_id,
+                                          flags,
+                                          &path,
+                                          &basename,
+                                          &fd_list,
+                                          &fd_in,
+                                          error))
     return NULL;
 
-  i = 0;
-  permissions[i++] = "read";
-  if ((flags & XDP_DOCUMENT_FLAG_WRITABLE) || (flags & XDP_DOCUMENT_FLAG_FOR_SAVE))
-    permissions[i++] = "write";
-  permissions[i++] = "grant-permissions";
-  if (flags & XDP_DOCUMENT_FLAG_DELETABLE)
-    permissions[i++] = "delete";
-  permissions[i++] = NULL;
-
+  full_flags = get_document_add_flags (flags, permissions);
   version = xdp_dbus_documents_get_version (documents);
-  full_flags = DOCUMENT_ADD_FLAGS_REUSE_EXISTING | DOCUMENT_ADD_FLAGS_PERSISTENT | DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP;
-  if (flags & XDP_DOCUMENT_FLAG_DIRECTORY)
-    full_flags |= DOCUMENT_ADD_FLAGS_DIRECTORY;
 
   if (flags & XDP_DOCUMENT_FLAG_FOR_SAVE)
     {
@@ -197,16 +263,7 @@ xdp_register_document_sync (const char        *uri,
         return NULL;
     }
 
-  if (g_strcmp0 (doc_id, "") == 0)
-    {
-      doc_path = g_build_filename (path, NULL);
-      return g_filename_to_uri (doc_path, NULL, error);
-    }
-
-  fuse_path = xdp_desktop_app_info_get_doc_mountpoint (app_info);
-  doc_path = g_build_filename (fuse_path, doc_id, basename, NULL);
-
-  return g_filename_to_uri (doc_path, NULL, error);
+  return get_document_uri (path, basename, doc_id, app_info, error);
 }
 
 char *
@@ -220,73 +277,26 @@ xdp_register_document (const char        *uri,
   g_auto(GStrv) doc_ids = NULL;
   g_autofree char *path = NULL;
   g_autofree char *basename = NULL;
-  g_autofree char *dirname = NULL;
   g_autoptr(GUnixFDList) fd_list = NULL;
-  int fd, fd_in;
-  g_autoptr(GFile) file = NULL;
+  int fd_in;
   gboolean ret = FALSE;
   const char *permissions[5];
-  g_autofree char *doc_path = NULL;
-  int i;
   int version;
   gboolean handled_permissions = FALSE;
   DocumentAddFullFlags full_flags;
-  g_autofree char *fuse_path = NULL;
 
-  g_return_val_if_fail (app_id != NULL && *app_id != '\0', NULL);
-
-  file = g_file_new_for_uri (uri);
-  path = g_file_get_path (file);
-  if (path == NULL)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
-                   "URI %s not supported by the document portal", uri);
-      return NULL;
-    }
-  basename = g_path_get_basename (path);
-  dirname = g_path_get_dirname (path);
-
-  if (flags & XDP_DOCUMENT_FLAG_FOR_SAVE)
-    fd = dex_await_fd (dex_aio_open (NULL,
-                                     dirname,
-                                     O_CLOEXEC,
-                                     0),
-                       error);
-  else
-    fd = dex_await_fd (dex_aio_open (NULL,
-                                     path,
-                                     O_CLOEXEC,
-                                     0),
-                       error);
-
-  if (fd == -1)
-    {
-      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
-                   "Failed to open %s", uri);
-      return NULL;
-    }
-
-  fd_list = g_unix_fd_list_new ();
-  fd_in = g_unix_fd_list_append (fd_list, fd, error);
-  
-  dex_await (dex_aio_close (NULL, fd), error);
-
-  if (fd_in == -1)
+  if (!prepare_document_for_registration (uri,
+                                          app_id,
+                                          flags,
+                                          &path,
+                                          &basename,
+                                          &fd_list,
+                                          &fd_in,
+                                          error))
     return NULL;
 
-  i = 0;
-  permissions[i++] = "read";
-  if ((flags & XDP_DOCUMENT_FLAG_WRITABLE) || (flags & XDP_DOCUMENT_FLAG_FOR_SAVE))
-    permissions[i++] = "write";
-  permissions[i++] = "grant-permissions";
-  if (flags & XDP_DOCUMENT_FLAG_DELETABLE)
-    permissions[i++] = "delete";
-  permissions[i++] = NULL;
-
+  full_flags = get_document_add_flags (flags, permissions);
   version = xdp_dbus_documents_get_version (documents);
-  full_flags = DOCUMENT_ADD_FLAGS_REUSE_EXISTING | DOCUMENT_ADD_FLAGS_PERSISTENT | DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP;
-  if (flags & XDP_DOCUMENT_FLAG_DIRECTORY)
-    full_flags |= DOCUMENT_ADD_FLAGS_DIRECTORY;
 
   if (flags & XDP_DOCUMENT_FLAG_FOR_SAVE)
     {
@@ -367,16 +377,7 @@ xdp_register_document (const char        *uri,
         return NULL;
     }
 
-  if (g_strcmp0 (doc_id, "") == 0)
-    {
-      doc_path = g_build_filename (path, NULL);
-      return g_filename_to_uri (doc_path, NULL, error);
-    }
-
-  fuse_path = xdp_desktop_app_info_get_doc_mountpoint (app_info);
-  doc_path = g_build_filename (fuse_path, doc_id, basename, NULL);
-
-  return g_filename_to_uri (doc_path, NULL, error);
+  return get_document_uri (path, basename, doc_id, app_info, error);
 }
 
 char *
