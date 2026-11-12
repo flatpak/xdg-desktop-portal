@@ -10,6 +10,7 @@
 
 #include <gio/gio.h>
 
+#include <systemd/sd-login.h>
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
@@ -29,6 +30,18 @@ enum {
 
 #define INHIBIT_ALL (INHIBIT_LOGOUT|INHIBIT_USER_SWITCH|INHIBIT_SUSPEND|INHIBIT_IDLE)
 
+enum {
+  STATE_RUNNING    = 1,
+  STATE_QUERY_END  = 2,
+  STATE_ENDING     = 3,
+  STATE_SUSPENDING = 4,
+};
+
+#define LOGIN1_NAME "org.freedesktop.login1"
+#define LOGIN1_MANAGER_INTERFACE "org.freedesktop.login1.Manager"
+#define LOGIN1_MANAGER_PATH "/org/freedesktop/login1"
+#define LOGIN1_SESSION_INTERFACE "org.freedesktop.login1.Session"
+
 typedef struct _Inhibit Inhibit;
 typedef struct _InhibitClass InhibitClass;
 
@@ -38,6 +51,24 @@ struct _Inhibit
 
   XdpContext *context;
   XdpDbusImplInhibit *impl;
+
+  GDBusProxy *logind_proxy;
+  GDBusProxy *logind_session_proxy;
+
+  /* Any of the state below can be accessed across threads (especially the
+   * suspend delay inhibitor and timeout callback), so it's all locked behind
+   * a (this) mutex.
+   */
+  GMutex mutex;
+
+  /* This holds the last session state we got from the implementation.
+   * This should never hold Suspending, since we fire it ourselves.
+   * Re-send this as the session state once we get PrepareForSleep(false).
+   */
+  guint32 last_session_state;
+  GHashTable *sessions;
+  int suspend_delay_inhibitor_fd;
+  guint ones_timeout_callback_id;
 };
 
 struct _InhibitClass
@@ -209,6 +240,9 @@ typedef struct _InhibitSession
 {
   XdpSession parent;
 
+  Inhibit *inhibit;
+  gboolean suspend_aware;
+  gboolean pending_suspend_response;
   gboolean closed;
 } InhibitSession;
 
@@ -223,13 +257,13 @@ G_DEFINE_TYPE (InhibitSession, inhibit_session, xdp_session_get_type ())
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (InhibitSession, g_object_unref)
 
-G_GNUC_UNUSED static inline InhibitSession *
+static inline InhibitSession *
 INHIBIT_SESSION (gpointer ptr)
 {
   return G_TYPE_CHECK_INSTANCE_CAST (ptr, inhibit_session_get_type (), InhibitSession);
 }
 
-G_GNUC_UNUSED static inline gboolean
+static inline gboolean
 IS_INHIBIT_SESSION (gpointer ptr)
 {
   return G_TYPE_CHECK_INSTANCE_TYPE (ptr, inhibit_session_get_type ());
@@ -239,16 +273,14 @@ static void
 inhibit_session_close (XdpSession *session)
 {
   InhibitSession *inhibit_session = INHIBIT_SESSION (session);
+  Inhibit *inhibit = inhibit_session->inhibit;
+  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&inhibit->mutex);
 
   inhibit_session->closed = TRUE;
 
   g_debug ("inhibit session owned by '%s' closed", session->sender);
-}
 
-static void
-inhibit_session_finalize (GObject *object)
-{
-  G_OBJECT_CLASS (inhibit_session_parent_class)->finalize (object);
+  g_hash_table_remove (inhibit->sessions, session);
 }
 
 static void
@@ -259,11 +291,7 @@ inhibit_session_init (InhibitSession *inhibit_session)
 static void
 inhibit_session_class_init (InhibitSessionClass *klass)
 {
-  GObjectClass *object_class;
   XdpSessionClass *session_class;
-
-  object_class = G_OBJECT_CLASS (klass);
-  object_class->finalize = inhibit_session_finalize;
 
   session_class = (XdpSessionClass *)klass;
   session_class->close = inhibit_session_close;
@@ -275,27 +303,53 @@ inhibit_session_new (Inhibit     *inhibit,
                      XdpRequest  *request,
                      GError     **error)
 {
-  XdpSession *session;
+  InhibitSession *inhibit_session;
   const char *session_token;
   GDBusInterfaceSkeleton *interface_skeleton = G_DBUS_INTERFACE_SKELETON (request);
   GDBusConnection *connection = g_dbus_interface_skeleton_get_connection (interface_skeleton);
   GDBusConnection *impl_connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (inhibit->impl));
   const char *impl_dbus_name = g_dbus_proxy_get_name (G_DBUS_PROXY (inhibit->impl));
+  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&inhibit->mutex);
 
   session_token = lookup_session_token (options);
-  session = g_initable_new (inhibit_session_get_type (), NULL, error,
-                            "context", inhibit->context,
-                            "app-info", request->app_info,
-                            "token", session_token,
-                            "connection", connection,
-                            "impl-connection", impl_connection,
-                            "impl-dbus-name", impl_dbus_name,
-                            NULL);
+  inhibit_session = g_initable_new (inhibit_session_get_type (), NULL, error,
+                                    "context", inhibit->context,
+                                    "app-info", request->app_info,
+                                    "token", session_token,
+                                    "connection", connection,
+                                    "impl-connection", impl_connection,
+                                    "impl-dbus-name", impl_dbus_name,
+                                    NULL);
 
-  if (session)
-    g_debug ("inhibit session owned by '%s' created", session->sender);
+  if (!inhibit_session)
+    return NULL;
 
-  return (InhibitSession*)session;
+  g_debug ("inhibit session owned by '%s' created", inhibit_session->parent.sender);
+
+  g_variant_lookup (options, "suspend_aware", "b", &inhibit_session->suspend_aware);
+
+  inhibit_session->inhibit = inhibit;
+  g_hash_table_add (inhibit->sessions, inhibit_session);
+
+  return inhibit_session;
+}
+
+static void
+emit_state_changed (GDBusConnection *connection,
+                    InhibitSession  *inhibit_session,
+                    GVariant        *state)
+{
+  XdpSession *session = &inhibit_session->parent;
+
+  g_dbus_connection_emit_signal (connection,
+                                 session->sender,
+                                 DESKTOP_DBUS_PATH,
+                                 INHIBIT_DBUS_IFACE,
+                                 "StateChanged",
+                                 g_variant_new ("(o@a{sv})",
+                                                xdp_session_get_object_path (session),
+                                                state),
+                                 NULL);
 }
 
 static void
@@ -304,6 +358,7 @@ create_monitor_done (GObject *source_object,
                      gpointer data)
 {
   XdpDbusImplInhibit *impl = (XdpDbusImplInhibit *) source_object;
+  GDBusConnection *connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
   g_autoptr(XdpRequest) request = data;
   XdpSession *session;
   guint response = 2;
@@ -311,6 +366,9 @@ create_monitor_done (GObject *source_object,
   g_auto(GVariantBuilder) results_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GError) error = NULL;
+  g_autoptr(GVariant) locked_hint = NULL;
+  g_autoptr(GVariant) state = NULL;
+  GVariantBuilder state_builder;
 
   REQUEST_AUTOLOCK (request);
 
@@ -358,6 +416,22 @@ out:
 
   if (should_close_session)
     xdp_session_close (session, FALSE);
+  else if (INHIBIT_SESSION (session)->inhibit->logind_session_proxy)
+    {
+      locked_hint =
+        g_dbus_proxy_get_cached_property (INHIBIT_SESSION (session)->inhibit->logind_session_proxy,
+                                          "LockedHint");
+
+      if (!locked_hint)
+        return;
+
+      g_variant_builder_init (&state_builder, G_VARIANT_TYPE_VARDICT);
+      g_variant_builder_add (&state_builder, "{sv}",
+                             "locked", locked_hint);
+      state = g_variant_ref_sink (g_variant_builder_end (&state_builder));
+
+      emit_state_changed (connection, INHIBIT_SESSION (session), state);
+    }
 }
 
 static gboolean
@@ -420,7 +494,7 @@ handle_query_end_response (XdpDbusInhibit        *object,
   Inhibit *inhibit = (Inhibit *) object;
   g_autoptr(XdpSession) session = xdp_session_lookup (session_id);
 
-  if (!session)
+  if (!session || !IS_INHIBIT_SESSION (session))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -436,6 +510,66 @@ handle_query_end_response (XdpDbusInhibit        *object,
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
+static gboolean
+close_suspend_inhibitor_timeout (gpointer data)
+{
+  Inhibit *inhibit = data;
+  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&inhibit->mutex);
+
+  if (g_source_is_destroyed (g_main_current_source ()))
+    return G_SOURCE_REMOVE;
+
+  inhibit->ones_timeout_callback_id = 0;
+  g_debug ("Inhibit suspend timeout reached; 1 second wait is over");
+  g_clear_fd (&inhibit->suspend_delay_inhibitor_fd, NULL);
+
+  return G_SOURCE_REMOVE;
+}
+
+static void
+maybe_suspend (Inhibit *inhibit)
+{
+  GHashTableIter iter;
+  InhibitSession *inhibit_session = NULL;
+  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&inhibit->mutex);
+
+  g_hash_table_iter_init (&iter, inhibit->sessions);
+  while (g_hash_table_iter_next (&iter, (gpointer *) &inhibit_session, NULL))
+    if (inhibit_session && !inhibit_session->closed && inhibit_session->suspend_aware)
+      if (inhibit_session->pending_suspend_response)
+        return;
+
+  g_clear_handle_id (&inhibit->ones_timeout_callback_id, g_source_remove);
+  g_clear_fd (&inhibit->suspend_delay_inhibitor_fd, NULL);
+}
+
+static gboolean
+handle_suspending_response (XdpDbusInhibit        *object,
+                            GDBusMethodInvocation *invocation,
+                            const char            *session_id)
+{
+  Inhibit *inhibit = (Inhibit *) object;
+  g_autoptr(XdpSession) session = xdp_session_lookup (session_id);
+  InhibitSession *inhibit_session = (InhibitSession *)session;
+
+  if (!session || !IS_INHIBIT_SESSION (session) ||
+      !inhibit_session->suspend_aware ||
+      !inhibit_session->pending_suspend_response)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_ACCESS_DENIED,
+                                             "Invalid session");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  inhibit_session->pending_suspend_response = FALSE;
+  maybe_suspend (inhibit);
+
+  xdp_dbus_inhibit_complete_suspending_response (object, invocation);
+
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
+}
 
 static void
 inhibit_iface_init (XdpDbusInhibitIface *iface)
@@ -443,21 +577,40 @@ inhibit_iface_init (XdpDbusInhibitIface *iface)
   iface->handle_inhibit = handle_inhibit;
   iface->handle_create_monitor = handle_create_monitor;
   iface->handle_query_end_response = handle_query_end_response;
+  iface->handle_suspending_response = handle_suspending_response;
 }
 
 static void
 inhibit_dispose (GObject *object)
 {
   Inhibit *inhibit = (Inhibit *) object;
+  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&inhibit->mutex);
+
+  g_clear_handle_id (&inhibit->ones_timeout_callback_id, g_source_remove);
+  g_clear_fd (&inhibit->suspend_delay_inhibitor_fd, NULL);
+  g_clear_pointer (&inhibit->sessions, g_hash_table_unref);
 
   g_clear_object (&inhibit->impl);
+  g_clear_object (&inhibit->logind_proxy);
+  g_clear_object (&inhibit->logind_session_proxy);
 
   G_OBJECT_CLASS (inhibit_parent_class)->dispose (object);
 }
 
 static void
+inhibit_finalize (GObject *object)
+{
+  Inhibit *inhibit = (Inhibit *) object;
+
+  g_mutex_clear (&inhibit->mutex);
+
+  G_OBJECT_CLASS (inhibit_parent_class)->finalize (object);
+}
+
+static void
 inhibit_init (Inhibit *inhibit)
 {
+  g_mutex_init (&inhibit->mutex);
 }
 
 static void
@@ -466,6 +619,46 @@ inhibit_class_init (InhibitClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->dispose = inhibit_dispose;
+  object_class->finalize = inhibit_finalize;
+}
+
+static void
+inhibit_get_suspend_delay_inhibitor (Inhibit *inhibit)
+{
+  GVariant *suspend_delay_params = NULL;
+  g_autoptr(GVariant) suspend_delay_result = NULL;
+  g_autoptr(GUnixFDList) out_fd_list = NULL;
+  int fd_index = 0;
+  g_autoptr(GError) error = NULL;
+
+  // We already have an inhibitor.
+  if (inhibit->suspend_delay_inhibitor_fd >= 0)
+    return;
+
+  // (what, who, why, mode)
+  suspend_delay_params = g_variant_new ("(ssss)", "sleep",
+                                        "XDG Desktop Portal",
+                                        "Inhibit portal suspending signal",
+                                        "delay");
+  suspend_delay_result =
+    g_dbus_proxy_call_with_unix_fd_list_sync (inhibit->logind_proxy, "Inhibit",
+                                              suspend_delay_params,
+                                              G_DBUS_CALL_FLAGS_NONE, -1, NULL,
+                                              &out_fd_list, NULL, &error);
+  if (suspend_delay_result == NULL)
+    {
+      g_warning ("Failed to get suspend delay inhibitor: %s", error->message);
+      return;
+    }
+
+  g_variant_get (suspend_delay_result, "(h)", &fd_index);
+
+  inhibit->suspend_delay_inhibitor_fd = g_unix_fd_list_get (out_fd_list,
+                                                            fd_index,
+                                                            &error);
+
+  if (inhibit->suspend_delay_inhibitor_fd < 0)
+      g_warning ("Failed to get suspend delay inhibitor fd: %s", error->message);
 }
 
 static void
@@ -477,6 +670,8 @@ on_state_changed (XdpDbusImplInhibit *impl,
   GDBusConnection *connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
   g_autoptr(XdpSession) session = xdp_session_lookup (session_id);
   InhibitSession *inhibit_session = INHIBIT_SESSION (session);
+  Inhibit *inhibit = data;
+  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&inhibit->mutex);
   gboolean active = FALSE;
   guint32 session_state = 0;
 
@@ -485,25 +680,130 @@ on_state_changed (XdpDbusImplInhibit *impl,
   g_debug ("Received state-changed %s: screensaver-active: %d, session-state: %u",
            session_id, active, session_state);
 
+  if (session_state && session_state != STATE_SUSPENDING)
+    inhibit->last_session_state = session_state;
+
   if (inhibit_session && !inhibit_session->closed)
-    g_dbus_connection_emit_signal (connection,
-                                   session->sender,
-                                   DESKTOP_DBUS_PATH,
-                                   INHIBIT_DBUS_IFACE,
-                                   "StateChanged",
-                                   g_variant_new ("(o@a{sv})", session_id, state),
-                                   NULL);
+    emit_state_changed (connection, inhibit_session, state);
+}
+
+static void
+on_logind_proxy_signal (GDBusProxy *proxy,
+                        gchar      *sender_name,
+                        gchar      *signal_name,
+                        GVariant   *parameters,
+                        gpointer    user_data)
+{
+  Inhibit *inhibit = user_data;
+  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&inhibit->mutex);
+  GDBusConnection *connection =
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (inhibit->impl));
+  gboolean should_prepare_for_sleep = FALSE;
+  g_autoptr(GVariant) state = NULL;
+  GVariantBuilder state_builder;
+  guint32 session_state = 0;
+  InhibitSession *inhibit_session;
+  GHashTableIter iter;
+
+  if (g_strcmp0 (signal_name, "PrepareForSleep") == 0)
+    {
+      g_variant_get (parameters, "(b)", &should_prepare_for_sleep);
+      g_debug ("PrepareForSleep fired with %s",
+               should_prepare_for_sleep ? "true" : "false");
+
+      if (should_prepare_for_sleep)
+          session_state = STATE_SUSPENDING;
+      else // coming back from sleep
+        {
+          inhibit_get_suspend_delay_inhibitor (inhibit);
+          session_state = inhibit->last_session_state;
+          // We might've gotten suspended before this fired, so cancel it.
+          g_clear_handle_id (&inhibit->ones_timeout_callback_id,
+                             g_source_remove);
+        }
+
+        g_variant_builder_init (&state_builder, G_VARIANT_TYPE_VARDICT);
+        g_variant_builder_add (&state_builder, "{sv}",
+                               "session-state",
+                               g_variant_new_uint32 (session_state));
+        state = g_variant_ref_sink (g_variant_builder_end (&state_builder));
+
+        gboolean has_suspend_aware_session = FALSE;
+        g_hash_table_iter_init (&iter, inhibit->sessions);
+        while (g_hash_table_iter_next (&iter, (gpointer *) &inhibit_session, NULL))
+          if (inhibit_session && !inhibit_session->closed && inhibit_session->suspend_aware)
+            {
+              has_suspend_aware_session = TRUE;
+              inhibit_session->pending_suspend_response = should_prepare_for_sleep;
+              emit_state_changed (connection, inhibit_session, state);
+            }
+
+        if (should_prepare_for_sleep)
+          {
+            if (!has_suspend_aware_session)
+              {
+                g_clear_handle_id (&inhibit->ones_timeout_callback_id,
+                                   g_source_remove);
+                g_clear_fd (&inhibit->suspend_delay_inhibitor_fd, NULL);
+              }
+            else if (!inhibit->ones_timeout_callback_id)
+              inhibit->ones_timeout_callback_id =
+                g_timeout_add (1000, close_suspend_inhibitor_timeout, inhibit);
+          }
+    }
+}
+
+static void
+on_logind_session_proxy_properties_changed (GDBusProxy  *proxy,
+                                            GVariant    *changed_properties,
+                                            GStrv        invalidated_properties,
+                                            gpointer     user_data)
+{
+  Inhibit *inhibit = user_data;
+  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&inhibit->mutex);
+  GDBusConnection *connection =
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (inhibit->impl));
+  InhibitSession *inhibit_session;
+  g_autoptr(GVariant) state = NULL;
+  GHashTableIter iter;
+  gboolean locked_hint = FALSE;
+  GVariantBuilder state_builder;
+
+  if (!g_variant_lookup (changed_properties, "LockedHint", "b", &locked_hint))
+    return;
+
+  g_debug ("LockedHint changed: %s", locked_hint ? "true" : "false");
+
+  g_variant_builder_init (&state_builder, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_add (&state_builder, "{sv}",
+                         "locked", g_variant_new_boolean (locked_hint));
+  state = g_variant_ref_sink (g_variant_builder_end (&state_builder));
+
+  g_hash_table_iter_init (&iter, inhibit->sessions);
+  while (g_hash_table_iter_next (&iter, (gpointer *) &inhibit_session, NULL))
+      if (inhibit_session && !inhibit_session->closed)
+        emit_state_changed (connection, inhibit_session, state);
 }
 
 static Inhibit *
 inhibit_new (XdpContext         *context,
-             XdpDbusImplInhibit *impl)
+             XdpDbusImplInhibit *impl,
+             GDBusProxy         *logind_proxy,
+             GDBusProxy         *logind_session_proxy)
 {
   Inhibit *inhibit;
+  g_autoptr(GMutexLocker) locker = NULL;
 
   inhibit = g_object_new (inhibit_get_type (), NULL);
   inhibit->context = context;
   inhibit->impl = g_object_ref (impl);
+
+  locker = g_mutex_locker_new (&inhibit->mutex);
+
+  inhibit->last_session_state = STATE_RUNNING;
+  inhibit->sessions = g_hash_table_new (g_direct_hash, g_direct_equal);
+  inhibit->suspend_delay_inhibitor_fd = -1;
+  inhibit->ones_timeout_callback_id = 0;
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (inhibit->impl), G_MAXINT);
 
@@ -511,7 +811,29 @@ inhibit_new (XdpContext         *context,
                            G_CALLBACK (on_state_changed),
                            inhibit, G_CONNECT_DEFAULT);
 
-  xdp_dbus_inhibit_set_version (XDP_DBUS_INHIBIT (inhibit), 3);
+  if (logind_proxy != NULL)
+    {
+      inhibit->logind_proxy = g_object_ref (logind_proxy);
+      g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (inhibit->logind_proxy),
+                                        G_MAXINT);
+      g_signal_connect_object (inhibit->logind_proxy, "g-signal",
+                               G_CALLBACK (on_logind_proxy_signal),
+                               inhibit, G_CONNECT_DEFAULT);
+      inhibit_get_suspend_delay_inhibitor (inhibit);
+  }
+
+  if (logind_session_proxy != NULL)
+    {
+      inhibit->logind_session_proxy = g_object_ref (logind_session_proxy);
+      g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (inhibit->logind_session_proxy),
+                                        G_MAXINT);
+      g_signal_connect_object (inhibit->logind_session_proxy,
+                               "g-properties-changed",
+                               G_CALLBACK (on_logind_session_proxy_properties_changed),
+                               inhibit, G_CONNECT_DEFAULT);
+    }
+
+  xdp_dbus_inhibit_set_version (XDP_DBUS_INHIBIT (inhibit), 4);
 
   return inhibit;
 }
@@ -523,8 +845,13 @@ init_inhibit (XdpContext *context)
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
   XdpImplConfig *impl_config;
+  g_autoptr(GDBusProxy) logind_proxy = NULL;
+  g_autoptr(GDBusProxy) logind_session_proxy = NULL;
   g_autoptr(XdpDbusImplInhibit) impl = NULL;
   g_autoptr(GError) error = NULL;
+  g_autofree gchar *logind_session_id = NULL;
+  g_autofree gchar *logind_session_path = NULL;
+  int sd_return;
 
   impl_config = xdp_portal_config_find (config, INHIBIT_DBUS_IMPL_IFACE);
   if (impl_config == NULL)
@@ -541,7 +868,51 @@ init_inhibit (XdpContext *context)
       return;
     }
 
-  inhibit = inhibit_new (context, impl);
+  logind_proxy = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SYSTEM,
+                                                G_DBUS_PROXY_FLAGS_NONE,
+                                                NULL, LOGIN1_NAME,
+                                                LOGIN1_MANAGER_PATH,
+                                                LOGIN1_MANAGER_INTERFACE,
+                                                NULL, &error);
+  if (logind_proxy == NULL)
+    {
+      g_warning ("Failed to create logind proxy for inhibit: %s",
+                 error->message);
+      g_clear_error (&error);
+    }
+
+  sd_return = sd_pid_get_session (0, &logind_session_id);
+  if (sd_return == -ENODATA)
+    {
+      sd_return = sd_uid_get_display (getuid(), &logind_session_id);
+      if (sd_return < 0)
+        g_warning ("Failed to get systemd session ID: %s",
+                   strerror (-sd_return));
+    }
+
+  if (logind_session_id != NULL)
+    {
+      const char *prefix = g_ascii_isdigit (logind_session_id[0]) ? "_3" : "";
+      logind_session_path = g_strdup_printf ("/org/freedesktop/login1/session/%s%s",
+                                             prefix, logind_session_id);
+
+      logind_session_proxy =
+        g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SYSTEM,
+                                       G_DBUS_PROXY_FLAGS_NONE,
+                                       NULL, LOGIN1_NAME,
+                                       logind_session_path,
+                                       LOGIN1_SESSION_INTERFACE,
+                                       NULL, &error);
+
+      if (logind_session_proxy == NULL)
+        {
+          g_warning ("Failed to create logind session proxy for inhibit: %s",
+                     error->message);
+          g_clear_error (&error);
+        }
+    }
+
+  inhibit = inhibit_new (context, impl, logind_proxy, logind_session_proxy);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&inhibit)),
