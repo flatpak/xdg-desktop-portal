@@ -581,7 +581,7 @@ xdp_context_register (XdpContext       *context,
   init_game_mode (context);
   init_realtime (context);
   init_portal_in_fiber (context, init_settings);
-  init_file_chooser (context);
+  init_portal_in_fiber (context, init_file_chooser);
   init_open_uri (context);
   init_print (context);
   init_notification (context);
