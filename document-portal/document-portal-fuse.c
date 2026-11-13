@@ -1910,9 +1910,11 @@ invalidate_dentry_cb (gpointer user_data)
   for (GList *l = to_invalidate; l != NULL; l = l->next)
     {
       XdpInvalidateData *data = l->data;
+#if HAVE_FUSE_LOWLEVEL_NOTIFY_EXPIRE_ENTRY
       if (session)
-        fuse_lowlevel_notify_inval_entry (session, data->parent_ino, data->name,
-                                          strlen (data->name));
+        fuse_lowlevel_notify_expire_entry (session, data->parent_ino, data->name,
+                                           strlen (data->name));
+#endif
       g_free (data);
     }
 

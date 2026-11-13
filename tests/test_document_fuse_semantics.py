@@ -8,6 +8,8 @@ import fcntl
 import multiprocessing
 import os
 import struct
+import subprocess
+import sys
 import threading
 from pathlib import Path
 
@@ -337,6 +339,30 @@ class TestDirSemantics:
         os.close(fd)
         os.close(fd2)
         os.unlink(linkpath)
+
+    def test_getcwd(self, writable_dir_path):
+        # Looking up an entry queues a notification to the kernel that is sent
+        # 10 ms later. It must not make the working directory of a process
+        # unreachable: https://github.com/flatpak/xdg-desktop-portal/issues/1812
+        subdir = writable_dir_path / "cwd-dir"
+        os.mkdir(str(subdir))
+
+        for path in [writable_dir_path, subdir]:
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    "import os, time; time.sleep(0.5); print(os.getcwd())",
+                ],
+                cwd=path,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            assert result.returncode == 0, result.stderr
+            assert result.stdout.strip() == os.path.realpath(path)
+
+        subdir.rmdir()
 
 
 class TestParallelAccess:

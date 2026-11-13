@@ -213,6 +213,12 @@ config_h.set10('HAVE_LIBSYSTEMD', have_libsystemd)
 have_gudev = gudev_dep.found()
 config_h.set10('HAVE_GUDEV', have_gudev)
 
+# Added in libfuse 3.16
+config_h.set10(
+  'HAVE_FUSE_LOWLEVEL_NOTIFY_EXPIRE_ENTRY',
+  cc.has_function('fuse_lowlevel_notify_expire_entry', dependencies: fuse3_dep),
+)
+
 add_project_arguments(['-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_72'], language: 'c')
 
 build_documentation = false
