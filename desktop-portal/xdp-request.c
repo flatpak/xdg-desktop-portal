@@ -49,6 +49,58 @@ xdp_request_on_signal_response (XdpDbusRequest *object,
     }
 }
 
+#define IMPL_REQUEST_CLOSE_INITIAL_DELAY_MS 100
+#define IMPL_REQUEST_CLOSE_MAX_TOTAL_MS 30000
+
+static gboolean
+xdp_request_close_impl_request (XdpRequest  *request,
+                                GError     **error)
+{
+  GDBusProxy *proxy = G_DBUS_PROXY (request->impl_request);
+  GDBusConnection *connection = g_dbus_proxy_get_connection (proxy);
+  const char *name = g_dbus_proxy_get_name (proxy);
+  const char *path = g_dbus_proxy_get_object_path (proxy);
+  unsigned int delay_ms = IMPL_REQUEST_CLOSE_INITIAL_DELAY_MS;
+  unsigned int total_ms = 0;
+
+  while (total_ms < IMPL_REQUEST_CLOSE_MAX_TOTAL_MS)
+    {
+      g_autoptr(GVariant) reply = NULL;
+      g_autoptr(GError) local_error = NULL;
+
+      reply = g_dbus_connection_call_sync (connection,
+                                           name,
+                                           path,
+                                           "org.freedesktop.impl.portal.Request",
+                                           "Close",
+                                           NULL,
+                                           NULL,
+                                           G_DBUS_CALL_FLAGS_NONE,
+                                           -1,
+                                           NULL,
+                                           &local_error);
+      if (reply)
+        return TRUE;
+
+      if (!g_error_matches (local_error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD) &&
+          !g_error_matches (local_error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_OBJECT))
+        {
+          g_propagate_error (error, g_steal_pointer (&local_error));
+          return FALSE;
+        }
+
+      g_debug ("Impl request at %s does not exist yet, retrying Close in %ums",
+               path, delay_ms);
+      g_usleep (delay_ms * 1000);
+      total_ms += delay_ms;
+      delay_ms *= 2;
+    }
+
+  g_warning ("Impl request at %s did not appear after %ums",
+             path, total_ms);
+  return TRUE;
+}
+
 static gboolean
 xdp_request_handle_close (XdpDbusRequest        *object,
                           GDBusMethodInvocation *invocation)
@@ -61,9 +113,14 @@ xdp_request_handle_close (XdpDbusRequest        *object,
 
   if (request->exported)
     {
+      /* The impl request D-Bus object may not exist on the backend yet
+       * when Close is called: the portal exports the request and returns
+       * the path to the app before the impl call reaches the backend,
+       * so a fast Close can arrive before the backend has created the
+       * impl request object.  Retry with a short delay to give the
+       * backend time to catch up. */
       if (request->impl_request &&
-          !xdp_dbus_impl_request_call_close_sync (request->impl_request,
-                                                  NULL, &error))
+          !xdp_request_close_impl_request (request, &error))
         {
           if (invocation)
             g_dbus_method_invocation_return_gerror (invocation, error);
