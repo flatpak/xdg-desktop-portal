@@ -13,9 +13,26 @@ as many desktop environments try to talk to XDG Desktop Portal on startup.
 XDG Desktop Portal initializes specific backends through D-Bus activation
 as well.
 
+Setup
+-----
+
+Run:
+
+.. code-block:: shell
+
+   meson setup --reconfigure . _build
+
+Some distributions install portal configuration files in ``/usr``, while Meson
+defaults to the prefix ``/usr/local``. If the portal configuration files in your
+distribution are in ``/usr/share/xdg-desktop-portal/portals``, re-configure
+Meson using ``meson setup --reconfigure . _build --prefix /usr``.
+
 
 Building
 --------
+
+Host
+^^^^
 
 To build XDG Desktop Portal, first make sure you have the build dependencies
 installed through your distribution's package manager. With them installed,
@@ -23,16 +40,12 @@ run:
 
 .. code-block:: shell
 
-   meson setup . _build
    meson compile -C _build
 
-Some distributions install portal configuration files in ``/usr``, while Meson
-defaults to the prefix ``/usr/local``. If the portal configuration files in your
-distribution are in ``/usr/share/xdg-desktop-portal/portals``, re-configure
-Meson using ``meson setup --reconfigure . _build --prefix /usr`` and compile
-again.
+``systemd-sysext``
+^^^^^^^^^^^^^^^^^^
 
-If you are using ``systemd-sysext`` from ``sysext-utils``:
+If you are using ``systemd-sysext`` provided by ``sysext-utils``:
 
 .. code-block:: shell
 
@@ -44,18 +57,28 @@ Running
 -------
 
 XDG Desktop Portal needs to own the D-Bus name and replace the user session
-service that might already be running. To do so, run:
+service that might already be running.
+
+Host
+^^^^
+
+Run:
 
 .. code-block:: shell
 
    _build/desktop-portal/xdg-desktop-portal --replace
+
+``systemd-sysext``
+^^^^^^^^^^^^^^^^^^
 
 If you are using ``systemd-sysext`` from ``sysext-utils`` to
 temporarily replace the service:
 
 .. code-block:: shell
 
-   $PREFIX/libexec/xdg-desktop-portal --replace
+   [prefix]/libexec/xdg-desktop-portal --replace
+
+------------
 
 You may need to restart backends after replacing XDG Desktop Portal (please
 replace ``[name]`` with the backend name, e.g. ``gnome`` or ``kde`` or ``wlr``):
