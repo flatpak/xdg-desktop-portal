@@ -57,6 +57,8 @@ class ImplRequest:
         logger: logging.Logger,
         cb_success: Callable,
         cb_error: Callable,
+        request_version: int = 2,
+        export_delay: int = 0,
     ):
         self.mock = mock
         bus = mock.connection
@@ -66,6 +68,8 @@ class ImplRequest:
         self.logger = logger
         self.cb_success = cb_success
         self.cb_error = cb_error
+        self.request_version = request_version
+        self.export_delay = export_delay
 
     def respond(
         self,
@@ -99,13 +103,22 @@ class ImplRequest:
             if done_cb:
                 done_cb()
 
-        self._export()
+        def start():
+            self._export()
 
-        if delay > 0:
-            logger.debug(f"Request {self.handle}: scheduling delay of {delay}ms")
-            GLib.timeout_add(delay, reply)
+            if delay > 0:
+                logger.debug(f"Request {self.handle}: scheduling delay of {delay}ms")
+                GLib.timeout_add(delay, reply)
+            else:
+                reply()
+
+        if self.export_delay > 0:
+            logger.debug(
+                f"Request {self.handle}: delaying export by {self.export_delay}ms"
+            )
+            GLib.timeout_add(self.export_delay, start)
         else:
-            reply()
+            start()
 
     def wait_for_close(
         self,
@@ -140,19 +153,30 @@ class ImplRequest:
             if name == "Close":
                 closed()
 
-        self._export()
+        self.mock_interface.connect_to_signal("MethodCalled", cb_methodcall)
+
+        if self.export_delay > 0:
+            logger.debug(
+                f"Request {self.handle}: delaying export by {self.export_delay}ms"
+            )
+            GLib.timeout_add(self.export_delay, self._export)
+        else:
+            self._export()
 
         logger.debug(f"Request {self.handle}: waiting for x-d-p to call close")
-        self.mock_interface.connect_to_signal("MethodCalled", cb_methodcall)
 
     def _export(self):
         # In the future we can pass a class extending
         # dbusmock.mockobject.DBusMockObject as mock_class to avoid going
         # through the mock MethodCalled signal
+        properties = {}
+        if self.request_version >= 2:
+            properties["version"] = dbus.UInt32(self.request_version)
+
         self.mock.AddObject(
             path=self.handle,
             interface="org.freedesktop.impl.portal.Request",
-            properties={},
+            properties=properties,
             methods=[
                 (
                     "Close",
@@ -162,6 +186,15 @@ class ImplRequest:
                 )
             ],
         )
+
+        if self.request_version >= 2:
+            request_obj = dbusmock.get_object(self.handle)
+            request_obj.EmitSignal(
+                interface="org.freedesktop.impl.portal.Request",
+                name="Created",
+                signature="",
+                sigargs=(),
+            )
 
     def _unexport(self):
         self.mock.RemoveObject(self.handle)
