@@ -564,39 +564,43 @@ load_bwrap_info (const char  *instance,
   return g_steal_pointer (&root);
 }
 
-static int
-get_bwrap_pidfd (const char  *instance,
-                 int          caller_pidfd,
-                 GError     **error)
+static GLnxPidRef *
+get_bwrap_pidref (const char  *instance,
+                  GLnxPidRef  *caller_pidref,
+                  GError     **error)
 {
   g_autoptr(JsonNode) root = NULL;
-  g_autofd int fd = -1;
+  g_autoptr(GLnxPidRef) bwrap_ref = NULL;
   pid_t pid;
 
   if (instance == NULL)
     {
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                            "Could not find instance-id in process's /.flatpak-info");
-      return -1;
+      return NULL;
     }
 
   root = load_bwrap_info (instance, error);
   if (root == NULL)
-    return -1;
+    return NULL;
 
   pid = get_bwrap_child_pid (root, error);
   if (pid == 0)
-    return -1;
+    return NULL;
 
-  if (!xdp_pid_to_pidfd (pid, &fd, error))
-    return -1;
+  bwrap_ref = glnx_pid_ref_new_from_pid (pid, error);
+  if (!bwrap_ref)
+    return NULL;
 
   /* Ensure the caller is still alive; defense-in-depth to avoid any kind
    * of races in the pid to pidfd lookup above. */
-  if (caller_pidfd >= 0 && xdp_pidfd_to_pid (caller_pidfd, error) < 0)
-    return -1;
+  if (caller_pidref)
+    {
+      if (!glnx_pid_ref_verify (caller_pidref, error))
+        return NULL;
+    }
 
-  return g_steal_fd (&fd);
+  return g_steal_pointer (&bwrap_ref);
 }
 
 static int
@@ -731,15 +735,10 @@ xdp_app_info_flatpak_new_testing (const char  *sender,
   return XDP_APP_INFO (g_steal_pointer (&app_info_flatpak));
 }
 
-/*
- * @pidfd: (inout) (not nullable): Pointer to process ID file descriptor.
- *  This function may take ownership of the fd. If it does, it will
- *  set `*pidfd` to -1.
- */
 XdpAppInfo *
 xdp_app_info_flatpak_new (const char  *sender,
                           int          pid,
-                          int         *pidfd,
+                          GLnxPidRef  *pidref,
                           GError     **error)
 {
   g_autoptr (XdpAppInfoFlatpak) app_info_flatpak = NULL;
@@ -754,7 +753,7 @@ xdp_app_info_flatpak_new (const char  *sender,
   g_autofree char *instance = NULL;
   g_auto(GStrv) shared = NULL;
   gboolean has_network;
-  g_autofd int bwrap_pidfd = -1;
+  g_autoptr(GLnxPidRef) bwrap_pidref = NULL;
   const char *test_app_info_kind;
 
   test_app_info_kind = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND");
@@ -840,8 +839,8 @@ xdp_app_info_flatpak_new (const char  *sender,
    * instead. This is okay because it has the same namespaces as the calling
    * process.
    */
-  bwrap_pidfd = get_bwrap_pidfd (instance, *pidfd, &local_error);
-  if (bwrap_pidfd == -1)
+  bwrap_pidref = get_bwrap_pidref (instance, pidref, &local_error);
+  if (!bwrap_pidref)
     {
       if (!g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED))
         {
@@ -863,7 +862,7 @@ xdp_app_info_flatpak_new (const char  *sender,
                                      "flags", flags,
                                      "id", id,
                                      "instance", instance,
-                                     "pidfd", g_steal_fd (&bwrap_pidfd),
+                                     "pidref", bwrap_pidref,
                                      "sender", sender,
                                      NULL);
   if (!app_info_flatpak)
