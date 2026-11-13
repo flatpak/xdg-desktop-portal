@@ -247,7 +247,7 @@ on_peer_disconnect_in_thread_func (GTask        *task,
     return;
 
   if (request->impl_request)
-    xdp_dbus_impl_request_call_close (request->impl_request, NULL, NULL, NULL);
+    xdp_request_close_impl_request (request, NULL);
 
   xdp_request_unexport (request);
 }
