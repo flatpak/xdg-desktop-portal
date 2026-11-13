@@ -870,9 +870,10 @@ file_chooser_new (XdpDbusImplFileChooser *impl,
   return file_chooser;
 }
 
-void
-init_file_chooser (XdpContext *context)
+DexFuture *
+init_file_chooser (gpointer user_data)
 {
+  XdpContext *context = XDP_CONTEXT (user_data);
   g_autoptr(FileChooser) file_chooser = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
@@ -883,7 +884,7 @@ init_file_chooser (XdpContext *context)
 
   impl_config = xdp_portal_config_find (config, FILE_CHOOSER_DBUS_IMPL_IFACE);
   if (impl_config == NULL)
-    return;
+    return dex_future_new_true ();
 
   impl = xdp_dbus_impl_file_chooser_proxy_new_sync (connection,
                                                     G_DBUS_PROXY_FLAGS_NONE,
@@ -895,7 +896,7 @@ init_file_chooser (XdpContext *context)
   if (impl == NULL)
     {
       g_warning ("Failed to create file chooser proxy: %s", error->message);
-      return;
+      return dex_future_new_false ();
     }
 
   lockdown_impl = xdp_context_get_lockdown_impl (context);
@@ -905,4 +906,5 @@ init_file_chooser (XdpContext *context)
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&file_chooser)),
                                       XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
+  return dex_future_new_true ();
 }
