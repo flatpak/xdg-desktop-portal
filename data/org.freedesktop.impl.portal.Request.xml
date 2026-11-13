@@ -28,5 +28,27 @@
     -->
     <method name="Close">
     </method>
+
+    <!--
+        Created:
+
+        Emitted by the backend when the Request object has been exported
+        and is ready to receive calls. Portal frontends use this signal
+        to avoid a race condition where
+        :ref:`org.freedesktop.impl.portal.Request.Close` is called
+        before the backend has created the object.
+
+        Backends that do not emit this signal are supported through a
+        polling fallback.
+    -->
+    <signal name="Created">
+    </signal>
+
+    <!--
+        version:
+
+        The version of this interface. Currently at 2.
+    -->
+    <property name="version" type="u" access="read"/>
   </interface>
 </node>
