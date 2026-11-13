@@ -21,9 +21,6 @@ struct _XdpAppInfoClass
   gboolean (*is_valid_sub_app_id) (XdpAppInfo *app_info,
                                    const char *sub_app_id);
 
-  char * (*remap_path) (XdpAppInfo *app_info,
-                        const char *path);
-
   const GPtrArray * (*get_usb_queries) (XdpAppInfo *app_info);
 
   gboolean (*validate_autostart) (XdpAppInfo          *app_info,

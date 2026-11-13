@@ -169,63 +169,6 @@ xdp_app_info_flatpak_is_valid_sub_app_id (XdpAppInfo *app_info,
   return flatpak_is_valid_name (sub_app_id);
 }
 
-static char *
-xdp_app_info_flatpak_remap_path (XdpAppInfo *app_info,
-                                 const char *path)
-{
-  XdpAppInfoFlatpak *app_info_flatpak = XDP_APP_INFO_FLATPAK (app_info);
-  const char *app_id = xdp_app_info_get_id (app_info);
-  g_autofree char *app_path = NULL;
-  g_autofree char *runtime_path = NULL;
-
-  g_assert (app_info_flatpak);
-  g_assert (app_id);
-
-  app_path = g_key_file_get_string (app_info_flatpak->flatpak_info,
-                                    FLATPAK_METADATA_GROUP_INSTANCE,
-                                    FLATPAK_METADATA_KEY_APP_PATH,
-                                    NULL);
-  runtime_path = g_key_file_get_string (app_info_flatpak->flatpak_info,
-                                        FLATPAK_METADATA_GROUP_INSTANCE,
-                                        FLATPAK_METADATA_KEY_RUNTIME_PATH,
-                                        NULL);
-
-  /* For apps we translate /app and /usr to the installed locations.
-   * Also, we need to rewrite to drop the /newroot prefix added by
-   * bubblewrap for other files to work.  See
-   * https://github.com/projectatomic/bubblewrap/pull/172
-   * for a bit more information on the /newroot issue.
-   */
-
-  if (g_str_has_prefix (path, "/newroot/"))
-    path = path + strlen ("/newroot");
-
-  if (app_path != NULL && g_str_has_prefix (path, "/app/"))
-    return g_build_filename (app_path, path + strlen ("/app/"), NULL);
-  else if (runtime_path != NULL && g_str_has_prefix (path, "/usr/"))
-    return g_build_filename (runtime_path, path + strlen ("/usr/"), NULL);
-  else if (g_str_has_prefix (path, "/run/host/usr/"))
-    return g_build_filename ("/usr", path + strlen ("/run/host/usr/"), NULL);
-  else if (g_str_has_prefix (path, "/run/host/etc/"))
-    return g_build_filename ("/etc", path + strlen ("/run/host/etc/"), NULL);
-  else if (g_str_has_prefix (path, "/run/flatpak/app/"))
-    return g_build_filename (g_get_user_runtime_dir (), "app",
-                             path + strlen ("/run/flatpak/app/"), NULL);
-  else if (g_str_has_prefix (path, "/run/flatpak/doc/"))
-    return g_build_filename (g_get_user_runtime_dir (), "doc",
-                             path + strlen ("/run/flatpak/doc/"), NULL);
-  else if (g_str_has_prefix (path, "/var/config/"))
-    return g_build_filename (g_get_home_dir (), ".var", "app",
-                             app_id, "config",
-                             path + strlen ("/var/config/"), NULL);
-  else if (g_str_has_prefix (path, "/var/data/"))
-    return g_build_filename (g_get_home_dir (), ".var", "app",
-                             app_id, "data",
-                             path + strlen ("/var/data/"), NULL);
-
-  return g_strdup (path);
-}
-
 static char **
 rewrite_commandline (XdpAppInfoFlatpak  *app_info,
                      const char * const *commandline,
@@ -484,8 +427,6 @@ xdp_app_info_flatpak_class_init (XdpAppInfoFlatpakClass *klass)
 
   object_class->dispose = xdp_app_info_flatpak_dispose;
 
-  app_info_class->remap_path =
-    xdp_app_info_flatpak_remap_path;
   app_info_class->get_usb_queries =
     xdp_app_info_flaptak_get_usb_queries;
   app_info_class->validate_autostart =
@@ -564,39 +505,43 @@ load_bwrap_info (const char  *instance,
   return g_steal_pointer (&root);
 }
 
-static int
-get_bwrap_pidfd (const char  *instance,
-                 int          caller_pidfd,
-                 GError     **error)
+static GLnxPidRef *
+get_bwrap_pidref (const char  *instance,
+                  GLnxPidRef  *caller_pidref,
+                  GError     **error)
 {
   g_autoptr(JsonNode) root = NULL;
-  g_autofd int fd = -1;
+  g_autoptr(GLnxPidRef) bwrap_ref = NULL;
   pid_t pid;
 
   if (instance == NULL)
     {
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                            "Could not find instance-id in process's /.flatpak-info");
-      return -1;
+      return NULL;
     }
 
   root = load_bwrap_info (instance, error);
   if (root == NULL)
-    return -1;
+    return NULL;
 
   pid = get_bwrap_child_pid (root, error);
   if (pid == 0)
-    return -1;
+    return NULL;
 
-  if (!xdp_pid_to_pidfd (pid, &fd, error))
-    return -1;
+  bwrap_ref = glnx_pid_ref_new_from_pid (pid, error);
+  if (!bwrap_ref)
+    return NULL;
 
   /* Ensure the caller is still alive; defense-in-depth to avoid any kind
    * of races in the pid to pidfd lookup above. */
-  if (caller_pidfd >= 0 && xdp_pidfd_to_pid (caller_pidfd, error) < 0)
-    return -1;
+  if (caller_pidref)
+    {
+      if (!glnx_pid_ref_verify (caller_pidref, error))
+        return NULL;
+    }
 
-  return g_steal_fd (&fd);
+  return g_steal_pointer (&bwrap_ref);
 }
 
 static int
@@ -731,15 +676,10 @@ xdp_app_info_flatpak_new_testing (const char  *sender,
   return XDP_APP_INFO (g_steal_pointer (&app_info_flatpak));
 }
 
-/*
- * @pidfd: (inout) (not nullable): Pointer to process ID file descriptor.
- *  This function may take ownership of the fd. If it does, it will
- *  set `*pidfd` to -1.
- */
 XdpAppInfo *
 xdp_app_info_flatpak_new (const char  *sender,
                           int          pid,
-                          int         *pidfd,
+                          GLnxPidRef  *pidref,
                           GError     **error)
 {
   g_autoptr (XdpAppInfoFlatpak) app_info_flatpak = NULL;
@@ -754,7 +694,7 @@ xdp_app_info_flatpak_new (const char  *sender,
   g_autofree char *instance = NULL;
   g_auto(GStrv) shared = NULL;
   gboolean has_network;
-  g_autofd int bwrap_pidfd = -1;
+  g_autoptr(GLnxPidRef) bwrap_pidref = NULL;
   const char *test_app_info_kind;
 
   test_app_info_kind = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND");
@@ -840,8 +780,8 @@ xdp_app_info_flatpak_new (const char  *sender,
    * instead. This is okay because it has the same namespaces as the calling
    * process.
    */
-  bwrap_pidfd = get_bwrap_pidfd (instance, *pidfd, &local_error);
-  if (bwrap_pidfd == -1)
+  bwrap_pidref = get_bwrap_pidref (instance, pidref, &local_error);
+  if (!bwrap_pidref)
     {
       if (!g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED))
         {
@@ -863,7 +803,7 @@ xdp_app_info_flatpak_new (const char  *sender,
                                      "flags", flags,
                                      "id", id,
                                      "instance", instance,
-                                     "pidfd", g_steal_fd (&bwrap_pidfd),
+                                     "pidref", bwrap_pidref,
                                      "sender", sender,
                                      NULL);
   if (!app_info_flatpak)

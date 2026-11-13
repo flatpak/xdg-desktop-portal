@@ -266,8 +266,7 @@ handle_call_thread (GTask        *task,
   GVariant *params;
   const char *app_id;
   CallData *call;
-  gboolean ok;
-  gint r;
+  int r;
 
   call = (CallData *) task_data;
   app_id = xdp_app_info_get_id (call->app_info);
@@ -281,29 +280,38 @@ handle_call_thread (GTask        *task,
   /* if we don't have a list of fds, we got pids and need to map them */
   if (call->fdlist == NULL)
     {
+      GLnxPidRef *pidref = xdp_app_info_get_pidref (call->app_info);
       pid_t pids[2] = {0, };
-      guint n_pids;
-      ino_t pidns_id;
+      unsigned int n_pids;
 
       n_pids = call->n_ids;
 
-      for (guint i = 0; i < n_pids; i++)
-        pids[0] = (pid_t) call->ids[i];
+      for (unsigned int i = 0; i < n_pids; i++)
+        pids[i] = (pid_t) call->ids[i];
 
-      if (!xdp_app_info_get_pidns (call->app_info, &pidns_id, &error))
+      if (pidref)
         {
-          g_prefix_error (&error, "Could not get pidns: ");
-          g_warning ("GameMode error: %s", error->message);
-          g_dbus_method_invocation_return_gerror (call->inv, error);
-          return;
-        }
+          g_autoptr(GLnxNamespace) pidns = NULL;
 
-      if (pidns_id != 0 && !xdp_map_pids (pidns_id, pids, n_pids, &error))
-        {
-          g_prefix_error (&error, "Could not map pids: ");
-          g_warning ("GameMode error: %s", error->message);
-          g_dbus_method_invocation_return_gerror (call->inv, error);
-          return;
+          pidns = glnx_pid_ref_get_namespace (pidref, GLNX_NAMESPACE_PID, &error);
+          if (!pidns)
+            {
+              g_prefix_error (&error, "Could not get pidns: ");
+              g_warning ("GameMode error: %s", error->message);
+              g_dbus_method_invocation_return_gerror (call->inv, error);
+              return;
+            }
+
+          for (unsigned int i = 0; i < n_pids; i++)
+            {
+              if (!glnx_namespace_get_pid_from (pidns, pids[i], &pids[i], &error))
+                {
+                  g_prefix_error (&error, "Could not map pid %d: ", (int) pids[i]);
+                  g_warning ("GameMode error: %s", error->message);
+                  g_dbus_method_invocation_return_gerror (call->inv, error);
+                  return;
+                }
+            }
         }
 
       if (n_pids == 1)
@@ -316,16 +324,32 @@ handle_call_thread (GTask        *task,
     {
       pid_t pids[2] = {0, };
       const int *fds;
-      gint n_pids;
+      int n_pids;
 
       fdlist = call->fdlist;
 
-      /* verify fds are actually pidfds */
       fds = g_unix_fd_list_peek_fds (fdlist, &n_pids);
 
-      ok = xdp_pidfds_to_pids (fds, pids, n_pids, &error);
+      for (int i = 0; i < n_pids; i++)
+        {
+          g_autoptr(GLnxPidRef) pidref = NULL;
 
-      if (!ok || !check_pids (pids, n_pids, &error))
+          pidref = glnx_pid_ref_new_from_pidfd (fds[i], &error);
+          if (!pidref)
+            {
+              g_warning ("Pidfd verification error: %s", error->message);
+              g_dbus_method_invocation_return_error (call->inv,
+                                                     G_DBUS_ERROR,
+                                                     G_DBUS_ERROR_INVALID_ARGS,
+                                                     "failed to verify fds as pidfds: %s",
+                                                     error->message);
+              return;
+            }
+
+          pids[i] = glnx_pid_ref_get_pid (pidref);
+        }
+
+      if (!check_pids (pids, n_pids, &error))
         {
           g_warning ("Pidfd verification error: %s", error->message);
           g_dbus_method_invocation_return_error (call->inv,
