@@ -27,3 +27,5 @@ void xdp_request_dex_emit_response (XdpRequestDex                *request,
                                     GVariant                     *results);
 
 const char * xdp_request_dex_get_object_path (XdpRequestDex *request);
+
+XdpAppInfo* xdp_request_dex_get_app_info (XdpRequestDex *request);

@@ -142,6 +142,12 @@ template_files = [
   'templates/xdp_utils.py',
 ]
 
+
+if have_speech
+  tests += { 'speech':  {} }
+  template_files += ['templates/speechprovider.py']
+endif
+
 pytest_files = []
 
 foreach testname, params : tests

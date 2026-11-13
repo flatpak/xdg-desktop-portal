@@ -34,6 +34,7 @@
 #include "screenshot.h"
 #include "secret.h"
 #include "settings.h"
+#include "speech.h"
 #include "trash.h"
 #include "usb.h"
 #include "wallpaper.h"
@@ -573,6 +574,9 @@ xdp_context_register (XdpContext       *context,
     }
 
   init_portal_in_fiber (context, init_secret);
+#if HAVE_SPEECH
+  init_portal_in_fiber (context, init_speech);
+#endif
   init_memory_monitor (context);
   init_power_profile_monitor (context);
   init_network_monitor (context);
