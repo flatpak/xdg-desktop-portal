@@ -153,7 +153,6 @@ handle_create_credential (XdpDbusExperimentalCredential *object,
   g_autoptr (GError) error = NULL;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   const char *app_id = xdp_app_info_get_id (app_info);
-  g_autoptr (DexFuture) future = NULL;
 
   options = create_credential_validate_options (arg_options, &error);
   if (!options)
@@ -181,9 +180,9 @@ handle_create_credential (XdpDbusExperimentalCredential *object,
   xdp_dbus_experimental_credential_complete_create_credential (object, invocation,
                                                                xdp_request_dex_get_object_path (request));
 
-  future = xdp_dbus_experimental_handler_credential_call_create_credential_future (
-             credential->handler, arg_parent_window, arg_origin, arg_type, options, app_id);
-  result = dex_await_boxed (g_steal_pointer (&future), &error);
+  result = dex_await_boxed (xdp_dbus_experimental_handler_credential_call_create_credential_future (
+                                credential->handler, arg_parent_window, arg_origin, arg_type, options, app_id),
+                            &error);
 
   if (result)
     {
@@ -233,7 +232,6 @@ handle_get_credential (XdpDbusExperimentalCredential *object,
   g_autoptr (GError) error = NULL;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   const char *app_id = xdp_app_info_get_id (app_info);
-  g_autoptr (DexFuture) future = NULL;
 
   options = get_credential_validate_options (arg_options, &error);
   if (!options)
@@ -261,9 +259,9 @@ handle_get_credential (XdpDbusExperimentalCredential *object,
   xdp_dbus_experimental_credential_complete_get_credential (object, invocation,
                                                             xdp_request_dex_get_object_path (request));
 
-  future = xdp_dbus_experimental_handler_credential_call_get_credential_future (
-             credential->handler, arg_parent_window, arg_origin, options, app_id);
-  result = dex_await_boxed (g_steal_pointer (&future), &error);
+  result = dex_await_boxed (xdp_dbus_experimental_handler_credential_call_get_credential_future (
+                                credential->handler, arg_parent_window, arg_origin, options, app_id),
+                            &error);
 
   if (result)
     {
