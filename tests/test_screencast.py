@@ -65,6 +65,17 @@ class TestScreenCast:
         assert props["pipewire-serial"] == 133742
 
     @pytest.mark.parametrize(
+        "template_params",
+        ({"screencast": {"n-streams": 2}},),
+    )
+    def test_multiple_streams(self, portals, dbus_con):
+        screencast_intf = xdp.get_portal_iface(dbus_con, "ScreenCast")
+        response = start_stream(dbus_con, screencast_intf)
+
+        streams = response.results["streams"]
+        assert [node_id for node_id, _props in streams] == [42, 43]
+
+    @pytest.mark.parametrize(
         "persistence_option",
         (
             {"persist_mode": dbus.UInt32(xdp.SessionPersistenceMode.TRANSIENT)},

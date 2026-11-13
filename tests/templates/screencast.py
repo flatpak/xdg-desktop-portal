@@ -29,6 +29,7 @@ class ScreenCastParameters:
     version: int
     node_id: int
     pipewire_serial: int
+    n_streams: int
 
 
 def load(mock, parameters=None):
@@ -45,6 +46,7 @@ def load(mock, parameters=None):
         version=version,
         node_id=parameters.get("node-id", 42),
         pipewire_serial=parameters.get("pipewire-serial", 133742),
+        n_streams=parameters.get("n-streams", 1),
     )
 
     mock.AddProperties(
@@ -122,19 +124,19 @@ def Start(
 
     request = ImplRequest(self, BUS_NAME, handle, logger, cb_success, cb_error)
 
-    stream_properties = dbus.Dictionary(
-        {"size": dbus.Struct((dbus.Int32(1920), dbus.Int32(1080)), signature="ii")},
-        signature="sv",
-    )
-    # The PipeWire serial was added to the stream properties in version 6;
-    # an older backend does not advertise it.
-    if params.version >= 6:
-        stream_properties["pipewire-serial"] = dbus.UInt64(params.pipewire_serial)
-
-    streams = dbus.Array(
-        [(dbus.UInt32(params.node_id), stream_properties)],
-        signature="(ua{sv})",
-    )
+    streams = dbus.Array([], signature="(ua{sv})")
+    for i in range(params.n_streams):
+        stream_properties = dbus.Dictionary(
+            {"size": dbus.Struct((dbus.Int32(1920), dbus.Int32(1080)), signature="ii")},
+            signature="sv",
+        )
+        # The PipeWire serial was added to the stream properties in version 6;
+        # an older backend does not advertise it.
+        if params.version >= 6:
+            stream_properties["pipewire-serial"] = dbus.UInt64(
+                params.pipewire_serial + i
+            )
+        streams.append((dbus.UInt32(params.node_id + i), stream_properties))
     response = Response(params.response, {"streams": streams})
 
     if params.expect_close:
