@@ -21,9 +21,59 @@ typedef struct _XdpRequestDex
   XdpDbusImplRequest *impl_request; /* (owned) (nullable) */
   GDBusInterfaceSkeleton *skeleton; /* (owned) (not nullable) */
   XdpObjectPathClaim *claim; /* (owned) (not nullable) */
+  DexPromise *close_promise; /* (owned) (not nullable) */
+  DexPromise *cancel_promise; /* (owned) (not nullable) */
   gboolean exported;
   gboolean responded;
 } XdpRequestDex;
+
+/**
+ * XdpRequestDex:
+ *
+ * A future-based Request implementation.
+ *
+ * ## Lifecycle
+ *
+ * [ctor@RequestDex.new] creates the request and a proxy for the impl
+ * request. It also starts discovering the impl request object on the
+ * bus (via the `Created` signal or polling) and sets up a close chain
+ * that forwards `Close` to the impl once both the impl is discovered
+ * and a close has been requested.
+ *
+ * [method@RequestDex.export] exports the request on the bus
+ * immediately. It does not wait for the impl request to appear.
+ *
+ * [method@RequestDex.close] unexports the request and resolves the
+ * close promise. The impl `Close` call runs asynchronously in the
+ * background once the impl request has been discovered.
+ *
+ * ## Response handling
+ *
+ * Use [method@RequestDex.emit_response] to send a `Response` signal
+ * to the app. Calling it more than once is a programming error.
+ *
+ * If the request is disposed without a response having been sent
+ * (e.g. on error paths), dispose automatically emits
+ * `XDG_DESKTOP_PORTAL_RESPONSE_OTHER`. Portal handlers can therefore
+ * simply return on failure and let the `g_autoptr` cleanup take care
+ * of notifying the app.
+ *
+ * ## Usage pattern
+ *
+ * ```c
+ * request = dex_await_object (xdp_request_dex_new (...), &error);
+ * xdp_request_dex_export (request, NULL);
+ * xdp_dbus_foo_complete_bar (object,
+ *                            g_steal_pointer (&invocation),
+ *                            xdp_request_dex_get_object_path (request));
+ * result = dex_await_boxed (xdp_dbus_impl_foo_call_bar_future (
+ *     impl,
+ *     ...,
+ *     xdp_request_dex_get_object_path (request),
+ *     ...),
+ *   &error);
+ * ```
+ */
 
 static void xdp_request_skeleton_iface_init (XdpDbusRequestIface *iface);
 
@@ -56,34 +106,28 @@ xdp_request_dex_on_signal_response (XdpDbusRequest *object,
                                  NULL);
 }
 
+void
+xdp_request_dex_close (XdpRequestDex *request)
+{
+  if (request->exported)
+    {
+      request->exported = FALSE;
+      g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
+    }
+
+  if (!dex_future_is_resolved (DEX_FUTURE (request->close_promise)))
+    dex_promise_resolve_boolean (request->close_promise, TRUE);
+}
+
 static gboolean
 xdp_request_dex_handle_close (XdpDbusRequest        *object,
                               GDBusMethodInvocation *invocation)
 {
   XdpRequestDex *request = XDP_REQUEST_DEX (object);
-  g_autoptr(GError) error = NULL;
 
-  if (!request->exported)
-    {
-      xdp_dbus_request_complete_close (XDP_DBUS_REQUEST (request), invocation);
-      return G_DBUS_METHOD_INVOCATION_HANDLED;
-    }
-
-  g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
-  request->exported = FALSE;
-
-  if (request->impl_request)
-    {
-      dex_await (xdp_dbus_impl_request_call_close_future (request->impl_request),
-                 &error);
-      if (error)
-        {
-          g_dbus_method_invocation_return_gerror (invocation, error);
-          return G_DBUS_METHOD_INVOCATION_HANDLED;
-        }
-    }
-
+  xdp_request_dex_close (request);
   xdp_dbus_request_complete_close (XDP_DBUS_REQUEST (request), invocation);
+
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
@@ -99,20 +143,18 @@ xdp_request_dex_dispose (GObject *object)
 {
   XdpRequestDex *request = XDP_REQUEST_DEX (object);
 
-  if (request->exported)
-    {
-      if (!request->responded)
-        xdp_request_dex_emit_response (request,
-                                       XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
-                                       NULL);
+  if (request->exported && !request->responded)
+    xdp_request_dex_emit_response (request,
+                                   XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                   NULL);
 
-      if (request->impl_request)
-        xdp_dbus_impl_request_call_close (request->impl_request, NULL, NULL, NULL);
+  xdp_request_dex_close (request);
 
-      g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
-      request->exported = FALSE;
-    }
+  if (!dex_future_is_resolved (DEX_FUTURE (request->cancel_promise)))
+    dex_promise_resolve_boolean (request->cancel_promise, TRUE);
 
+  dex_clear (&request->close_promise);
+  dex_clear (&request->cancel_promise);
   g_clear_pointer (&request->claim, xdp_object_path_claim_unref);
   g_clear_object (&request->app_info);
   g_clear_object (&request->impl_request);
@@ -155,6 +197,130 @@ request_authorize_callback (GDBusInterfaceSkeleton *interface,
   return TRUE;
 }
 
+typedef struct _PollData {
+  GDBusProxy *proxy; /* (owned) (not nullable) */
+  unsigned int poll_delay_ms;
+  unsigned int poll_total_ms;
+} PollData;
+
+static void
+poll_data_free (PollData *data)
+{
+  g_clear_object (&data->proxy);
+  g_free (data);
+}
+
+#define IMPL_REQUEST_POLL_INITIAL_DELAY_MS 100
+#define IMPL_REQUEST_POLL_MAX_TOTAL_MS 30000
+
+static DexFuture *
+check_impl_request_available (DexFuture *completed,
+                              gpointer   user_data)
+{
+  PollData *pd = user_data;
+  GDBusConnection *connection = g_dbus_proxy_get_connection (pd->proxy);
+  const char *name = g_dbus_proxy_get_name (pd->proxy);
+  const char *path = g_dbus_proxy_get_object_path (pd->proxy);
+
+  return dex_dbus_connection_call (connection, name, path,
+                                   "org.freedesktop.DBus.Properties",
+                                   "GetAll",
+                                   g_variant_new ("(s)",
+                                                  "org.freedesktop.impl.portal.Request"),
+                                   G_VARIANT_TYPE ("(a{sv})"),
+                                   G_DBUS_CALL_FLAGS_NONE, -1);
+}
+
+static DexFuture *
+retry_check_impl_request_poll (DexFuture *completed,
+                               gpointer   user_data)
+{
+  PollData *pd = user_data;
+  g_autoptr(GError) error = NULL;
+  unsigned int delay_ms;
+
+  dex_future_get_value (completed, &error);
+
+  if (!g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD) &&
+      !g_error_matches (error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_OBJECT))
+    return dex_future_new_for_error (g_steal_pointer (&error));
+
+  if (pd->poll_total_ms >= IMPL_REQUEST_POLL_MAX_TOTAL_MS)
+    {
+      g_warning ("Impl request at %s did not appear after %ums",
+                 g_dbus_proxy_get_object_path (pd->proxy),
+                 pd->poll_total_ms);
+      return dex_future_new_for_boolean (TRUE);
+    }
+
+  delay_ms = pd->poll_delay_ms;
+  pd->poll_total_ms += delay_ms;
+  pd->poll_delay_ms = delay_ms * 2;
+
+  g_debug ("Impl request at %s does not exist yet, retrying in %ums",
+           g_dbus_proxy_get_object_path (pd->proxy),
+           delay_ms);
+
+  return dex_future_catch (dex_timeout_new_usec (delay_ms * 1000),
+                           check_impl_request_available,
+                           user_data, NULL);
+}
+
+static DexFuture *
+do_impl_close (DexFuture *completed,
+               gpointer   user_data)
+{
+  XdpDbusImplRequest *impl_request = XDP_DBUS_IMPL_REQUEST (user_data);
+
+  return xdp_dbus_impl_request_call_close_future (impl_request);
+}
+
+static void
+setup_impl_close_chain (XdpRequestDex *request)
+{
+  PollData *pd;
+  DexFuture *signal;
+  DexFuture *poll;
+  DexFuture *impl_discovery;
+  DexFuture *close_trigger;
+  DexFuture *close_chain;
+
+  pd = g_new0 (PollData, 1);
+  pd->proxy = g_object_ref (G_DBUS_PROXY (request->impl_request));
+  pd->poll_delay_ms = IMPL_REQUEST_POLL_INITIAL_DELAY_MS;
+  pd->poll_total_ms = 0;
+
+  /* The Created signal (v2) reliably detects the impl request. */
+  signal = xdp_dbus_impl_request_wait_created_future (request->impl_request);
+
+  /* The poll fallback (v1) can miss the impl request if the backend
+   * exports and unexports it between polls. That is acceptable
+   * because we can only miss it if it already went away on its own,
+   * so there is nothing left to close. */
+  poll = dex_future_catch_loop (check_impl_request_available (NULL, pd),
+                                retry_check_impl_request_poll,
+                                pd,
+                                (GDestroyNotify) poll_data_free);
+
+  impl_discovery = dex_future_any (signal, poll,
+                                   DEX_FUTURE (dex_ref (request->cancel_promise)),
+                                   NULL);
+
+  /* Forward Close to the impl once both the client has requested
+   * close AND the impl request has been discovered on the bus. */
+  close_trigger = dex_future_all (
+      DEX_FUTURE (dex_ref (request->close_promise)),
+      impl_discovery,
+      NULL);
+
+  close_chain = dex_future_then (close_trigger,
+                                 do_impl_close,
+                                 g_object_ref (request->impl_request),
+                                 g_object_unref);
+
+  dex_future_disown (close_chain);
+}
+
 typedef struct _RequestImplProxyCreateData {
   XdpContext *context;
   XdpAppInfo *app_info;
@@ -181,14 +347,7 @@ on_app_info_removed (XdpAppInfoRegistry *registry,
   if (app_info != request->app_info)
     return;
 
-  if (!request->exported)
-    return;
-
-  if (request->impl_request)
-    xdp_dbus_impl_request_call_close (request->impl_request, NULL, NULL, NULL);
-
-  g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
-  request->exported = FALSE;
+  xdp_request_dex_close (request);
 }
 
 static DexFuture *
@@ -207,6 +366,8 @@ xdp_request_dex_new_inner (XdpContext             *context,
   request->app_info = g_object_ref (app_info);
   request->skeleton = g_object_ref (skeleton);
   request->claim = xdp_object_path_claim_ref (claim);
+  request->close_promise = dex_promise_new ();
+  request->cancel_promise = dex_promise_new ();
 
   if (impl_request)
     request->impl_request = g_object_ref (impl_request);
@@ -228,6 +389,9 @@ xdp_request_dex_new_inner (XdpContext             *context,
   g_signal_connect (request, "g-authorize-method",
                     G_CALLBACK (request_authorize_callback),
                     request);
+
+  if (request->impl_request)
+    setup_impl_close_chain (request);
 
   return dex_future_new_for_object (request);
 }
