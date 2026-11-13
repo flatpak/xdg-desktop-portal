@@ -12,7 +12,7 @@
       This notification interface lets sandboxed applications
       send and withdraw notifications.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes version 3 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.Notification">
     <!--
@@ -31,6 +31,13 @@
 
         The format of the @notification is the same as for
         :ref:`org.freedesktop.portal.Notification.AddNotification <org.freedesktop.portal.Notification.AddNotification>`.
+        It additionally can contain the following keys:
+
+        * ``desktop-file-id`` (``s``)
+
+          The desktop file ID of the app adding the notification. A desktop
+          file ID is the basename of the desktop file, including the
+          .desktop extension. Since version 3.
 
         Since version 2, the icon property never uses the ``bytes`` option.
     -->
