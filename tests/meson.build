@@ -108,6 +108,7 @@ tests = {
   'print': {},
   'registry': {},
   'remotedesktop': {},
+  'request': {},
   'settings': {},
   'screencast': {},
   'screenshot': {},
