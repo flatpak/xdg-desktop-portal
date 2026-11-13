@@ -26,6 +26,8 @@ class AccountParameters:
     response: int
     results: dict
     expect_close: bool
+    request_version: int
+    request_export_delay: int
 
 
 def load(mock, parameters=None):
@@ -39,7 +41,10 @@ def load(mock, parameters=None):
         response=parameters.get("response", 0),
         results=parameters.get("results", {}),
         expect_close=parameters.get("expect-close", False),
+        request_version=parameters.get("request-version", 2),
+        request_export_delay=parameters.get("request-export-delay", 0),
     )
+    mock.account_fail = parameters.get("fail", False)
 
 
 @dbus.service.method(
@@ -52,6 +57,14 @@ def GetUserInformation(self, handle, app_id, window, options, cb_success, cb_err
     logger.debug(f"GetUserInformation({handle}, {app_id}, {window}, {options})")
     params = self.account_params
 
+    if self.account_fail:
+        cb_error(
+            dbus.exceptions.DBusException(
+                "failed", name="org.freedesktop.DBus.Error.Failed"
+            )
+        )
+        return
+
     request = ImplRequest(
         self,
         BUS_NAME,
@@ -59,6 +72,8 @@ def GetUserInformation(self, handle, app_id, window, options, cb_success, cb_err
         logger,
         cb_success,
         cb_error,
+        request_version=params.request_version,
+        export_delay=params.request_export_delay,
     )
 
     if params.expect_close:

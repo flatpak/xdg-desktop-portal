@@ -103,16 +103,26 @@ class TestAccount:
         _, args = method_calls[-1]
         assert "reason" not in args[3]
 
-    @pytest.mark.parametrize("template_params", ({"account": {"expect-close": True}},))
+    @pytest.mark.parametrize(
+        "template_params",
+        (
+            pytest.param(
+                {"account": {"expect-close": True}},
+                id="v2",
+            ),
+            pytest.param(
+                {"account": {"expect-close": True, "request-version": 1}},
+                id="v1-polling-fallback",
+            ),
+        ),
+    )
     def test_close(self, portals, dbus_con):
         account_intf = xdp.get_portal_iface(dbus_con, "Account")
-
-        reason = "reason"
 
         request = xdp.Request(dbus_con, account_intf)
         request.schedule_close(1000)
         options = {
-            "reason": reason,
+            "reason": "reason",
         }
         request.call(
             "GetUserInformation",
