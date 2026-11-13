@@ -11,7 +11,7 @@
 
       The Screen cast portal allows to create screen cast sessions.
 
-      This documentation describes version 6 of this interface.
+      This documentation describes version 7 of this interface.
 
       Session lifecycle
       ~~~~~~~~~~~~~~~~~
@@ -183,6 +183,24 @@
 
           This option was added in version 4 of this interface.
 
+        * ``audio_mode`` (``u``)
+
+          Whether to include audio in the screen cast, and whether its audio
+          includes the caller's own. It must be one of the audio modes
+          advertised in
+          :ref:`org.freedesktop.portal.ScreenCast:AvailableAudioModes`. Setting
+          an audio mode not advertised will cause this method call to fail.
+          The default audio mode is 'None'.
+
+          Unless it is 'None', :ref:`org.freedesktop.portal.ScreenCast.Start`
+          returns an audio stream for each selected source the user agreed to
+          share audio for in the selection dialog. For a monitor or a virtual
+          source, it mixes the audio output streams of the applications with a
+          window on it, and of those without any window; for a window, those
+          of the application owning the window.
+
+          This option was added in version 7 of this interface.
+
         For available source types, see the
         :ref:`org.freedesktop.portal.ScreenCast:AvailableSourceTypes` property.
     -->
@@ -222,7 +240,7 @@
 
           An array of PipeWire streams. Each stream consists of a PipeWire
           node ID (the first element in the tuple, and a Vardict of
-          properties.
+          properties).
 
           Since version 6 of this interface, the node ID in the stream
           tuple is deprecated for stream targeting. PipeWire node IDs can
@@ -234,13 +252,27 @@
           streams. Backends must continue to populate the node ID for
           compatibility with clients that do not support version 6.
 
-          The array will contain a single stream if ``multiple`` (see
+          The array will contain streams for a single source if ``multiple`` (see
           :ref:`org.freedesktop.portal.ScreenCast.SelectSources`)
-          was set to 'false', or at least one stream if
+          was set to 'false', or at least one source's streams if
           ``multiple`` was set to 'true' as part of the
           :ref:`org.freedesktop.portal.ScreenCast.SelectSources` method.
 
+          Since version 7, a single selected source may be represented by
+          multiple media streams: one video stream and optionally one associated
+          audio stream, as described for the ``audio_mode`` option of
+          :ref:`org.freedesktop.portal.ScreenCast.SelectSources`.
+
           Each stream contains the following properties:
+
+          * ``media_type`` (``s``)
+
+            The type of media carried by this stream. Valid values are
+            ``video`` and ``audio``.
+
+            If this property is absent, the stream is a video stream.
+
+            This property was added in version 7 of this interface.
 
           * ``id`` (``s``)
 
@@ -275,6 +307,10 @@
 
             An optional identifier used to map different aspects of the
             resource this stream corresponds to.
+
+            An audio stream has the same ``mapping_id`` as the video stream of
+            its source. Applications must use it, not the order of the
+            streams, to associate audio with video.
 
             When used in a remote desktop session, the ``mapping_id`` can be used to
             match a libei region of absolute libei devices. There may be
@@ -353,6 +389,20 @@
         This property was added in version 2 of this interface.
     -->
     <property name="AvailableCursorModes" type="u" access="read"/>
+    <!--
+        AvailableAudioModes:
+
+        A bitmask of available audio modes.
+
+        Available audio mode values:
+
+        - ``1``: None: The screen cast has no audio stream.
+        - ``2``: ExcludeSelf: The audio streams leave out the caller's own audio output streams.
+        - ``4``: IncludeSelf: The audio streams include the caller's own audio output streams, like any other application's.
+
+        This property was added in version 7 of this interface.
+    -->
+    <property name="AvailableAudioModes" type="u" access="read"/>
     <property name="version" type="u" access="read"/>
   </interface>
 </node>

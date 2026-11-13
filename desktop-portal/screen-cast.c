@@ -441,6 +441,35 @@ validate_cursor_mode (const char  *key,
 }
 
 static gboolean
+validate_audio_mode (const char  *key,
+                     GVariant    *value,
+                     GVariant    *options,
+                     gpointer     user_data,
+                     GError     **error)
+{
+  ScreenCast *screen_cast = user_data;
+  uint32_t available_audio_modes =
+    xdp_dbus_screen_cast_get_available_audio_modes (XDP_DBUS_SCREEN_CAST (screen_cast));
+  uint32_t mode = g_variant_get_uint32 (value);
+
+  if (__builtin_popcount (mode) != 1)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Invalid audio mode %x", mode);
+      return FALSE;
+    }
+
+  if (!(available_audio_modes & mode))
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Unavailable audio mode %x", mode);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
 validate_restore_token (const char  *key,
                         GVariant    *value,
                         GVariant    *options,
@@ -469,6 +498,7 @@ static XdpOptionKey screen_cast_select_sources_options[] = {
   { "cursor_mode", G_VARIANT_TYPE_UINT32, validate_cursor_mode },
   { "restore_token", G_VARIANT_TYPE_STRING, validate_restore_token },
   { "persist_mode", G_VARIANT_TYPE_UINT32, validate_persist_mode },
+  { "audio_mode", G_VARIANT_TYPE_UINT32, validate_audio_mode },
 };
 
 static gboolean
@@ -746,11 +776,12 @@ collect_screen_cast_stream_data (GVariantIter *streams_iter)
 {
   GList *streams = NULL;
   uint32_t stream_id;
-  g_autoptr(GVariant) stream_options = NULL;
+  GVariant *options;
 
   while (g_variant_iter_next (streams_iter, "(u@a{sv})",
-                              &stream_id, &stream_options))
+                              &stream_id, &options))
     {
+      g_autoptr(GVariant) stream_options = options;
       ScreenCastStream *stream;
 
       stream = g_new0 (ScreenCastStream, 1);
@@ -1112,7 +1143,7 @@ screen_cast_new (XdpContext            *context,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (screen_cast->impl), G_MAXINT);
 
   xdp_dbus_screen_cast_set_version (XDP_DBUS_SCREEN_CAST (screen_cast),
-                                    MIN (xdp_dbus_impl_screen_cast_get_version (screen_cast->impl), 6));
+                                    MIN (xdp_dbus_impl_screen_cast_get_version (screen_cast->impl), 7));
 
   g_object_bind_property (G_OBJECT (screen_cast->impl), "available-source-types",
                           G_OBJECT (screen_cast), "available-source-types",
@@ -1122,6 +1153,13 @@ screen_cast_new (XdpContext            *context,
     {
       g_object_bind_property (G_OBJECT (screen_cast->impl), "available-cursor-modes",
                               G_OBJECT (screen_cast), "available-cursor-modes",
+                              G_BINDING_SYNC_CREATE);
+    }
+
+  if (xdp_dbus_impl_screen_cast_get_version (screen_cast->impl) >= 7)
+    {
+      g_object_bind_property (G_OBJECT (screen_cast->impl), "available-audio-modes",
+                              G_OBJECT (screen_cast), "available-audio-modes",
                               G_BINDING_SYNC_CREATE);
     }
 
