@@ -746,11 +746,12 @@ collect_screen_cast_stream_data (GVariantIter *streams_iter)
 {
   GList *streams = NULL;
   uint32_t stream_id;
-  g_autoptr(GVariant) stream_options = NULL;
+  GVariant *options;
 
   while (g_variant_iter_next (streams_iter, "(u@a{sv})",
-                              &stream_id, &stream_options))
+                              &stream_id, &options))
     {
+      g_autoptr(GVariant) stream_options = options;
       ScreenCastStream *stream;
 
       stream = g_new0 (ScreenCastStream, 1);
