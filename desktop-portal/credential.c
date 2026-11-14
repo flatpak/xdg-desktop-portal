@@ -119,6 +119,7 @@ xdp_credential_new (XdpContext *context, XdpDbusExperimentalHandlerCredential *h
 #define CREDENTIALSD_HANDLER_DBUS_NAME "xyz.iinuwa.credentialsd.Credentials"
 
 static XdpOptionKey create_credential_options[] = {
+  { "activation_token", G_VARIANT_TYPE_STRING, NULL },
   { "handle_token", G_VARIANT_TYPE_STRING, NULL },
   { "top_origin", G_VARIANT_TYPE_STRING, NULL },
   { "public_key", G_VARIANT_TYPE_STRING, NULL },
@@ -200,6 +201,7 @@ handle_create_credential (XdpDbusExperimentalCredential *object,
 }
 
 static XdpOptionKey get_credential_options[] = {
+  { "activation_token", G_VARIANT_TYPE_STRING, NULL },
   { "handle_token", G_VARIANT_TYPE_STRING, NULL },
   { "top_origin", G_VARIANT_TYPE_STRING, NULL },
   { "public_key", G_VARIANT_TYPE_STRING, NULL },
