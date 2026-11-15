@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+
+[wrap-git]
+directory=libspeechprovider
+url=https://github.com/project-spiel/libspeechprovider.git
+revision=main

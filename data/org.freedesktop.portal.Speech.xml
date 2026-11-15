@@ -1,0 +1,313 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2025 GNOME Foundation Inc.
+
+ SPDX-License-Identifier: LGPL-2.1-or-later
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Eitan Isaacson <eitan@monotonous.org>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.Speech:
+      @short_description: Portal for speech synthesis
+
+      This interface lets sandboxed applications enumerate the speech synthesis
+      voices available on the system and request that text be spoken with one of
+      them.
+
+      The portal does not synthesize speech itself. It brokers access to speech
+      providers: D-Bus services that implement the
+      ``org.freedesktop.Speech.Provider`` interface and whose well-known name
+      ends in ``.Speech.Provider``, such as ``org.espeak.Speech.Provider``.
+      Both running and activatable services are considered, so requesting speech
+      from a provider that is not yet running will start it.
+
+      Synthesized audio does not travel over D-Bus. The application creates a
+      pipe and passes the write end to :ref:`org.freedesktop.portal.Speech.Synthesize`,
+      the provider writes the audio to it, and the application reads and plays it
+      back itself. See the
+      `speech stream format <https://project-spiel.org/libspeechprovider/overview.html>`_
+      for the framing used when a voice also reports word and sentence
+      boundaries.
+
+      A typical interaction looks like this:
+
+      1. Call :ref:`org.freedesktop.portal.Speech.CreateSession` to get a session.
+      2. Call :ref:`org.freedesktop.portal.Speech.GetVoices` and pick a voice from
+         the result. This is where the user is asked to grant access, if they have
+         not already.
+      3. Call :ref:`org.freedesktop.portal.Speech.Synthesize` with that voice, and
+         read the audio from the pipe until end of file.
+      4. Re-run step 2 whenever :ref:`org.freedesktop.portal.Speech::VoicesChanged`
+         is emitted.
+
+      Access is granted once per application rather than per utterance: the first
+      call to any method may show a dialog asking the user to allow speech synthesis,
+      and the answer is remembered.
+
+      Note that being granted access does not by itself make any voices visible.
+      Individual providers must also be permitted by the system, so a well
+      behaved application should be prepared for an empty voice list even after
+      the user has agreed.
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.portal.Speech">
+    <!--
+        CreateSession:
+        @options: Vardict with optional further information
+        @handle: Object path for the created :ref:`org.freedesktop.portal.Session` object
+
+        Create a speech session. A successfully created session can at
+        any time be closed using :ref:`org.freedesktop.portal.Session.Close`, or may
+        at any time be closed by the portal implementation, which will be
+        signalled via :ref:`org.freedesktop.portal.Session::Closed`.
+
+        Creating a session never asks the user for anything, and succeeds even if
+        the application has not been granted access to speech synthesis. Such a
+        session will report no voices until permission is granted, at which point
+        :ref:`org.freedesktop.portal.Speech::VoicesChanged` is emitted.
+
+        Supported keys in the @options vardict include:
+
+        * ``session_handle_token`` (``s``)
+
+              A string that will be used as the last element of the session handle. Must be a valid
+              object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
+              more information about the session handle.
+
+    -->
+    <method name="CreateSession">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        GetProviderDetails:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @provider_id: The provider identifier, as returned in the ``provider`` field of a voice
+        @options: Vardict with optional further information
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        Get details for a given provider. At this point, it is just the localized
+        name of the provider, which is useful for letting a user choose between
+        providers by something friendlier than the provider's app id.
+
+        @provider_id is the value of a voice's ``provider`` field as returned by
+        :ref:`org.freedesktop.portal.Speech.GetVoices`.
+
+        If the application has not been granted access to speech synthesis yet,
+        this method asks the user for it. The answer is remembered for subsequent
+        calls; a denial is also remembered.
+
+        Supported keys in the @options vardict include:
+
+        * ``handle_token`` (``s``)
+
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
+          more information about the @handle.
+
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+
+        * ``name`` (``s``)
+
+          A human readable, localized name for the provider.
+    -->
+    <method name="GetProviderDetails">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="provider_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        GetVoices:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @options: Vardict with optional further information
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        Get available synthesis voices.
+
+        The voices of every provider available to this application are returned
+        as one flat list; each voice names the provider it came from, since voice
+        identifiers are only unique within a provider.
+
+        If the application has not been granted access to speech synthesis yet,
+        this method asks the user for it, using @parent_window to place the
+        dialog. The answer is remembered for subsequent calls; a denial is also
+        remembered.
+
+        Supported keys in the @options vardict include:
+
+        * ``handle_token`` (``s``)
+
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
+          more information about the @handle.
+
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+
+        * ``voices`` (``aa{sv}``)
+
+          An array of voices, which may be empty if no provider is available to
+          this application. Each voice in the array is a vardict with the
+          following members:
+
+            * ``name`` (``s``): A human readable name, suitable for showing in a
+              voice picker.
+            * ``identifier`` (``s``): An identifier for the voice, unique within
+              its provider. Pass this as ``voice_id`` to
+              :ref:`org.freedesktop.portal.Speech.Synthesize`.
+            * ``provider`` (``s``): The provider identifier. Pass this as
+              ``provider_id`` to :ref:`org.freedesktop.portal.Speech.Synthesize`
+              and :ref:`org.freedesktop.portal.Speech.GetProviderDetails`.
+            * ``output-format`` (``s``): The format of the audio this voice
+              produces, in GStreamer caps syntax, for example
+              ``audio/x-raw,format=S16LE,channels=1,rate=22050`` for uncompressed
+              16 bit little-endian PCM, mono, at 22.05 kHz. A media type of
+              ``audio/x-spiel`` instead of ``audio/x-raw`` means the stream
+              interleaves speech events with the audio and has to be de-framed
+              before playback; see the
+              `speech stream format <https://project-spiel.org/libspeechprovider/overview.html>`_.
+            * ``features`` (``t``): A bit field describing what the voice can do,
+              most usefully whether it reports word, sentence, range or SSML mark
+              boundaries as it speaks, and which SSML elements it honors.
+              See here for the full list:
+              https://project-spiel.org/libspiel/flags.VoiceFeature.html
+            * ``languages`` (``as``): The languages the voice supports,
+              represented as BCP 47 tags (https://datatracker.ietf.org/doc/html/rfc5646).
+
+        A response of ``1`` means the user did not grant access to speech
+        synthesis, and no results are returned.
+    -->
+    <method name="GetVoices">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        Synthesize:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @provider_id: The provider that should synthesize the text, as given by the voice's ``provider`` field
+        @pipe_fd: File descriptor of pipe to write to.
+        @text: The text to be spoken.
+        @voice_id: The voice identifier for the voice that should be spoken.
+        @pitch: The voice pitch in which the text should be spoken.
+        @rate: The rate in which the text should be spoken.
+        @is_ssml: True if the text should be interpretted as an SSML snippet (https://www.w3.org/TR/speech-synthesis/).
+        @language: The language the utterance should be spoken in. Some voices support more than one language.
+        @options: Vardict with optional further information
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        This is the basic synthesis method.
+        When called, the speech provider will send the synthesized output to the given file descriptor.
+        Depending on the voice's advertised format it will be raw audio or composite audio and events.
+
+        @pipe_fd is the write end of a pipe created by the application, which the
+        portal hands to the provider as-is. The application reads the audio from
+        the read end and plays it back; the provider closes its end when the
+        utterance has been fully synthesized, which the application sees as end
+        of file. Audio arrives in the voice's ``output-format``, so an
+        application should be prepared for the format it selected.
+
+        @provider_id and @voice_id must be the ``provider`` and ``identifier``
+        fields of a voice returned by
+        :ref:`org.freedesktop.portal.Speech.GetVoices`, and @language should be
+        one of that voice's languages.
+
+        @pitch and @rate are multipliers relative to the voice's natural
+        delivery, with ``1.0`` meaning unmodified. By convention @pitch ranges
+        from ``0`` to ``2`` and @rate from ``0.1`` to ``10``, but they are passed
+        through to the provider unaltered and exactly how each is interpreted is
+        provider-specific.
+
+        Several utterances may be synthesized at once, each with its own pipe.
+
+        Supported keys in the @options vardict include:
+
+        * ``handle_token`` (``s``)
+
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
+          more information about the @handle.
+
+        The request completes as soon as the provider has accepted the utterance,
+        not when it has finished speaking it: a response of ``0`` means
+        synthesis is under way and audio will follow on the pipe. To stop speech
+        early, close the read end of the pipe.
+
+        If the synthesis fails to start, an error message will be returned via the
+        :ref:`org.freedesktop.portal.Request::Response` signal:
+
+        * ``error-message`` (``s``)
+
+          A message describing why the provider refused or failed to start
+          synthesizing. Returned with a response of ``2``, which is also used,
+          without an error message, when @provider_id does not name a provider
+          available to this application.
+    -->
+    <method name="Synthesize">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
+      <arg direction="in"  type="o" name="session_handle"/>
+      <arg direction="in"  type="s" name="parent_window" />
+      <arg direction="in"  type="s" name="provider_id" />
+      <arg direction="in"  type="h" name="pipe_fd" />
+      <arg direction="in"  type="s" name="text" />
+      <arg direction="in"  type="s" name="voice_id" />
+      <arg direction="in"  type="d" name="pitch" />
+      <arg direction="in"  type="d" name="rate" />
+      <arg direction="in"  type="b" name="is_ssml" />
+      <arg direction="in"  type="s" name="language" />
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In10" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg direction="out" type="o" name="handle" />
+    </method>
+
+    <!--
+        VoicesChanged:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object representing the session
+
+        The list of available voices has changed.
+        This could happen when a speech provider adds or removes a voice, a new provider becomes available,
+        or a provider becomes unavailable.
+
+        It is also emitted when the application's permission to use speech
+        synthesis changes, since that changes which providers it can see. An
+        application that was refused access, or that saw an empty voice list,
+        should therefore treat this signal as an invitation to try
+        :ref:`org.freedesktop.portal.Speech.GetVoices` again.
+
+        The signal carries no voice data; call
+        :ref:`org.freedesktop.portal.Speech.GetVoices` to get the new list.
+    -->
+    <signal name="VoicesChanged">
+      <arg type="o" name="session_handle" direction="out"/>
+    </signal>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>
