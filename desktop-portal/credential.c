@@ -164,7 +164,7 @@ handle_create_credential (XdpDbusExperimentalCredential *object,
 
   request = dex_await_object (xdp_request_dex_new (credential->context, app_info,
                                                    G_DBUS_INTERFACE_SKELETON (object),
-                                                   G_DBUS_PROXY (credential->handler),
+                                                   NULL,
                                                    options),
                               &error);
   if (!request)
@@ -244,7 +244,7 @@ handle_get_credential (XdpDbusExperimentalCredential *object,
 
   request = dex_await_object (xdp_request_dex_new (credential->context, app_info,
                                                    G_DBUS_INTERFACE_SKELETON (object),
-                                                   G_DBUS_PROXY (credential->handler),
+                                                   NULL,
                                                    options),
                               &error);
   if (!request)
