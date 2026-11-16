@@ -7,8 +7,10 @@
 from dataclasses import dataclass
 
 import dbus.service
+import dbusmock
+from gi.repository import GLib
 
-from tests.templates.xdp_utils import ImplRequest, Response, init_logger
+from tests.templates.xdp_utils import AsyncCallback, ImplRequest, Response, init_logger
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -27,7 +29,7 @@ class EmailParameters:
     expect_close: bool
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     logger.debug(f"Loading parameters: {parameters}")
@@ -49,13 +51,21 @@ def load(mock, parameters=None):
     )
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="ossa{sv}",
     out_signature="ua{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def ComposeEmail(self, handle, app_id, parent_window, options, cb_success, cb_error):
+def ComposeEmail(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    app_id: str,
+    parent_window: str,
+    options: list[str],
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(f"ComposeEmail({handle}, {app_id}, {parent_window}, {options})")
     params = self.email_params
 

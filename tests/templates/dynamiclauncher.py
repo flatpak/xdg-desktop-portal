@@ -7,8 +7,10 @@
 from dataclasses import dataclass
 
 import dbus.service
+import dbusmock
+from gi.repository import GLib
 
-from tests.templates.xdp_utils import ImplRequest, Response, init_logger
+from tests.templates.xdp_utils import AsyncCallback, ImplRequest, Response, init_logger
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -28,7 +30,7 @@ class DynamiclauncherParameters:
     launcher_name: str
 
 
-def load(mock, parameters=None):
+def load(mock: dbusmock.DBusMockObject, parameters: GLib.Variant | None = None) -> None:
     parameters = parameters or {}
 
     logger.debug(f"Loading parameters: {parameters}")
@@ -38,7 +40,7 @@ def load(mock, parameters=None):
         delay=parameters.get("delay", 200),
         response=parameters.get("response", 0),
         expect_close=parameters.get("expect-close", False),
-        launcher_name=parameters.get("launcher-name", None),
+        launcher_name=parameters.get("launcher-name", ""),
     )
 
     mock.AddProperties(
@@ -51,15 +53,23 @@ def load(mock, parameters=None):
     )
 
 
-@dbus.service.method(
+@dbus.service.method(  # type: ignore [untyped-decorator]
     MAIN_IFACE,
     in_signature="osssva{sv}",
     out_signature="ua{sv}",
     async_callbacks=("cb_success", "cb_error"),
 )
-def PrepareInstall(
-    self, handle, app_id, parent_window, name, icon_v, options, cb_success, cb_error
-):
+def PrepareInstall(  # type: ignore [no-untyped-def]
+    self,
+    handle: dbus.ObjectPath,
+    app_id: str,
+    parent_window: str,
+    name: str,
+    icon_v: GLib.Variant,
+    options: list[str],
+    cb_success: AsyncCallback,
+    cb_error: AsyncCallback,
+) -> None:
     logger.debug(
         f"PrepareInstall({handle}, {app_id}, {parent_window}, {name}, {icon_v}, {options})"
     )

@@ -6,15 +6,15 @@ import argparse
 from xml.etree import ElementTree
 
 
-def quote(s: str):
+def quote(s: str) -> str:
     return f'"{s}"'
 
 
-def cbool(b: bool):
+def cbool(b: bool) -> str:
     return "TRUE" if b else "FALSE"
 
 
-def handle_interface(interface: ElementTree.Element):
+def handle_interface(interface: ElementTree.Element) -> None:
     intf_name = interface.attrib["name"]
     for method in interface.iter("method"):
         method_name = method.attrib["name"]
@@ -42,7 +42,7 @@ def handle_interface(interface: ElementTree.Element):
         )
 
 
-def parse_portal_xml(filename: str):
+def parse_portal_xml(filename: str) -> None:
     tree = ElementTree.parse(filename)
     root = tree.getroot()
 

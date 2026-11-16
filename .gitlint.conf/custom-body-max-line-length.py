@@ -3,14 +3,15 @@
 
 import re
 
-from gitlint.rules import BodyMaxLineLength
+from gitlint.git import GitCommit
+from gitlint.rules import BodyMaxLineLength, LineRule, RuleViolation
 
 
-class CustomBodyMaxLineLength(BodyMaxLineLength):
+class CustomBodyMaxLineLength(BodyMaxLineLength):  # type: ignore[misc]
     name = "custom-body-max-line-length"
     id = "UC2"
 
-    def validate(self, line, commit):
+    def validate(self, line: LineRule, commit: GitCommit) -> RuleViolation:
         # Ignore quoted content
         if line.startswith(" " * 4):
             return None

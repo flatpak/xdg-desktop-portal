@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
+from gitlint.git import GitCommit
 from gitlint.rules import CommitRule, RuleViolation
 
 CODING_AGENTS = [
@@ -9,7 +10,7 @@ CODING_AGENTS = [
 ]
 
 
-class CoAuthoredByCodingAgent(CommitRule):
+class CoAuthoredByCodingAgent(CommitRule):  # type: ignore[misc]
     """Try to stop people from adding Co-Authored-By: AGENT_NAME
     and instead use the kernel convention of the Assisted-by tag.
     """
@@ -22,8 +23,9 @@ class CoAuthoredByCodingAgent(CommitRule):
         "Use 'Assisted-by: AGENT_NAME:MODEL_VERSION' instead."
     )
 
-    def validate(self, commit):
+    def validate(self, commit: GitCommit) -> list[RuleViolation]:
         for line in commit.message.body:
             for agent in CODING_AGENTS:
                 if line.lower().startswith(agent.lower()):
                     return [RuleViolation(self.id, self.msg, line_nr=1)]
+        return []
