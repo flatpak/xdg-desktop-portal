@@ -118,10 +118,29 @@ xdp_credential_new (XdpContext *context, XdpDbusExperimentalHandlerCredential *h
 
 #define CREDENTIALSD_HANDLER_DBUS_NAME "xyz.iinuwa.credentialsd.Credentials"
 
+static gboolean
+validate_top_origin (const char  *key,
+                     GVariant    *value,
+                     GVariant    *options,
+                     gpointer     user_data,
+                     GError     **error)
+{
+  const char *top_origin = g_variant_get_string (value, NULL);
+
+  if (top_origin[0] == '\0')
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "'%s' must not be empty, omit it for a same-origin request", key);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
 static XdpOptionKey create_credential_options[] = {
   { "activation_token", G_VARIANT_TYPE_STRING, NULL },
   { "handle_token", G_VARIANT_TYPE_STRING, NULL },
-  { "top_origin", G_VARIANT_TYPE_STRING, NULL },
+  { "top_origin", G_VARIANT_TYPE_STRING, validate_top_origin },
   { "public_key", G_VARIANT_TYPE_STRING, NULL },
 };
 
@@ -202,7 +221,7 @@ handle_create_credential (XdpDbusExperimentalCredential *object,
 static XdpOptionKey get_credential_options[] = {
   { "activation_token", G_VARIANT_TYPE_STRING, NULL },
   { "handle_token", G_VARIANT_TYPE_STRING, NULL },
-  { "top_origin", G_VARIANT_TYPE_STRING, NULL },
+  { "top_origin", G_VARIANT_TYPE_STRING, validate_top_origin },
   { "public_key", G_VARIANT_TYPE_STRING, NULL },
 };
 
