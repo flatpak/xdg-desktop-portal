@@ -186,44 +186,25 @@ get_app_from_pid (pid_t      pid,
 #endif /* HAVE_LIBSYSTEMD */
 }
 
-static void
-maybe_get_pidfd_from_pid (int  pid,
-                          int *pidfd)
-{
-  g_autoptr(GError) error = NULL;
-
-  if (*pidfd >= 0)
-    return;
-
-  /* There are no security guarantees for host apps, so let's just make sure
-   * we get the pidfd from the pid. It is racy (pid could be recycled) but it
-   * doesn't matter here.
-   */
-  if (!xdp_pid_to_pidfd (pid, pidfd, &error))
-    {
-      g_warning ("Failed to get pidfd for host process %d: %s",
-                 pid, error->message);
-    }
-}
-
 XdpAppInfo *
 xdp_app_info_host_new_registered (const char  *sender,
                                   int          pid,
-                                  int          pidfd,
+                                  GLnxPidRef  *pidref,
                                   const char  *app_id,
                                   GError     **error)
 {
   g_autoptr(XdpAppInfoHost) app_info_host = NULL;
-  g_autofd int pidfd_owned = pidfd;
+  g_autoptr(GLnxPidRef) owned_pidref = NULL;
 
-  maybe_get_pidfd_from_pid (pid, &pidfd_owned);
+  if (!pidref)
+    owned_pidref = glnx_pid_ref_new_from_pid (pid, NULL);
 
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
                                   error,
                                   "engine", NULL,
                                   "id", app_id,
-                                  "pidfd", g_steal_fd (&pidfd_owned),
+                                  "pidref", pidref ? pidref : owned_pidref,
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
                                            XDP_APP_INFO_FLAG_SUPPORTS_OPATH |
                                            XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO,
@@ -233,18 +214,14 @@ xdp_app_info_host_new_registered (const char  *sender,
   return XDP_APP_INFO (g_steal_pointer (&app_info_host));
 }
 
-/*
- * @pidfd: (inout) (not nullable): Pointer to process ID file descriptor.
- *  This function may take ownership of the fd. If it does, it will
- *  set `*pidfd` to -1.
- */
 XdpAppInfo *
 xdp_app_info_host_new (const char *sender,
                        int         pid,
-                       int        *pidfd)
+                       GLnxPidRef *pidref)
 {
   g_autoptr(XdpAppInfoHost) app_info_host = NULL;
   g_autofree char *app_id = NULL;
+  g_autoptr(GLnxPidRef) owned_pidref = NULL;
   const char *test_app_info_kind = NULL;
 
   test_app_info_kind = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND");
@@ -261,14 +238,15 @@ xdp_app_info_host_new (const char *sender,
         app_id = g_strdup ("");
     }
 
-  maybe_get_pidfd_from_pid (pid, pidfd);
+  if (!pidref)
+    owned_pidref = glnx_pid_ref_new_from_pid (pid, NULL);
 
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
                                   NULL,
                                   "engine", NULL,
                                   "id", app_id,
-                                  "pidfd", g_steal_fd (pidfd),
+                                  "pidref", pidref ? pidref : owned_pidref,
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
                                            XDP_APP_INFO_FLAG_SUPPORTS_OPATH,
                                    "sender", sender,
