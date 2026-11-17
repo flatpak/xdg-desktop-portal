@@ -218,7 +218,7 @@ session_impl_proxy_create_data_free (SessionImplProxyCreateData *data)
   g_clear_pointer (&data->claim, xdp_object_path_claim_unref);
   g_clear_object (&data->app_info);
   g_clear_object (&data->skeleton);
-  free (data);
+  g_free (data);
 }
 
 static DexFuture *
