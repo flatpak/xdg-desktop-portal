@@ -113,6 +113,7 @@ tests = {
   'settings': {},
   'screencast': {},
   'screenshot': {},
+  'session': {},
   'shutdown': {},
   'trash': {},
   'usb': {'enabled': have_gudev},
