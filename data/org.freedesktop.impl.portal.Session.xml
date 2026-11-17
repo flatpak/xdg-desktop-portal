@@ -28,6 +28,21 @@
     </method>
 
     <!--
+        Created:
+
+        Emitted by the backend when the Session object has been exported
+        and is ready to receive calls. Portal frontends use this signal
+        to avoid a race condition where
+        :ref:`org.freedesktop.impl.portal.Session.Close` is called
+        before the backend has created the object.
+
+        Backends that do not emit this signal are supported through a
+        polling fallback.
+    -->
+    <signal name="Created">
+    </signal>
+
+    <!--
         Closed:
 
         The session was closed by the portal implementation.
