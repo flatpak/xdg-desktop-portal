@@ -267,12 +267,16 @@ class ImplSession:
         busname: str,
         handle: str,
         app_id: str,
+        session_version: int = 2,
+        export_delay: int = 0,
     ):
         self.mock = mock  # the main mock object
         self.handle = handle
         self.app_id = app_id
         self.closed = False
         self._close_callback: Callable | None = None
+        self.session_version = session_version
+        self.export_delay = export_delay
 
         self.mock_object: dbusmock.DBusMockObject | None = None
 
@@ -309,10 +313,27 @@ class ImplSession:
         callback will be invoked in response to the Close() method called on
         this object.
         """
+        self._close_callback = close_callback
+
+        if self.export_delay > 0:
+            logger.debug(
+                f"Session {self.handle}: delaying export by {self.export_delay}ms"
+            )
+            GLib.timeout_add(self.export_delay, self._do_export)
+        else:
+            self._do_export()
+
+        return self
+
+    def _do_export(self):
+        properties = {}
+        if self.session_version >= 2:
+            properties["version"] = dbus.UInt32(self.session_version)
+
         self.mock.AddObject(
             path=self.handle,
             interface="org.freedesktop.impl.portal.Session",
-            properties={},
+            properties=properties,
             methods=[
                 (
                     "Close",
@@ -329,8 +350,14 @@ class ImplSession:
         # In theory, EmitSignal should work on self.mock_interface but
         # it doesn't and I can't figure out why.
         self.mock_object = dbusmock.get_object(self.handle)
-        self._close_callback = close_callback
-        return self
+
+        if self.session_version >= 2:
+            self.mock_object.EmitSignal(
+                interface="org.freedesktop.impl.portal.Session",
+                name="Created",
+                signature="",
+                sigargs=(),
+            )
 
     def _unexport(self):
         self.mock.RemoveObject(path=self.handle)
