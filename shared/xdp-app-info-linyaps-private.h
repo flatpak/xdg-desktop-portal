@@ -19,5 +19,5 @@ G_DECLARE_FINAL_TYPE (XdpAppInfoLinyaps,
 
 XdpAppInfo * xdp_app_info_linyaps_new (const char *sender,
                                        int         pid,
-                                       int        *pidfd,
+                                       GLnxPidRef *pidref,
                                        GError    **error);

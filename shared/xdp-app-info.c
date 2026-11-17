@@ -47,14 +47,10 @@ typedef struct _XdpAppInfoPrivate
   GDesktopAppInfo *gappinfo;
 
   /* calling process */
-  int pidfd;
+  GLnxPidRef *pidref; /* (nullable) (owned) */
 
   /* dbus name of the sender */
   char *sender;
-
-  /* pid namespace mapping */
-  GMutex pidns_lock;
-  ino_t pidns_id;
 
   /* misc */
   XdpAppInfoFlags flags;
@@ -73,7 +69,7 @@ typedef enum
   PROP_G_APP_INFO,
   PROP_ID,
   PROP_INSTANCE,
-  PROP_PIDFD,
+  PROP_PIDREF,
   PROP_SENDER,
 } XdpAppInfoProps;
 
@@ -129,7 +125,6 @@ xdp_app_info_dispose (GObject *object)
 {
   XdpAppInfoPrivate *priv =
     xdp_app_info_get_instance_private (XDP_APP_INFO (object));
-  g_autoptr(GError) error = NULL;
 
   g_clear_pointer (&priv->engine, g_free);
   g_clear_pointer (&priv->id, g_free);
@@ -138,8 +133,7 @@ xdp_app_info_dispose (GObject *object)
   g_clear_object (&priv->gappinfo);
   g_clear_pointer (&priv->sender, g_free);
 
-  if (!g_clear_fd (&priv->pidfd, &error))
-    g_warning ("Error closing pidfd: %s", error->message);
+  g_clear_pointer (&priv->pidref, glnx_pid_ref_unref);
 
   G_OBJECT_CLASS (xdp_app_info_parent_class)->dispose (object);
 }
@@ -175,8 +169,8 @@ xdp_app_info_get_property (GObject    *object,
       g_value_set_string (value, priv->instance);
       break;
 
-    case PROP_PIDFD:
-      g_value_set_int (value, priv->pidfd);
+    case PROP_PIDREF:
+      g_value_set_boxed (value, priv->pidref);
       break;
 
     case PROP_SENDER:
@@ -216,10 +210,9 @@ xdp_app_info_set_property (GObject      *object,
       priv->instance = g_value_dup_string (value);
       break;
 
-    case PROP_PIDFD:
-      g_assert (priv->pidfd == -1);
-      /* Steals ownership from the GValue */
-      priv->pidfd = g_value_get_int (value);
+    case PROP_PIDREF:
+      g_assert (priv->pidref == NULL);
+      priv->pidref = g_value_dup_boxed (value);
       break;
 
     case PROP_SENDER:
@@ -277,14 +270,12 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
-  /* Note that setting this property at construct-time takes ownership
-   * of the fd from the caller */
-  properties[PROP_PIDFD] =
-    g_param_spec_int ("pidfd", NULL, NULL,
-                      -1, G_MAXINT, -1,
-                      G_PARAM_READWRITE |
-                      G_PARAM_CONSTRUCT_ONLY |
-                      G_PARAM_STATIC_STRINGS);
+  properties[PROP_PIDREF] =
+    g_param_spec_boxed ("pidref", NULL, NULL,
+                        GLNX_TYPE_PID_REF,
+                        G_PARAM_READWRITE |
+                        G_PARAM_CONSTRUCT_ONLY |
+                        G_PARAM_STATIC_STRINGS);
 
   properties[PROP_SENDER] =
     g_param_spec_string ("sender", NULL, NULL,
@@ -297,24 +288,20 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
 }
 
 static void
-xdp_app_info_init (XdpAppInfo *app_info)
+xdp_app_info_init (XdpAppInfo *app_info G_GNUC_UNUSED)
 {
-  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
-
-  priv->pidfd = -1;
 }
 
 static XdpAppInfo *
 xdp_app_info_new (const char  *sender,
                   uint32_t     pid,
-                  int          pidfd,
+                  GLnxPidRef  *pidref,
                   GError     **error)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
-  g_autofd int pidfd_owned = pidfd;
   g_autoptr(GError) local_error = NULL;
 
-  app_info = xdp_app_info_flatpak_new (sender, pid, &pidfd_owned, &local_error);
+  app_info = xdp_app_info_flatpak_new (sender, pid, pidref, &local_error);
 
   if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
                                      XDP_APP_INFO_ERROR_WRONG_APP_KIND))
@@ -325,7 +312,7 @@ xdp_app_info_new (const char  *sender,
   g_clear_error (&local_error);
 
   if (app_info == NULL)
-    app_info = xdp_app_info_snap_new (sender, pid, &pidfd_owned, &local_error);
+    app_info = xdp_app_info_snap_new (sender, pid, pidref, &local_error);
 
   if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
                                      XDP_APP_INFO_ERROR_WRONG_APP_KIND))
@@ -336,7 +323,7 @@ xdp_app_info_new (const char  *sender,
   g_clear_error (&local_error);
 
   if (app_info == NULL)
-    app_info = xdp_app_info_linyaps_new (sender, pid, &pidfd_owned, &local_error);
+    app_info = xdp_app_info_linyaps_new (sender, pid, pidref, &local_error);
 
   if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
                                      XDP_APP_INFO_ERROR_WRONG_APP_KIND))
@@ -347,7 +334,7 @@ xdp_app_info_new (const char  *sender,
   g_clear_error (&local_error);
 
   if (app_info == NULL)
-    app_info = xdp_app_info_host_new (sender, pid, &pidfd_owned);
+    app_info = xdp_app_info_host_new (sender, pid, pidref);
 
   g_assert (XDP_IS_APP_INFO (app_info));
 
@@ -360,13 +347,13 @@ app_info_new_for_invocation_then (DexFuture *future,
 {
   GDBusMethodInvocation *invocation = G_DBUS_METHOD_INVOCATION (user_data);
   const char *sender = g_dbus_method_invocation_get_sender (invocation);
-  g_autoptr(XdpPidFdResult) result = NULL;
+  g_autoptr(GLnxPidRef) pidref = NULL;
   g_autoptr(GError) local_error = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
 
-  result = dex_await_boxed (dex_ref (future), NULL);
+  pidref = dex_await_boxed (dex_ref (future), NULL);
 
-  app_info = xdp_app_info_new (sender, result->pid, g_steal_fd (&result->fd), &local_error);
+  app_info = xdp_app_info_new (sender, glnx_pid_ref_get_pid (pidref), pidref, &local_error);
   if (!app_info)
     return dex_future_new_for_error (g_steal_pointer (&local_error));
 
@@ -379,7 +366,7 @@ xdp_app_info_new_for_invocation (GDBusMethodInvocation *invocation)
   GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
   const char *sender = g_dbus_method_invocation_get_sender (invocation);
 
-  return dex_future_then (xdp_connection_get_pidfd (connection, sender),
+  return dex_future_then (xdp_connection_get_peer_pidref (connection, sender),
                           app_info_new_for_invocation_then,
                           g_object_ref (invocation),
                           g_object_unref);
@@ -395,13 +382,13 @@ app_info_new_for_registered_then (DexFuture *future,
 {
   AppInfoNewRegisteredData *closure_data = user_data;
   const char *sender = g_dbus_method_invocation_get_sender (closure_data->invocation);
-  g_autoptr(XdpPidFdResult) result = NULL;
+  g_autoptr(GLnxPidRef) pidref = NULL;
   g_autoptr(GError) local_error = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
 
-  result = dex_await_boxed (dex_ref (future), NULL);
+  pidref = dex_await_boxed (dex_ref (future), NULL);
 
-  app_info = xdp_app_info_host_new_registered (sender, result->pid, g_steal_fd (&result->fd),
+  app_info = xdp_app_info_host_new_registered (sender, glnx_pid_ref_get_pid (pidref), pidref,
                                                closure_data->appid, &local_error);
   if (!app_info)
     return dex_future_new_for_error (g_steal_pointer (&local_error));
@@ -421,7 +408,7 @@ xdp_app_info_new_for_registered (GDBusMethodInvocation *invocation,
   closure_data->invocation = g_object_ref (invocation);
   closure_data->appid = g_strdup (appid);
 
-  return dex_future_then (xdp_connection_get_pidfd (connection, sender),
+  return dex_future_then (xdp_connection_get_peer_pidref (connection, sender),
                           app_info_new_for_registered_then,
                           closure_data, (GDestroyNotify)app_info_new_registered_data_free);
 }
@@ -558,36 +545,12 @@ xdp_app_info_has_network (XdpAppInfo *app_info)
   return (priv->flags & XDP_APP_INFO_FLAG_HAS_NETWORK) != 0;
 }
 
-gboolean
-xdp_app_info_get_pidns (XdpAppInfo  *app_info,
-                        ino_t       *pidns_id_out,
-                        GError     **error)
+GLnxPidRef *
+xdp_app_info_get_pidref (XdpAppInfo *app_info)
 {
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
-  g_autoptr(GMutexLocker) guard = g_mutex_locker_new (&(priv->pidns_lock));
-  ino_t ns;
 
-  *pidns_id_out = 0;
-
-  if (priv->pidns_id != 0)
-    {
-      *pidns_id_out = priv->pidns_id;
-      return TRUE;
-    }
-
-  if (priv->pidfd < 0)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "pidns required but no pidfd provided");
-      return FALSE;
-    }
-
-  if (!xdp_pidfd_get_pidns (priv->pidfd, &ns, error))
-    return FALSE;
-
-  priv->pidns_id = ns;
-  *pidns_id_out = ns;
-  return TRUE;
+  return priv->pidref;
 }
 
 static char *

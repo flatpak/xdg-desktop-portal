@@ -161,7 +161,7 @@ xdp_app_info_linyaps_init (XdpAppInfoLinyaps *app_info_linyaps)
 XdpAppInfo *
 xdp_app_info_linyaps_new (const char *sender,
                           int         pid,
-                          int        *pidfd,
+                          GLnxPidRef *pidref G_GNUC_UNUSED,
                           GError    **error)
 {
   g_autoptr(XdpAppInfoLinyaps) app_info_linyaps = NULL;

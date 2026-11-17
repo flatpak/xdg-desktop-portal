@@ -19,12 +19,12 @@ G_DECLARE_FINAL_TYPE (XdpAppInfoHost,
 
 XdpAppInfo * xdp_app_info_host_new (const char *sender,
                                     int         pid,
-                                    int        *pidfd);
+                                    GLnxPidRef *pidref);
 
 XdpAppInfo *
 xdp_app_info_host_new_registered (const char  *sender,
                                   int          pid,
-                                  int          pidfd,
+                                  GLnxPidRef  *pidref,
                                   const char  *app_id,
                                   GError     **error);
 

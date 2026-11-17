@@ -2,9 +2,8 @@
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
 [wrap-git]
-url = https://gitlab.gnome.org/GNOME/libglnx.git
-revision = ff64d52116ae74f0d25e24f089db28921ea171ff
-depth = 1
+url = https://gitlab.gnome.org/swick/libglnx.git
+revision = wip/pidfd
 
 [provide]
 libglnx=libglnx_dep
