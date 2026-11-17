@@ -11,6 +11,7 @@
 #include <glib-unix.h>
 #include <glib/gi18n.h>
 #include <libdex.h>
+#include <wp/wp.h>
 
 #include "xdp-context.h"
 
@@ -151,6 +152,9 @@ main (int argc, char *argv[])
       NULL);
 
   dex_init ();
+
+  /* Initialize without replacing GLib log handler */
+  wp_init (WP_INIT_PIPEWIRE | WP_INIT_SET_PW_LOG);
 
   option_context = g_option_context_new ("- desktop portal");
   g_option_context_set_summary (option_context,
