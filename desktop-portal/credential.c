@@ -119,6 +119,20 @@ xdp_credential_new (XdpContext *context, XdpDbusExperimentalHandlerCredential *h
 #define CREDENTIALSD_HANDLER_DBUS_NAME "xyz.iinuwa.credentialsd.Credentials"
 
 static gboolean
+validate_origin (const char  *origin,
+                 GError     **error)
+{
+  if (origin[0] == '\0')
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "origin must not be empty");
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
 validate_top_origin (const char  *key,
                      GVariant    *value,
                      GVariant    *options,
@@ -173,6 +187,12 @@ handle_create_credential (XdpDbusExperimentalCredential *object,
   g_autoptr (GError) error = NULL;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   const char *app_id = xdp_app_info_get_id (app_info);
+
+  if (!validate_origin (arg_origin, &error))
+    {
+      g_dbus_method_invocation_return_gerror (g_steal_pointer (&invocation), error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
 
   options = create_credential_validate_options (arg_options, &error);
   if (!options)
@@ -253,6 +273,12 @@ handle_get_credential (XdpDbusExperimentalCredential *object,
   g_autoptr (GError) error = NULL;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   const char *app_id = xdp_app_info_get_id (app_info);
+
+  if (!validate_origin (arg_origin, &error))
+    {
+      g_dbus_method_invocation_return_gerror (g_steal_pointer (&invocation), error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
 
   options = get_credential_validate_options (arg_options, &error);
   if (!options)
