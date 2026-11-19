@@ -310,6 +310,11 @@ init_credential (gpointer user_data)
   XdpImplConfig *impl_config;
   g_autoptr (DexFuture) future = NULL;
 
+  if (!xdp_context_is_experimental_portal_enabled (context, "Credential"))
+    return dex_future_new_true ();
+
+  g_info ("Enabling experimental Credential portal");
+
   impl_config = xdp_portal_config_find (config, CREDENTIAL_DBUS_IMPL_IFACE);
   if (impl_config == NULL)
     return dex_future_new_true ();
