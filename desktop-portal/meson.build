@@ -18,7 +18,7 @@ if portal_experimental_sources.length() > 0
     'xdp-dbus-experimental',
     sources: portal_experimental_sources,
     interface_prefix: 'org.freedesktop.portal.experimental',
-    namespace: 'XdpDbusExperimental',
+    namespace: 'XdpDbus',
     docbook: 'portal',
     extra_args: gdbus_codegen_extra_args,
   )
@@ -46,7 +46,7 @@ if portal_experimental_impl_sources.length() > 0
     'xdp-impl-dbus-experimental',
     sources: portal_experimental_impl_sources,
     interface_prefix: 'org.freedesktop.impl.portal.experimental',
-    namespace: 'XdpDbusExperimentalImpl',
+    namespace: 'XdpDbusImpl',
     docbook: 'portal',
     extra_args: gdbus_codegen_extra_args,
   )
@@ -58,7 +58,7 @@ if portal_experimental_handler_sources.length() > 0
     'xdp-handler-dbus-experimental',
     sources: portal_experimental_handler_sources,
     interface_prefix: 'org.freedesktop.handler.portal.experimental',
-    namespace: 'XdpDbusExperimentalHandler',
+    namespace: 'XdpDbusHandler',
     docbook: 'portal',
     extra_args: gdbus_codegen_extra_args,
   )
