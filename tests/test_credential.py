@@ -69,12 +69,12 @@ org.freedesktop.impl.portal.experimental.Credential=credential;
     }
 
 
-def call_credential(dbus_con, method, options):
+def call_credential(dbus_con, method, options, origin=ORIGIN):
     credential_intf = xdp.get_iface(
         dbus_con, "org.freedesktop.portal.experimental.Credential"
     )
     request = xdp.Request(dbus_con, credential_intf)
-    args = {"parent_window": "", "origin": ORIGIN}
+    args = {"parent_window": "", "origin": origin}
     if method == "CreateCredential":
         args["type"] = "publicKey"
     return request.call(method, **args, options=options)
@@ -150,6 +150,24 @@ class TestCredential:
         public_key = {"request_json": public_key_options(method)}
         with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             call_credential(dbus_con, method, {"public_key": public_key})
+        assert (
+            excinfo.value.get_dbus_name()
+            == "org.freedesktop.portal.Error.InvalidArgument"
+        )
+
+        mock_intf = xdp.get_mock_iface(dbus_con, HANDLER_BUS_NAME)
+        assert not mock_intf.GetMethodCalls(method)
+
+    def test_empty_origin(self, portals, dbus_con, method):
+        """an empty origin is rejected instead of reaching the handler"""
+
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
+            call_credential(
+                dbus_con,
+                method,
+                {"public_key": public_key_options(method)},
+                origin="",
+            )
         assert (
             excinfo.value.get_dbus_name()
             == "org.freedesktop.portal.Error.InvalidArgument"
