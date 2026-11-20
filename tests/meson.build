@@ -99,6 +99,7 @@ tests = {
   'email': {},
   'entitlements': {},
   'filechooser': {},
+  'filetransfer': {},
   'globalshortcuts': {},
   'inhibit': {},
   'inputcapture': {},
