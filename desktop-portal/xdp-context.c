@@ -633,7 +633,7 @@ xdp_context_register (XdpContext       *context,
   init_wallpaper (context);
   init_portal_in_fiber (context, init_account);
   init_email (context);
-  init_global_shortcuts (context);
+  init_portal_in_fiber (context, init_global_shortcuts);
   init_dynamic_launcher (context);
   init_screen_cast (context);
   init_remote_desktop (context);
