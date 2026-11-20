@@ -29,6 +29,7 @@ class ScreenCastParameters:
     version: int
     node_id: int
     pipewire_serial: int
+    n_streams: int
 
 
 def load(mock, parameters=None):
@@ -45,19 +46,22 @@ def load(mock, parameters=None):
         version=version,
         node_id=parameters.get("node-id", 42),
         pipewire_serial=parameters.get("pipewire-serial", 133742),
+        n_streams=parameters.get("n-streams", 1),
     )
 
-    mock.AddProperties(
-        MAIN_IFACE,
-        dbus.Dictionary(
-            {
-                "version": dbus.UInt32(version),
-                "AvailableSourceTypes": dbus.UInt32(parameters.get("source-types", 1)),
-                "AvailableCursorModes": dbus.UInt32(parameters.get("cursor-modes", 1)),
-            }
-        ),
-    )
+    properties = {
+        "version": dbus.UInt32(version),
+        "AvailableSourceTypes": dbus.UInt32(parameters.get("source-types", 1)),
+        "AvailableCursorModes": dbus.UInt32(parameters.get("cursor-modes", 1)),
+    }
+    # 0: no such property
+    audio_modes = parameters.get("audio-modes", 7 if version >= 7 else 0)
+    if audio_modes:
+        properties["AvailableAudioModes"] = dbus.UInt32(audio_modes)
+
+    mock.AddProperties(MAIN_IFACE, dbus.Dictionary(properties))
     mock.sessions = {}
+    mock.audio_modes = {}
 
 
 @dbus.service.method(
@@ -95,6 +99,7 @@ def SelectSources(self, handle, session_handle, app_id, options, cb_success, cb_
     params = self.screencast_params
 
     assert session_handle in self.sessions
+    self.audio_modes[session_handle] = options.get("audio_mode", 1)
 
     request = ImplRequest(self, BUS_NAME, handle, logger, cb_success, cb_error)
 
@@ -122,19 +127,32 @@ def Start(
 
     request = ImplRequest(self, BUS_NAME, handle, logger, cb_success, cb_error)
 
-    stream_properties = dbus.Dictionary(
-        {"size": dbus.Struct((dbus.Int32(1920), dbus.Int32(1080)), signature="ii")},
-        signature="sv",
-    )
-    # The PipeWire serial was added to the stream properties in version 6;
-    # an older backend does not advertise it.
-    if params.version >= 6:
-        stream_properties["pipewire-serial"] = dbus.UInt64(params.pipewire_serial)
+    streams = dbus.Array([], signature="(ua{sv})")
+    for i in range(params.n_streams):
+        stream_properties = dbus.Dictionary(
+            {"size": dbus.Struct((dbus.Int32(1920), dbus.Int32(1080)), signature="ii")},
+            signature="sv",
+        )
+        # The PipeWire serial was added to the stream properties in version 6;
+        # an older backend does not advertise it.
+        if params.version >= 6:
+            stream_properties["pipewire-serial"] = dbus.UInt64(
+                params.pipewire_serial + i
+            )
+        streams.append((dbus.UInt32(params.node_id + i), stream_properties))
 
-    streams = dbus.Array(
-        [(dbus.UInt32(params.node_id), stream_properties)],
-        signature="(ua{sv})",
-    )
+    # An audio stream unless the audio mode is None
+    if params.version >= 7 and self.audio_modes.get(session_handle, 1) != 1:
+        streams[0][1]["mapping_id"] = "0"
+        audio_properties = dbus.Dictionary(
+            {
+                "media_type": "audio",
+                "mapping_id": "0",
+                "pipewire-serial": dbus.UInt64(7777),
+            },
+            signature="sv",
+        )
+        streams.append((dbus.UInt32(77), audio_properties))
     response = Response(params.response, {"streams": streams})
 
     if params.expect_close:
