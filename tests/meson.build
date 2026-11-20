@@ -99,6 +99,7 @@ tests = {
   'email': {},
   'entitlements': {},
   'filechooser': {},
+  'gamemode': {},
   'globalshortcuts': {},
   'inhibit': {},
   'inputcapture': {},
