@@ -42,6 +42,9 @@
 #ifndef O_FSYNC
 #define O_FSYNC O_SYNC
 #endif
+#ifndef FUSE_SUPER_MAGIC
+#define FUSE_SUPER_MAGIC 0x65735546
+#endif
 
 #ifndef ENODATA
 #define ENODATA ENOATTR
@@ -3743,17 +3746,63 @@ xdp_fuse_thread (gpointer data)
   return NULL;
 }
 
+typedef enum _MountpointState
+{
+  MOUNTPOINT_STATE_UNMOUNTED,
+  MOUNTPOINT_STATE_STALE,
+  MOUNTPOINT_STATE_LIVE,
+} MountpointState;
+
+static MountpointState
+get_mountpoint_state (const char *path)
+{
+  struct statfs stfs;
+  struct stat st;
+
+  /* A FUSE mount whose daemon went away without unmounting it */
+  if (TEMP_FAILURE_RETRY (stat (path, &st)) == -1 &&
+      errno == ENOTCONN)
+    return MOUNTPOINT_STATE_STALE;
+
+  /* stat() might be served from the attribute cache, statfs() never is */
+  if (TEMP_FAILURE_RETRY (statfs (path, &stfs)) == -1)
+    {
+      if (errno == ENOTCONN)
+        return MOUNTPOINT_STATE_STALE;
+
+      return MOUNTPOINT_STATE_UNMOUNTED;
+    }
+
+  if (stfs.f_type == FUSE_SUPER_MAGIC)
+    return MOUNTPOINT_STATE_LIVE;
+
+  return MOUNTPOINT_STATE_UNMOUNTED;
+}
+
+static void
+unmount_existing (const char *path)
+{
+  char *umount_argv[] = { "fusermount3", "-u", "-z", (char *) path, NULL };
+  struct stat st;
+  int count = 0;
+
+  g_spawn_sync (NULL, umount_argv, NULL, G_SPAWN_SEARCH_PATH,
+                NULL, NULL, NULL, NULL, NULL, NULL);
+
+  g_usleep (10000); /* 10ms */
+  while (stat (path, &st) == -1 && count++ < 10)
+    g_usleep (10000); /* 10ms */
+}
+
 gboolean
-xdp_fuse_init (GError **error)
+xdp_fuse_init (gboolean   replace,
+               GError   **error)
 {
   g_autoptr(XdpDomain) by_app_domain = NULL;
   g_autoptr(XdpDomain) root_domain = NULL;
   XdpFuseThreadData thread_data = {0};
-  struct statfs stfs;
   struct rlimit rl;
-  struct stat st;
   const char *path;
-  int statfs_res;
 
   my_uid = getuid ();
   my_gid = getgid ();
@@ -3780,19 +3829,31 @@ xdp_fuse_init (GError **error)
 
   path = xdp_fuse_get_mountpoint ();
 
-  if ((stat (path, &st) == -1 && errno == ENOTCONN) ||
-      ((statfs_res = statfs (path, &stfs)) == -1 && errno == ENOTCONN) ||
-      (statfs_res == 0 && stfs.f_type == 0x65735546 /* fuse */))
+  switch (get_mountpoint_state (path))
     {
-      int count = 0;
-      char *umount_argv[] = { "fusermount3", "-u", "-z", (char *) path, NULL };
+    case MOUNTPOINT_STATE_UNMOUNTED:
+      break;
 
-      g_spawn_sync (NULL, umount_argv, NULL, G_SPAWN_SEARCH_PATH,
-                    NULL, NULL, NULL, NULL, NULL, NULL);
+    case MOUNTPOINT_STATE_LIVE:
+      /* Without --replace, we did not take over the D-Bus name from another
+       * instance, so the mount belongs to an instance on another bus which
+       * shares our runtime dir (e.g. a nested dbus-run-session). Taking over
+       * its mount would break all of its users. */
+      if (!replace)
+        {
+          g_set_error (error, XDG_DESKTOP_PORTAL_ERROR,
+                       XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                       "%s is in use by another instance", path);
+          return FALSE;
+        }
 
-      g_usleep (10000); /* 10ms */
-      while (stat (path, &st) == -1 && count++ < 10)
-        g_usleep (10000); /* 10ms */
+      /* We replaced an instance on our bus, which is still shutting down.
+       * Unmount its mount ourselves instead of racing with it. */
+      G_GNUC_FALLTHROUGH;
+
+    case MOUNTPOINT_STATE_STALE:
+      unmount_existing (path);
+      break;
     }
 
   if (g_mkdir_with_parents (path, 0700))

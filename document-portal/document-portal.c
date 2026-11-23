@@ -42,6 +42,10 @@ static dev_t fuse_dev = 0;
 static GQueue get_mount_point_invocations = G_QUEUE_INIT;
 static XdpDbusDocuments *dbus_api;
 
+static gboolean opt_verbose;
+static gboolean opt_replace;
+static gboolean opt_version;
+
 XdpAppInfoRegistry *app_info_registry;
 
 G_LOCK_DEFINE (db);
@@ -1709,7 +1713,7 @@ on_name_acquired (GDBusConnection *connection,
 
   g_debug ("%s acquired", name);
 
-  if (!xdp_fuse_init (&exit_error))
+  if (!xdp_fuse_init (opt_replace, &exit_error))
     {
       final_exit_status = 6;
       g_printerr ("fuse init failed: %s", exit_error->message);
@@ -1790,10 +1794,6 @@ session_bus_closed (GDBusConnection *connection,
 
   g_main_loop_quit (loop);
 }
-
-static gboolean opt_verbose;
-static gboolean opt_replace;
-static gboolean opt_version;
 
 static GOptionEntry entries[] = {
   { "verbose", 'v', 0, G_OPTION_ARG_NONE, &opt_verbose, "Print debug information", NULL },
