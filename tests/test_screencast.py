@@ -528,14 +528,110 @@ class TestScreenCast:
             == "org.freedesktop.portal.Error.InvalidArgument"
         )
 
+    @pytest.mark.parametrize(
+        "template_params",
+        ({"screencast": {"version": 7}},),
+    )
+    def test_exclude_self(self, portals, dbus_con):
+        assert get_property(dbus_con, "AvailableExcludeSelfModes") == 1 | 2
+
+        screencast_intf = xdp.get_portal_iface(dbus_con, "ScreenCast")
+        response = start_stream(
+            dbus_con,
+            screencast_intf,
+            select_options={
+                "types": dbus.UInt32(1),
+                "audio_types": dbus.UInt32(2),
+                "exclude_self": dbus.UInt32(2),
+            },
+        )
+
+        assert get_backend_select_options(dbus_con)["exclude_self"] == 2
+        assert set(get_streams_by_media_type(response)) == {"video", "audio"}
+        # The caller's app id depends on its app info kind
+        [[_handle, app_id, session_options]] = get_app_audio_capture_calls(
+            dbus_con, "CreateSession"
+        )
+        assert app_id
+        assert dict(session_options) == {"exclude_self": True}
+        [[_handle, options]] = get_app_audio_capture_calls(
+            dbus_con, "CreateSystemStream"
+        )
+        assert dict(options) == {}
+
+    @pytest.mark.parametrize(
+        "template_params",
+        ({"screencast": {"version": 7}},),
+    )
+    def test_exclude_self_from_own_window(self, portals, dbus_con):
+        screencast_intf = xdp.get_portal_iface(dbus_con, "ScreenCast")
+        response = start_stream(
+            dbus_con,
+            screencast_intf,
+            select_options={
+                "types": dbus.UInt32(2),
+                "audio_types": dbus.UInt32(4),
+                "exclude_self": dbus.UInt32(2),
+            },
+        )
+
+        # The window's pid is this process, so with the test app info its
+        # application is the caller's own: no audio stream
+        assert set(get_streams_by_media_type(response)) == {"video"}
+        assert get_app_audio_capture_calls(dbus_con, "CreateApplicationStream") == []
+        assert get_app_audio_capture_calls(dbus_con, "CreateSession") == []
+
+    @pytest.mark.parametrize(
+        "template_params",
+        ({"screencast": {"version": 7, "n-streams": 2}},),
+    )
+    def test_exclude_self_of_multiple_sources(self, portals, dbus_con):
+        screencast_intf = xdp.get_portal_iface(dbus_con, "ScreenCast")
+        response = start_stream(
+            dbus_con,
+            screencast_intf,
+            select_options={
+                "types": dbus.UInt32(1),
+                "multiple": dbus.Boolean(True),
+                "audio_types": dbus.UInt32(2),
+                "exclude_self": dbus.UInt32(2),
+            },
+        )
+
+        audio = [
+            p for _n, p in response.results["streams"] if p.get("media_type") == "audio"
+        ]
+        [[handle, app_id, session_options]] = get_app_audio_capture_calls(
+            dbus_con, "CreateSession"
+        )
+        assert app_id
+        assert dict(session_options) == {"exclude_self": True}
+        calls = get_app_audio_capture_calls(dbus_con, "CreateSystemStream")
+        assert len(audio) == len(calls) == 2
+        assert all(session_handle == handle for session_handle, _options in calls)
+
+    @pytest.mark.parametrize(
+        "template_params",
+        ({"screencast": {"version": 7}},),
+    )
+    @pytest.mark.parametrize("modes", (0, 4, 1 | 2))
+    def test_unavailable_exclude_self(self, portals, dbus_con, modes):
+        options = {"types": dbus.UInt32(1), "exclude_self": dbus.UInt32(modes)}
+        assert (
+            select_sources_fails(dbus_con, options)
+            == "org.freedesktop.portal.Error.InvalidArgument"
+        )
+
     def test_no_audio(self, portals, dbus_con):
         assert get_property(dbus_con, "AvailableAudioTypes") == 1
+        assert get_property(dbus_con, "AvailableExcludeSelfModes") == 1 | 2
 
         screencast_intf = xdp.get_portal_iface(dbus_con, "ScreenCast")
         response = start_stream(dbus_con, screencast_intf)
 
         options = get_backend_select_options(dbus_con)
         assert "audio_types" not in options
+        assert "exclude_self" not in options
         streams = response.results["streams"]
         assert len(streams) == 1
         assert "media_type" not in streams[0][1]
@@ -563,6 +659,17 @@ class TestScreenCast:
             select_sources_fails(dbus_con, options)
             == "org.freedesktop.portal.Error.InvalidArgument"
         )
+
+    def test_exclude_self_without_audio(self, portals, dbus_con):
+        screencast_intf = xdp.get_portal_iface(dbus_con, "ScreenCast")
+        response = start_stream(
+            dbus_con,
+            screencast_intf,
+            select_options={"types": dbus.UInt32(1), "exclude_self": dbus.UInt32(2)},
+        )
+
+        assert len(response.results["streams"]) == 1
+        assert get_app_audio_capture_calls(dbus_con, "CreateSession") == []
 
     @pytest.mark.parametrize(
         "template_params",

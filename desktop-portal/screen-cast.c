@@ -90,6 +90,7 @@ typedef struct _ScreenCastSession
   GVariant *restore_data;
 
   uint32_t audio_types;
+  uint32_t exclude_self;
 } ScreenCastSession;
 
 typedef struct _ScreenCastSessionClass
@@ -518,6 +519,36 @@ validate_audio_types (const char  *key,
 }
 
 static gboolean
+validate_exclude_self (const char  *key,
+                       GVariant    *value,
+                       GVariant    *options,
+                       gpointer     user_data,
+                       GError     **error)
+{
+  ScreenCast *screen_cast = user_data;
+  uint32_t available =
+    xdp_dbus_screen_cast_get_available_exclude_self_modes (XDP_DBUS_SCREEN_CAST (screen_cast));
+  uint32_t modes = g_variant_get_uint32 (value);
+
+  if (modes == 0 || (modes & ~available) != 0)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Unavailable self exclusion modes %x", modes);
+      return FALSE;
+    }
+
+  if ((modes & XDP_SCREEN_CAST_EXCLUDE_SELF_MODE_NONE) &&
+      modes != XDP_SCREEN_CAST_EXCLUDE_SELF_MODE_NONE)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Self exclusion mode None combined with others: %x", modes);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
 validate_restore_token (const char  *key,
                         GVariant    *value,
                         GVariant    *options,
@@ -547,6 +578,7 @@ static XdpOptionKey screen_cast_select_sources_options[] = {
   { "restore_token", G_VARIANT_TYPE_STRING, validate_restore_token },
   { "persist_mode", G_VARIANT_TYPE_UINT32, validate_persist_mode },
   { "audio_types", G_VARIANT_TYPE_UINT32, validate_audio_types },
+  { "exclude_self", G_VARIANT_TYPE_UINT32, validate_exclude_self },
 };
 
 static gboolean
@@ -601,6 +633,7 @@ handle_select_sources (XdpDbusScreenCast *object,
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   uint32_t audio_types;
+  uint32_t exclude_self;
 
   REQUEST_AUTOLOCK (request);
 
@@ -700,6 +733,27 @@ handle_select_sources (XdpDbusScreenCast *object,
     SCREEN_CAST_SESSION (session)->audio_types = audio_types;
   else
     remote_desktop_session_set_audio_types (REMOTE_DESKTOP_SESSION (session), audio_types);
+
+  if (!g_variant_lookup (arg_options, "exclude_self", "u", &exclude_self))
+    exclude_self = XDP_SCREEN_CAST_EXCLUDE_SELF_MODE_NONE;
+
+  if (exclude_self & XDP_SCREEN_CAST_EXCLUDE_SELF_MODE_AUDIO)
+    {
+      const char *app_id = xdp_app_info_get_id (request->app_info);
+
+      if (!app_id || *app_id == '\0')
+        {
+          g_dbus_method_invocation_return_error (invocation, XDG_DESKTOP_PORTAL_ERROR,
+                                                 XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                                 "The application can't be identified to leave out its audio");
+          return G_DBUS_METHOD_INVOCATION_HANDLED;
+        }
+    }
+
+  if (IS_SCREEN_CAST_SESSION (session))
+    SCREEN_CAST_SESSION (session)->exclude_self = exclude_self;
+  else
+    remote_desktop_session_set_exclude_self (REMOTE_DESKTOP_SESSION (session), exclude_self);
 
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
@@ -869,6 +923,7 @@ on_audio_session_closed (XdpDbusImplSession *audio_session,
 
 static gboolean
 ensure_audio_session (XdpSession  *session,
+                      uint32_t     exclude_self,
                       GError     **error)
 {
   const char *handle = xdp_session_get_object_path (session);
@@ -898,6 +953,8 @@ ensure_audio_session (XdpSession  *session,
   g_signal_connect_object (audio_session, "closed",
                            G_CALLBACK (on_audio_session_closed), session, G_CONNECT_DEFAULT);
 
+  if (exclude_self & XDP_SCREEN_CAST_EXCLUDE_SELF_MODE_AUDIO)
+    g_variant_builder_add (&options, "{sv}", "exclude_self", g_variant_new_boolean (TRUE));
   if (!xdp_dbus_impl_app_audio_capture_call_create_session_sync (
         app_audio_capture, handle, xdp_app_info_get_id (session->app_info),
         g_variant_builder_end (&options), NULL, error))
@@ -911,8 +968,24 @@ ensure_audio_session (XdpSession  *session,
 }
 
 static gboolean
+is_caller_application (XdpSession *session,
+                       pid_t       pid)
+{
+  g_autoptr(XdpAppInfo) app_info = NULL;
+
+  if (pid <= 0)
+    return FALSE;
+
+  app_info = xdp_app_info_new (NULL, pid, -1, NULL);
+  return app_info &&
+         g_strcmp0 (xdp_app_info_get_id (app_info),
+                    xdp_app_info_get_id (session->app_info)) == 0;
+}
+
+static gboolean
 create_audio_stream (XdpSession       *session,
                      uint32_t          audio_types,
+                     uint32_t          exclude_self,
                      uint32_t          source_type,
                      GVariant         *audio_source,
                      const char       *mapping_id,
@@ -945,8 +1018,13 @@ create_audio_stream (XdpSession       *session,
   if (audio_type == XDP_SCREEN_CAST_AUDIO_TYPE_APPLICATION &&
       g_variant_lookup (audio_source, "pid", "u", &pid))
     g_variant_builder_add (&options, "{sv}", "pid", g_variant_new_uint32 (pid));
+  /* A window of the caller's own application gets no audio stream */
+  if ((exclude_self & XDP_SCREEN_CAST_EXCLUDE_SELF_MODE_AUDIO) &&
+      audio_type == XDP_SCREEN_CAST_AUDIO_TYPE_APPLICATION &&
+      is_caller_application (session, pid))
+    return TRUE;
 
-  if (!ensure_audio_session (session, error))
+  if (!ensure_audio_session (session, exclude_self, error))
     return FALSE;
 
   app_audio_capture = g_object_get_qdata (G_OBJECT (session), app_audio_capture_quark ());
@@ -984,6 +1062,7 @@ create_audio_stream (XdpSession       *session,
 gboolean
 screen_cast_create_audio_streams (XdpSession   *session,
                                   uint32_t      audio_types,
+                                  uint32_t      exclude_self,
                                   GVariant    **in_out_results,
                                   GList       **streams,
                                   GError      **error)
@@ -1037,7 +1116,7 @@ screen_cast_create_audio_streams (XdpSession   *session,
       if (session->closed)
         continue;
 
-      if (!create_audio_stream (session, audio_types, source_type, audio_source,
+      if (!create_audio_stream (session, audio_types, exclude_self, source_type, audio_source,
                                 mapping_id, &streams_builder, streams, error))
         return FALSE;
     }
@@ -1143,6 +1222,7 @@ start_done (GObject *source_object,
         {
           if (!process_results (screen_cast_session, &results, &error) ||
               !screen_cast_create_audio_streams (session, screen_cast_session->audio_types,
+                                                 screen_cast_session->exclude_self,
                                                  &results,
                                                  &screen_cast_session->streams, &error))
             {
@@ -1453,6 +1533,9 @@ screen_cast_new (XdpContext            *context,
                                    G_BINDING_SYNC_CREATE,
                                    add_audio_type_none, NULL, NULL, NULL);
     }
+  xdp_dbus_screen_cast_set_available_exclude_self_modes (XDP_DBUS_SCREEN_CAST (screen_cast),
+                                                         XDP_SCREEN_CAST_EXCLUDE_SELF_MODE_NONE |
+                                                         XDP_SCREEN_CAST_EXCLUDE_SELF_MODE_AUDIO);
 
   return screen_cast;
 }

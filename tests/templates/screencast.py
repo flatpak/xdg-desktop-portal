@@ -33,10 +33,9 @@ def pick_audio_type(window: bool, audio_types: int) -> int:
     return audio_types & 2
 
 
-def audio_source(audio_type: int, app_id: str = "org.example.App") -> dbus.Dictionary:
+def audio_source(audio_type: int) -> dbus.Dictionary:
     source: dict[str, object] = {"audio_type": dbus.UInt32(audio_type)}
     if audio_type == 4:
-        source["app_id"] = app_id
         source["pid"] = dbus.UInt32(os.getpid())
     return dbus.Dictionary(source, signature="sv")
 

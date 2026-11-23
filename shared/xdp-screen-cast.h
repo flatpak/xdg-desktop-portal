@@ -17,3 +17,9 @@ typedef enum _XdpScreenCastAudioType
   XDP_SCREEN_CAST_AUDIO_TYPE_SYSTEM = 1 << 1,
   XDP_SCREEN_CAST_AUDIO_TYPE_APPLICATION = 1 << 2,
 } XdpScreenCastAudioType;
+
+typedef enum _XdpScreenCastExcludeSelfMode
+{
+  XDP_SCREEN_CAST_EXCLUDE_SELF_MODE_NONE = 1 << 0,
+  XDP_SCREEN_CAST_EXCLUDE_SELF_MODE_AUDIO = 1 << 1,
+} XdpScreenCastExcludeSelfMode;

@@ -43,6 +43,9 @@ void remote_desktop_session_sources_selected (RemoteDesktopSession *session);
 void remote_desktop_session_set_audio_types (RemoteDesktopSession *session,
                                              uint32_t              audio_types);
 
+void remote_desktop_session_set_exclude_self (RemoteDesktopSession *session,
+                                              uint32_t              exclude_self);
+
 void remote_desktop_session_clipboard_requested (RemoteDesktopSession *session);
 
 gboolean

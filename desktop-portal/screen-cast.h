@@ -29,6 +29,7 @@ GList * collect_screen_cast_stream_data (GVariantIter *streams_iter);
 
 gboolean screen_cast_create_audio_streams (XdpSession   *session,
                                            uint32_t      audio_types,
+                                           uint32_t      exclude_self,
                                            GVariant    **in_out_results,
                                            GList       **streams,
                                            GError      **error);

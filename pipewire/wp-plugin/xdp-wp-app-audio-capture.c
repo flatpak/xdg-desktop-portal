@@ -461,6 +461,7 @@ struct _XdpWpAppAudioStream
   XdpWpAppAudioLoopback *loopback;
   XdpScreenCastAudioType type;
   char *target_app; /* NULL for System, or an application with no app id */
+  char *excluded_app; /* the session's application with exclude_self, else NULL */
   GHashTable *links; /* application stream node id -> WpSessionItem *link */
 };
 
@@ -537,6 +538,9 @@ static gboolean
 xdp_wp_app_audio_stream_carries (XdpWpAppAudioStream *self,
                                  const char          *app_id)
 {
+  if (app_id && g_strcmp0 (self->excluded_app, app_id) == 0)
+    return FALSE;
+
   if (self->type == XDP_SCREEN_CAST_AUDIO_TYPE_SYSTEM)
     return TRUE;
   return app_id && g_strcmp0 (self->target_app, app_id) == 0;
@@ -669,6 +673,7 @@ xdp_wp_app_audio_stream_finalize (GObject *object)
   XdpWpAppAudioStream *self = XDP_WP_APP_AUDIO_STREAM (object);
 
   g_clear_pointer (&self->links, g_hash_table_unref);
+  g_clear_pointer (&self->excluded_app, g_free);
   g_clear_pointer (&self->target_app, g_free);
 
   G_OBJECT_CLASS (xdp_wp_app_audio_stream_parent_class)->finalize (object);
@@ -976,6 +981,8 @@ struct _XdpWpAppAudioSession
 
   char *handle;
   char *owner;
+  char *app_id;
+  gboolean exclude_self;
   GPtrArray *streams; /* XdpWpAppAudioStream */
   gboolean closed;
 };
@@ -1058,6 +1065,7 @@ xdp_wp_app_audio_session_finalize (GObject *object)
   XdpWpAppAudioSession *self = XDP_WP_APP_AUDIO_SESSION (object);
 
   g_clear_pointer (&self->streams, g_ptr_array_unref);
+  g_clear_pointer (&self->app_id, g_free);
   g_clear_pointer (&self->owner, g_free);
   g_clear_pointer (&self->handle, g_free);
 
@@ -1088,12 +1096,16 @@ xdp_wp_app_audio_session_init (XdpWpAppAudioSession *self)
 
 static XdpWpAppAudioSession *
 xdp_wp_app_audio_session_new (const char *handle,
-                              const char *owner)
+                              const char *owner,
+                              const char *app_id,
+                              gboolean    exclude_self)
 {
   XdpWpAppAudioSession *self = g_object_new (XDP_WP_TYPE_APP_AUDIO_SESSION, NULL);
 
   self->handle = g_strdup (handle);
   self->owner = g_strdup (owner);
+  self->app_id = g_strdup (app_id);
+  self->exclude_self = exclude_self;
   xdp_dbus_impl_session_set_version (XDP_DBUS_IMPL_SESSION (self), 1);
   return self;
 }
@@ -1173,6 +1185,10 @@ validate_pid (const char  *key,
   return FALSE;
 }
 
+static const XdpOptionKey session_options[] = {
+  { "exclude_self", G_VARIANT_TYPE_BOOLEAN, NULL },
+};
+
 static XdpWpAppAudioSession *
 lookup_caller_session (XdpWpAppAudioCapture  *self,
                        GDBusMethodInvocation *invocation,
@@ -1198,8 +1214,28 @@ handle_create_session (XdpDbusImplAppAudioCapture *object,
                        GVariant                   *arg_options)
 {
   XdpWpAppAudioCapture *self = XDP_WP_APP_AUDIO_CAPTURE (object);
+  g_auto (GVariantBuilder) options_builder = G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  g_autoptr (GVariant) options = NULL;
   g_autoptr (XdpWpAppAudioSession) session = NULL;
+  gboolean exclude_self = FALSE;
   g_autoptr (GError) error = NULL;
+
+  if (!xdp_filter_options (arg_options, &options_builder, session_options,
+                           G_N_ELEMENTS (session_options), NULL, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
+  g_variant_lookup (options, "exclude_self", "b", &exclude_self);
+  if (exclude_self && !*arg_app_id)
+    {
+      g_dbus_method_invocation_return_error_literal (invocation, XDG_DESKTOP_PORTAL_ERROR,
+                                                     XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                                     "exclude_self needs an app_id");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
 
   if (g_hash_table_contains (self->sessions, arg_handle))
     {
@@ -1210,7 +1246,8 @@ handle_create_session (XdpDbusImplAppAudioCapture *object,
     }
 
   session = xdp_wp_app_audio_session_new (arg_handle,
-                                          g_dbus_method_invocation_get_sender (invocation));
+                                          g_dbus_method_invocation_get_sender (invocation),
+                                          arg_app_id, exclude_self);
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (session), self->connection,
                                          arg_handle, &error))
     {
@@ -1271,6 +1308,8 @@ create_stream (XdpWpAppAudioCapture   *self,
 
   stream->type = type;
   stream->target_app = g_strdup (target_app);
+  if (session->exclude_self)
+    stream->excluded_app = g_strdup (session->app_id);
   xdp_wp_app_audio_session_add_stream (session, stream);
   xdp_wp_app_audio_graph_add_stream (self->graph, stream);
 

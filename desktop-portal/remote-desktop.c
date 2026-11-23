@@ -91,6 +91,7 @@ typedef struct _RemoteDesktopSession
   GVariant *restore_data;
 
   uint32_t audio_types;
+  uint32_t exclude_self;
 } RemoteDesktopSession;
 
 typedef struct _RemoteDesktopSessionClass
@@ -178,6 +179,13 @@ remote_desktop_session_set_audio_types (RemoteDesktopSession *session,
                                         uint32_t              audio_types)
 {
   session->audio_types = audio_types;
+}
+
+void
+remote_desktop_session_set_exclude_self (RemoteDesktopSession *session,
+                                         uint32_t              exclude_self)
+{
+  session->exclude_self = exclude_self;
 }
 
 gboolean
@@ -706,6 +714,7 @@ start_done (GObject *source_object,
         {
           if (!process_results (remote_desktop_session, &results, &error) ||
               !screen_cast_create_audio_streams (session, remote_desktop_session->audio_types,
+                                                 remote_desktop_session->exclude_self,
                                                  &results,
                                                  &remote_desktop_session->streams, &error))
             {

@@ -205,6 +205,23 @@
           stream for each selected source the user agreed to share audio for
           in the selection dialog.
 
+        * ``exclude_self`` (``u``)
+
+          Bitmask of the caller's own content type to leave out of the screen cast.
+          It must be one of the modes advertised in
+          :ref:`org.freedesktop.portal.ScreenCast:AvailableExcludeSelfModes`,
+          or a combination of them other than 'None'; otherwise this method
+          call fails. Default is 'None'.
+
+          With 'Audio', this method call fails with the NotAllowed error when
+          the caller's application can't be identified, and
+          :ref:`org.freedesktop.portal.ScreenCast.Start` fails when the
+          caller's audio output streams can't be left out of the audio streams.
+
+          Selecting a window of the caller's own application with
+          ``exclude_self`` set to 'Audio' results in no audio stream being
+          returned for that window.
+
         For available source types, see the
         :ref:`org.freedesktop.portal.ScreenCast:AvailableSourceTypes` property.
     -->
@@ -410,6 +427,17 @@
         - ``4``: Application: The audio stream of a window carries the audio output of its application.
     -->
     <property name="AvailableAudioTypes" type="u" access="read"/>
+    <!--
+        AvailableExcludeSelfModes:
+
+        A bitmask of available self exclusion modes.
+
+        Available self exclusion mode values:
+
+        - ``1``: None: The screen cast includes what the caller produces, like any other application's.
+        - ``2``: Audio: The audio streams leave out the caller's audio output streams.
+    -->
+    <property name="AvailableExcludeSelfModes" type="u" access="read"/>
     <property name="version" type="u" access="read"/>
   </interface>
 </node>
