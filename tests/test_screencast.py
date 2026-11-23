@@ -11,7 +11,7 @@ import tests.xdp_utils as xdp
 
 @pytest.fixture
 def required_templates():
-    return {"remotedesktop": {}, "screencast": {}}
+    return {"remotedesktop": {}, "screencast": {}, "appaudiocapture": {}}
 
 
 def start_stream(dbus_con, screencast_intf):

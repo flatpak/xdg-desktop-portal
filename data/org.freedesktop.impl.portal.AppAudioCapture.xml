@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<!--
+ SPDX-License-Identifier: LGPL-2.1-or-later
+ SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.impl.portal.AppAudioCapture:
+      @short_description: App audio capture interface
+
+      The app audio capture interface lets xdg-desktop-portal and desktop
+      screen recorders capture the audio output of applications. It is
+      provided by xdg-desktop-portal's WirePlumber plugin.
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.impl.portal.AppAudioCapture">
+    <!--
+        CreateSession:
+        @handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session being created
+        @app_id: App ID of the application, or an empty string
+        @options: Vardict with optional further information
+
+        Create an app audio capture session.
+
+        Supported keys in the @options vardict include:
+
+        * ``exclude_self`` (``b``)
+
+          Whether the session's streams leave out the output audio streams of
+          the application given by @app_id, which must not be empty then.
+          Default is false.
+    -->
+    <method name="CreateSession">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+    </method>
+
+    <!--
+        CreateSystemStream:
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object created by :ref:`org.freedesktop.impl.portal.AppAudioCapture.CreateSession`
+        @options: Vardict with optional further information
+        @results: Vardict with the results of the call
+
+        Creates a loopback in the session for capturing the output audio
+        streams of all applications.
+
+        The returned PipeWire node may be used for consuming all the captured
+        audio streams as a single pre-mixed audio stream.
+
+        There are currently no supported keys in the @options vardict.
+
+        The following results get returned via the @results vardict:
+
+        * ``pipewire-node-id`` (``u``)
+
+          The PipeWire node id of the stream.
+
+        * ``pipewire-serial`` (``t``)
+
+          The PipeWire object serial of the stream.
+    -->
+    <method name="CreateSystemStream">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
+    <!--
+        CreateApplicationStream:
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object created by :ref:`org.freedesktop.impl.portal.AppAudioCapture.CreateSession`
+        @options: Vardict with optional further information
+        @results: Vardict with the results of the call
+
+        Creates a loopback in the session for capturing the output audio
+        streams of one application, given by ``pid``.
+
+        The returned PipeWire node may be used for consuming all the captured
+        audio streams as a single pre-mixed audio stream.
+
+        Supported keys in the @options vardict include:
+
+        * ``pid`` (``u``)
+
+          Pid of a process of the application to capture. The app ID of the
+          application is found from it. Without an app ID, the stream captures
+          nothing. This value is required.
+
+        The following results get returned via the @results vardict:
+
+        * ``pipewire-node-id`` (``u``)
+
+          The PipeWire node id of the stream.
+
+        * ``pipewire-serial`` (``t``)
+
+          The PipeWire object serial of the stream.
+    -->
+    <method name="CreateApplicationStream">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>

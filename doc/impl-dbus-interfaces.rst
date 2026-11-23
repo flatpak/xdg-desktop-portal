@@ -14,6 +14,7 @@ accessible to sandboxed applications.
 
    doc-org.freedesktop.impl.portal.Access.rst
    doc-org.freedesktop.impl.portal.Account.rst
+   doc-org.freedesktop.impl.portal.AppAudioCapture.rst
    doc-org.freedesktop.impl.portal.AppChooser.rst
    doc-org.freedesktop.impl.portal.Background.rst
    doc-org.freedesktop.impl.portal.Clipboard.rst

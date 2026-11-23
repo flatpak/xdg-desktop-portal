@@ -3,6 +3,7 @@
 
 #include <wp/wp.h>
 
+#include "xdp-wp-app-audio-capture.h"
 #include "xdp-wp-permission-manager.h"
 
 WP_DEFINE_LOCAL_LOG_TOPIC ("m-xdp-plugin");
@@ -24,6 +25,7 @@ struct _XdpWpPlugin
   gulong dbus_changed_signal_id;
 
   XdpWpPermissionManager *permission_manager;
+  XdpWpAppAudioCapture *app_audio_capture;
 };
 
 G_DEFINE_FINAL_TYPE (XdpWpPlugin, xdp_wp_plugin, WP_TYPE_PLUGIN);
@@ -42,6 +44,7 @@ on_dbus_connection_plugin_state_changed (XdpWpPlugin *self,
   if (state != WP_DBUS_CONNECTION_STATE_CONNECTED)
     {
       g_clear_object (&self->permission_manager);
+      g_clear_object (&self->app_audio_capture);
       return;
     }
 
@@ -54,6 +57,8 @@ on_dbus_connection_plugin_state_changed (XdpWpPlugin *self,
     {
       self->permission_manager = xdp_wp_permission_manager_new (core, connection);
       wp_debug_object (self, "Permission manager created");
+      self->app_audio_capture = xdp_wp_app_audio_capture_new (core, connection);
+      wp_debug_object (self, "App audio capture created");
     }
   else
     {
@@ -96,6 +101,7 @@ xdp_wp_plugin_disable (WpPlugin *plugin)
                                self->dbus_changed_signal_id);
 
   g_clear_object (&self->permission_manager);
+  g_clear_object (&self->app_audio_capture);
 
   g_clear_object (&self->dbus_connection_plugin);
 
