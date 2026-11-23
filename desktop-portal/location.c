@@ -212,6 +212,25 @@ on_location_updated (GeoclueClient *client,
     }
 }
 
+void
+set_geoclue_client_prop (GeoclueClient *client,
+                         const char *property,
+                         GVariant *value)
+{
+  g_autoptr(GVariant) client_prop = NULL;
+  g_autoptr (GVariant) result = NULL;
+
+  client_prop = g_variant_ref_sink (g_variant_new ("(ssv)",
+                                                   "org.freedesktop.GeoClue2.Client",
+                                                   property,
+                                                   value));
+  result = g_dbus_proxy_call_sync (G_DBUS_PROXY (client),
+                                   "org.freedesktop.DBus.Properties.Set",
+                                   client_prop,
+                                   G_DBUS_CALL_FLAGS_NONE,
+                                   -1, NULL, NULL);
+}
+
 static gboolean
 location_session_start (LocationSession *loc_session)
 {
@@ -259,14 +278,20 @@ location_session_start (LocationSession *loc_session)
            loc_session->distance_threshold,
            loc_session->time_threshold,
            gclue_accuracy_level_to_string (loc_session->accuracy));
-  
-  g_object_set (loc_session->client,
-                "desktop-id", "xdg-desktop-portal",
-                "distance-threshold", loc_session->distance_threshold,
-                "time-threshold", loc_session->time_threshold,
-                "requested-accuracy-level", loc_session->accuracy,
-                NULL);
-  
+
+  set_geoclue_client_prop (loc_session->client,
+                           "DesktopId",
+                           g_variant_new_string ("xdg-desktop-portal"));
+  set_geoclue_client_prop (loc_session->client,
+                           "DistanceThreshold",
+                           g_variant_new_uint32 (loc_session->distance_threshold));
+  set_geoclue_client_prop (loc_session->client,
+                           "TimeThreshold",
+                           g_variant_new_uint32 (loc_session->time_threshold));
+  set_geoclue_client_prop (loc_session->client,
+                           "RequestedAccuracyLevel",
+                           g_variant_new_uint32 (loc_session->accuracy));
+
   g_signal_connect_object (loc_session->client, "location-updated",
                            G_CALLBACK (on_location_updated),
                            loc_session,
