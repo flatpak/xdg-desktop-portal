@@ -3753,6 +3753,14 @@ typedef enum _MountpointState
   MOUNTPOINT_STATE_LIVE,
 } MountpointState;
 
+/* The FUSE connection is gone: requests in flight when it got aborted fail
+ * with ECONNABORTED, later ones with ENOTCONN. */
+static gboolean
+is_fuse_disconnected_errno (int errsv)
+{
+  return errsv == ENOTCONN || errsv == ECONNABORTED;
+}
+
 static MountpointState
 get_mountpoint_state (const char *path)
 {
@@ -3761,13 +3769,13 @@ get_mountpoint_state (const char *path)
 
   /* A FUSE mount whose daemon went away without unmounting it */
   if (TEMP_FAILURE_RETRY (stat (path, &st)) == -1 &&
-      errno == ENOTCONN)
+      is_fuse_disconnected_errno (errno))
     return MOUNTPOINT_STATE_STALE;
 
   /* stat() might be served from the attribute cache, statfs() never is */
   if (TEMP_FAILURE_RETRY (statfs (path, &stfs)) == -1)
     {
-      if (errno == ENOTCONN)
+      if (is_fuse_disconnected_errno (errno))
         return MOUNTPOINT_STATE_STALE;
 
       return MOUNTPOINT_STATE_UNMOUNTED;
