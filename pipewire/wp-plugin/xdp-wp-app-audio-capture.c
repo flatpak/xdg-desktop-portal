@@ -8,6 +8,8 @@
 #include <spa/param/audio/raw.h>
 #include <spa/utils/string.h>
 
+#include "xdp-app-info.h"
+#include "xdp-screen-cast.h"
 #include "xdp-utils.h"
 
 WP_DEFINE_LOCAL_LOG_TOPIC ("m-xdp-app-audio-capture");
@@ -17,6 +19,10 @@ WP_DEFINE_LOCAL_LOG_TOPIC ("m-xdp-app-audio-capture");
 #define INPUT_MEDIA_CLASS "Stream/Input/Audio"
 #define START_TIMEOUT_MS 1000
 #define POSITIONS_7_1 "[ FL, FR, FC, LFE, RL, RR, SL, SR ]"
+
+#define XDP_WP_TYPE_CLIENT_IDENTITY_CACHE (xdp_wp_client_identity_cache_get_type ())
+G_DECLARE_FINAL_TYPE (XdpWpClientIdentityCache, xdp_wp_client_identity_cache,
+                      XDP_WP, CLIENT_IDENTITY_CACHE, GObject)
 
 #define XDP_WP_TYPE_APP_AUDIO_LOOPBACK (xdp_wp_app_audio_loopback_get_type ())
 G_DECLARE_FINAL_TYPE (XdpWpAppAudioLoopback, xdp_wp_app_audio_loopback, XDP_WP, APP_AUDIO_LOOPBACK,
@@ -34,6 +40,169 @@ G_DECLARE_FINAL_TYPE (XdpWpAppAudioGraph, xdp_wp_app_audio_graph, XDP_WP, APP_AU
 G_DECLARE_FINAL_TYPE (XdpWpAppAudioSession, xdp_wp_app_audio_session, XDP_WP, APP_AUDIO_SESSION,
                       XdpDbusImplSessionSkeleton)
 
+struct _XdpWpClientIdentityCache
+{
+  GObject parent_instance;
+
+  WpObjectManager *clients;
+  GHashTable *app_ids; /* guint32 client id -> char *app_id */
+};
+
+G_DEFINE_FINAL_TYPE (XdpWpClientIdentityCache, xdp_wp_client_identity_cache, G_TYPE_OBJECT)
+
+enum
+{
+  IDENTITY_CACHE_CHANGED,
+  N_IDENTITY_CACHE_SIGNALS,
+};
+
+static guint identity_cache_signals[N_IDENTITY_CACHE_SIGNALS];
+
+static char *
+dup_pid_app_id (pid_t pid)
+{
+  g_autoptr (XdpAppInfo) app_info = NULL;
+  const char *app_id;
+
+  if (pid <= 0)
+    return NULL;
+
+  app_info = xdp_app_info_new (NULL, pid, -1, NULL);
+  app_id = app_info ? xdp_app_info_get_id (app_info) : NULL;
+  return app_id && *app_id ? g_strdup (app_id) : NULL;
+}
+
+/* TODO: This whole function should ideally be gone once there's appd
+ * integration in pipewire to always give us a reliable app id */
+static void
+identify_client (XdpWpClientIdentityCache *self,
+                 WpClient                 *client)
+{
+  WpPipewireObject *object = WP_PIPEWIRE_OBJECT (client);
+  gpointer id = GUINT_TO_POINTER (wp_proxy_get_bound_id (WP_PROXY (client)));
+  const char *client_app_id =
+    wp_pipewire_object_get_property (object, "pipewire.access.portal.app_id");
+  const char *snap_id = wp_pipewire_object_get_property (object, "pipewire.snap.id");
+  gboolean is_pulse = g_strcmp0 (wp_pipewire_object_get_property (object, PW_KEY_CLIENT_API),
+                                 "pipewire-pulse") == 0;
+  g_autofree char *app_id = NULL;
+
+  if (!client_app_id || !*client_app_id)
+    client_app_id = wp_pipewire_object_get_property (object, PW_KEY_SEC_APP_ID);
+  if (client_app_id && *client_app_id)
+    {
+      app_id = g_strdup (client_app_id);
+    }
+  else if (snap_id && *snap_id)
+    {
+      app_id = g_strconcat ("snap.", snap_id, NULL);
+    }
+  else
+    {
+      const char *pid_str =
+        wp_pipewire_object_get_property (object, is_pulse ? PW_KEY_APP_PROCESS_ID
+                                                          : PW_KEY_SEC_PID);
+      gint32 pid;
+
+      if (pid_str && spa_atoi32 (pid_str, &pid, 10))
+        app_id = dup_pid_app_id (pid);
+    }
+
+  g_hash_table_insert (self->app_ids, id, g_steal_pointer (&app_id));
+  g_signal_emit (self, identity_cache_signals[IDENTITY_CACHE_CHANGED], 0);
+}
+
+static void
+on_client_changed (XdpWpClientIdentityCache *self,
+                   GParamSpec               *pspec,
+                   WpClient                 *client)
+{
+  identify_client (self, client);
+}
+
+static void
+on_client_added (XdpWpClientIdentityCache *self,
+                 WpClient                 *client)
+{
+  identify_client (self, client);
+  g_signal_connect_object (client, "notify::properties",
+                           G_CALLBACK (on_client_changed), self, G_CONNECT_SWAPPED);
+}
+
+static void
+on_client_removed (XdpWpClientIdentityCache *self,
+                   WpClient                 *client)
+{
+  g_hash_table_remove (self->app_ids,
+                       GUINT_TO_POINTER (wp_proxy_get_bound_id (WP_PROXY (client))));
+}
+
+static const char *
+xdp_wp_client_identity_cache_lookup (XdpWpClientIdentityCache *self,
+                                     guint32                   client_id)
+{
+  return g_hash_table_lookup (self->app_ids, GUINT_TO_POINTER (client_id));
+}
+
+static void
+xdp_wp_client_identity_cache_dispose (GObject *object)
+{
+  XdpWpClientIdentityCache *self = XDP_WP_CLIENT_IDENTITY_CACHE (object);
+
+  g_clear_object (&self->clients);
+  g_hash_table_remove_all (self->app_ids);
+
+  G_OBJECT_CLASS (xdp_wp_client_identity_cache_parent_class)->dispose (object);
+}
+
+static void
+xdp_wp_client_identity_cache_finalize (GObject *object)
+{
+  XdpWpClientIdentityCache *self = XDP_WP_CLIENT_IDENTITY_CACHE (object);
+
+  g_clear_pointer (&self->app_ids, g_hash_table_unref);
+
+  G_OBJECT_CLASS (xdp_wp_client_identity_cache_parent_class)->finalize (object);
+}
+
+static void
+xdp_wp_client_identity_cache_class_init (XdpWpClientIdentityCacheClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = xdp_wp_client_identity_cache_dispose;
+  object_class->finalize = xdp_wp_client_identity_cache_finalize;
+
+  identity_cache_signals[IDENTITY_CACHE_CHANGED] =
+    g_signal_new ("changed",
+                  G_TYPE_FROM_CLASS (klass),
+                  G_SIGNAL_RUN_LAST,
+                  0, NULL, NULL, NULL,
+                  G_TYPE_NONE, 0);
+}
+
+static void
+xdp_wp_client_identity_cache_init (XdpWpClientIdentityCache *self)
+{
+  self->app_ids = g_hash_table_new_full (NULL, NULL, NULL, g_free);
+}
+
+static XdpWpClientIdentityCache *
+xdp_wp_client_identity_cache_new (WpCore *core)
+{
+  XdpWpClientIdentityCache *self = g_object_new (XDP_WP_TYPE_CLIENT_IDENTITY_CACHE, NULL);
+
+  self->clients = wp_object_manager_new ();
+  wp_object_manager_add_interest (self->clients, WP_TYPE_CLIENT, NULL);
+  wp_object_manager_request_object_features (self->clients, WP_TYPE_CLIENT,
+                                             WP_PIPEWIRE_OBJECT_FEATURES_MINIMAL);
+  g_signal_connect_object (self->clients, "object-added",
+                           G_CALLBACK (on_client_added), self, G_CONNECT_SWAPPED);
+  g_signal_connect_object (self->clients, "object-removed",
+                           G_CALLBACK (on_client_removed), self, G_CONNECT_SWAPPED);
+  wp_core_install_object_manager (core, self->clients);
+  return self;
+}
 
 struct _XdpWpAppAudioLoopback
 {
@@ -290,6 +459,8 @@ struct _XdpWpAppAudioStream
   GObject parent_instance;
 
   XdpWpAppAudioLoopback *loopback;
+  XdpScreenCastAudioType type;
+  char *target_app; /* NULL for System, or an application with no app id */
   GHashTable *links; /* application stream node id -> WpSessionItem *link */
 };
 
@@ -360,6 +531,15 @@ static gboolean
 xdp_wp_app_audio_stream_is_closed (XdpWpAppAudioStream *self)
 {
   return xdp_wp_app_audio_loopback_is_closed (self->loopback);
+}
+
+static gboolean
+xdp_wp_app_audio_stream_carries (XdpWpAppAudioStream *self,
+                                 const char          *app_id)
+{
+  if (self->type == XDP_SCREEN_CAST_AUDIO_TYPE_SYSTEM)
+    return TRUE;
+  return app_id && g_strcmp0 (self->target_app, app_id) == 0;
 }
 
 static void
@@ -489,6 +669,7 @@ xdp_wp_app_audio_stream_finalize (GObject *object)
   XdpWpAppAudioStream *self = XDP_WP_APP_AUDIO_STREAM (object);
 
   g_clear_pointer (&self->links, g_hash_table_unref);
+  g_clear_pointer (&self->target_app, g_free);
 
   G_OBJECT_CLASS (xdp_wp_app_audio_stream_parent_class)->finalize (object);
 }
@@ -526,6 +707,7 @@ struct _XdpWpAppAudioGraph
   GObject parent_instance;
 
   WpCore *core;
+  XdpWpClientIdentityCache *identities;
   WpObjectManager *nodes;
   WpObjectManager *linkables;
   WpEventHook *relink_hook;
@@ -534,6 +716,15 @@ struct _XdpWpAppAudioGraph
 };
 
 G_DEFINE_FINAL_TYPE (XdpWpAppAudioGraph, xdp_wp_app_audio_graph, G_TYPE_OBJECT)
+
+static guint32
+get_client_id (WpNode *node)
+{
+  const char *str = wp_pipewire_object_get_property (WP_PIPEWIRE_OBJECT (node), PW_KEY_CLIENT_ID);
+  guint32 id;
+
+  return str && spa_atou32 (str, &id, 10) ? id : SPA_ID_INVALID;
+}
 
 static gboolean
 is_app_stream (WpNode *node)
@@ -544,6 +735,28 @@ is_app_stream (WpNode *node)
                     OUTPUT_MEDIA_CLASS) == 0 &&
          !spa_atob (wp_pipewire_object_get_property (object, PW_KEY_STREAM_MONITOR)) &&
          !wp_pipewire_object_get_property (object, PW_KEY_NODE_LINK_GROUP);
+}
+
+static GHashTable *
+carried_app_streams (XdpWpAppAudioGraph  *self,
+                     XdpWpAppAudioStream *stream,
+                     GHashTable          *app_streams)
+{
+  GHashTable *carried = g_hash_table_new (NULL, NULL);
+  GHashTableIter iter;
+  gpointer id, linkable;
+
+  g_hash_table_iter_init (&iter, app_streams);
+  while (g_hash_table_iter_next (&iter, &id, &linkable))
+    {
+      g_autoptr (WpNode) node = wp_session_item_get_associated_proxy (linkable, WP_TYPE_NODE);
+      guint32 client_id = node ? get_client_id (node) : SPA_ID_INVALID;
+      const char *app_id = xdp_wp_client_identity_cache_lookup (self->identities, client_id);
+
+      if (xdp_wp_app_audio_stream_carries (stream, app_id))
+        g_hash_table_insert (carried, id, linkable);
+    }
+  return carried;
 }
 
 static WpSiLinkable *
@@ -561,8 +774,8 @@ lookup_capture (GHashTable          *linkables,
 }
 
 /* Every change recomputes the wanted links and applies only the difference:
- * - wanted: each application stream (Stream/Output/Audio, not a monitor, not in a link
- *   group) into the capture node of each loopback with a reader;
+ * - wanted: the application streams (Stream/Output/Audio, not a monitor, not in a link
+ *   group) that each loopback carries, into its capture node if it has a reader;
  * - recomputed when nodes come or go, a loopback gains or loses a reader, a loopback is created,
  *   or WirePlumber relinks an application stream;
  * - a link that fails is dropped and retried on the next change; closing a loopback removes
@@ -607,8 +820,9 @@ relink (gpointer user_data)
   for (guint i = 0; i < self->streams->len; i++)
     {
       XdpWpAppAudioStream *stream = g_ptr_array_index (self->streams, i);
+      g_autoptr (GHashTable) carried = carried_app_streams (self, stream, app_streams);
 
-      xdp_wp_app_audio_stream_link (stream, lookup_capture (linkables, stream), app_streams);
+      xdp_wp_app_audio_stream_link (stream, lookup_capture (linkables, stream), carried);
     }
   return G_SOURCE_REMOVE;
 }
@@ -696,6 +910,7 @@ xdp_wp_app_audio_graph_dispose (GObject *object)
 
   g_clear_object (&self->linkables);
   g_clear_object (&self->nodes);
+  g_clear_object (&self->identities);
   g_clear_object (&self->core);
 
   G_OBJECT_CLASS (xdp_wp_app_audio_graph_parent_class)->dispose (object);
@@ -733,6 +948,9 @@ xdp_wp_app_audio_graph_new (WpCore *core)
   g_autoptr (WpEventDispatcher) dispatcher = wp_event_dispatcher_get_instance (core);
 
   self->core = g_object_ref (core);
+  self->identities = xdp_wp_client_identity_cache_new (core);
+  g_signal_connect_object (self->identities, "changed",
+                           G_CALLBACK (schedule_relink), self, G_CONNECT_SWAPPED);
   self->nodes = watch_objects (self, WP_TYPE_NODE);
   self->linkables = watch_objects (self, WP_TYPE_SI_LINKABLE);
 
@@ -940,6 +1158,21 @@ on_peer_disconnect (const char *name,
   close_sessions (user_data, name, FALSE);
 }
 
+static gboolean
+validate_pid (const char  *key,
+              GVariant    *value,
+              GVariant    *options,
+              gpointer     user_data,
+              GError     **error)
+{
+  if (g_variant_get_uint32 (value) > 0)
+    return TRUE;
+
+  g_set_error_literal (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                       "Invalid pid 0");
+  return FALSE;
+}
+
 static XdpWpAppAudioSession *
 lookup_caller_session (XdpWpAppAudioCapture  *self,
                        GDBusMethodInvocation *invocation,
@@ -993,9 +1226,11 @@ handle_create_session (XdpDbusImplAppAudioCapture *object,
 }
 
 static void
-create_stream (XdpWpAppAudioCapture  *self,
-               GDBusMethodInvocation *invocation,
-               const char            *session_handle)
+create_stream (XdpWpAppAudioCapture   *self,
+               GDBusMethodInvocation  *invocation,
+               const char             *session_handle,
+               XdpScreenCastAudioType  type,
+               const char             *target_app)
 {
   g_auto (GVariantBuilder) results = G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr (XdpWpAppAudioSession) session = NULL;
@@ -1034,6 +1269,8 @@ create_stream (XdpWpAppAudioCapture  *self,
       return;
     }
 
+  stream->type = type;
+  stream->target_app = g_strdup (target_app);
   xdp_wp_app_audio_session_add_stream (session, stream);
   xdp_wp_app_audio_graph_add_stream (self->graph, stream);
 
@@ -1050,9 +1287,14 @@ handle_create_system_stream (XdpDbusImplAppAudioCapture *object,
                              const char                 *arg_session_handle,
                              GVariant                   *arg_options)
 {
-  create_stream (XDP_WP_APP_AUDIO_CAPTURE (object), invocation, arg_session_handle);
+  create_stream (XDP_WP_APP_AUDIO_CAPTURE (object), invocation, arg_session_handle,
+                 XDP_SCREEN_CAST_AUDIO_TYPE_SYSTEM, NULL);
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
+
+static const XdpOptionKey application_stream_options[] = {
+  { "pid", G_VARIANT_TYPE_UINT32, validate_pid },
+};
 
 static gboolean
 handle_create_application_stream (XdpDbusImplAppAudioCapture *object,
@@ -1060,9 +1302,31 @@ handle_create_application_stream (XdpDbusImplAppAudioCapture *object,
                                   const char                 *arg_session_handle,
                                   GVariant                   *arg_options)
 {
-  g_dbus_method_invocation_return_error_literal (invocation, XDG_DESKTOP_PORTAL_ERROR,
-                                                 XDG_DESKTOP_PORTAL_ERROR_FAILED,
-                                                 "Not implemented yet");
+  g_auto (GVariantBuilder) options_builder = G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  g_autoptr (GVariant) options = NULL;
+  g_autofree char *target_app = NULL;
+  g_autoptr (GError) error = NULL;
+  guint32 pid;
+
+  if (!xdp_filter_options (arg_options, &options_builder, application_stream_options,
+                           G_N_ELEMENTS (application_stream_options), NULL, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
+  if (!g_variant_lookup (options, "pid", "u", &pid))
+    {
+      g_dbus_method_invocation_return_error_literal (invocation, XDG_DESKTOP_PORTAL_ERROR,
+                                                     XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                                     "An application needs a pid");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  target_app = dup_pid_app_id (pid);
+  create_stream (XDP_WP_APP_AUDIO_CAPTURE (object), invocation, arg_session_handle,
+                 XDP_SCREEN_CAST_AUDIO_TYPE_APPLICATION, target_app);
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
