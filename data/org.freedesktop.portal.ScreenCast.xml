@@ -11,7 +11,7 @@
 
       The Screen cast portal allows to create screen cast sessions.
 
-      This documentation describes version 6 of this interface.
+      This documentation describes version 7 of this interface.
 
       Entitlements
       ~~~~~~~~~~~~
@@ -205,6 +205,8 @@
           stream for each selected source the user agreed to share audio for
           in the selection dialog.
 
+          This option was added in version 7 of this interface.
+
         * ``exclude_self`` (``u``)
 
           Bitmask of the caller's own content type to leave out of the screen cast.
@@ -221,6 +223,8 @@
           Selecting a window of the caller's own application with
           ``exclude_self`` set to 'Audio' results in no audio stream being
           returned for that window.
+
+          This option was added in version 7 of this interface.
 
         For available source types, see the
         :ref:`org.freedesktop.portal.ScreenCast:AvailableSourceTypes` property.
@@ -279,9 +283,9 @@
           ``multiple`` was set to 'true' as part of the
           :ref:`org.freedesktop.portal.ScreenCast.SelectSources` method.
 
-          A single selected source may be represented by multiple media
-          streams: one video stream and optionally one associated audio
-          stream, as described for the ``audio_types`` option of
+          Since version 7, a single selected source may be represented by
+          multiple media streams: one video stream and optionally one associated
+          audio stream, as described for the ``audio_types`` option of
           :ref:`org.freedesktop.portal.ScreenCast.SelectSources`.
 
           Each stream contains the following properties:
@@ -292,6 +296,8 @@
             ``video`` and ``audio``.
 
             If this property is absent, the stream is a video stream.
+
+            This property was added in version 7 of this interface.
 
           * ``id`` (``s``)
 
@@ -327,6 +333,8 @@
             The type of the audio carried by an audio stream. For available
             audio types, see the
             :ref:`org.freedesktop.portal.ScreenCast:AvailableAudioTypes` property.
+
+            This property was added in version 7 of this interface.
 
           * ``mapping_id`` (``s``)
 
@@ -425,6 +433,8 @@
         - ``1``: None: No audio. It can't be combined with the other types.
         - ``2``: System: The audio stream carries the audio output of every application.
         - ``4``: Application: The audio stream of a window carries the audio output of its application.
+
+        This property was added in version 7 of this interface.
     -->
     <property name="AvailableAudioTypes" type="u" access="read"/>
     <!--
@@ -436,6 +446,8 @@
 
         - ``1``: None: The screen cast includes what the caller produces, like any other application's.
         - ``2``: Audio: The audio streams leave out the caller's audio output streams.
+
+        This property was added in version 7 of this interface.
     -->
     <property name="AvailableExcludeSelfModes" type="u" access="read"/>
     <property name="version" type="u" access="read"/>

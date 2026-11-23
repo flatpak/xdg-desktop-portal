@@ -121,9 +121,13 @@ def start_stream(dbus_con, screencast_intf, select_options=None):
 
 class TestScreenCast:
     def test_version(self, portals, dbus_con):
-        # The frontend advertises MIN(impl_version, 6); the backend here
+        # The frontend advertises MIN(impl_version, 7); the backend here
         # implements version 6, so the portal exposes version 6.
         xdp.check_version(dbus_con, "ScreenCast", 6)
+
+    @pytest.mark.parametrize("template_params", ({"screencast": {"version": 7}},))
+    def test_version_7(self, portals, dbus_con):
+        xdp.check_version(dbus_con, "ScreenCast", 7)
 
     def test_pipewire_serial_present_with_v6_backend(self, portals, dbus_con):
         # A version 6 backend returns pipewire-serial in the stream

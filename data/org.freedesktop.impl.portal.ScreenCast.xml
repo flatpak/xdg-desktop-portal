@@ -11,7 +11,7 @@
 
       The Screen cast portal allows to create screen cast sessions.
 
-      This documentation describes version 6 of this interface.
+      This documentation describes version 7 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.ScreenCast">
     <!--
@@ -114,6 +114,8 @@
           must contain an ``audio_source`` for each selected source whose
           audio the user agreed to share.
 
+          This option was added in version 7 of this interface.
+
         For available source types, see the
         :ref:`org.freedesktop.impl.portal.ScreenCast:AvailableSourceTypes` property.
     -->
@@ -205,6 +207,8 @@
 
               The pid of the window's client process. The portal finds the
               application from it.
+
+            This property was added in version 7 of this interface.
 
           * ``mapping_id`` (``s``)
 
@@ -307,6 +311,8 @@
 
         - ``2``: System
         - ``4``: Application
+
+        This property was added in version 7 of this interface.
     -->
     <property name="AvailableAudioTypes" type="u" access="read"/>
     <property name="version" type="u" access="read"/>
