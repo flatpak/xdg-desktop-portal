@@ -14,6 +14,7 @@ xdp_wireplumber_module_sources += gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.impl.portal',
   namespace: 'XdpDbusImpl',
   docbook: 'portal',
+  extra_args: [f'--extension-path=@libdex_codegen_ext@'],
 )
 
 xdp_wireplumber_module = shared_library(

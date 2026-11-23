@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 /* SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors */
 
+#include <libdex.h>
 #include <wp/wp.h>
 
 #include "xdp-wp-app-audio-capture.h"
@@ -127,6 +128,8 @@ wireplumber__module_init (WpCore     *core,
                           WpSpaJson  *args,
                           GError    **error)
 {
+  dex_init ();
+
   return g_object_new (xdp_wp_plugin_get_type (),
                        "name", "xdp-desktop-portal",
                        "core", core,
