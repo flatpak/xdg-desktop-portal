@@ -88,6 +88,8 @@ typedef struct _ScreenCastSession
   char *restore_token;
   XdpSessionPersistenceMode persist_mode;
   GVariant *restore_data;
+
+  uint32_t audio_types;
 } ScreenCastSession;
 
 typedef struct _ScreenCastSessionClass
@@ -119,6 +121,8 @@ screen_cast_session_close (XdpSession *session)
   ScreenCastSession *screen_cast_session = SCREEN_CAST_SESSION (session);
 
   screen_cast_session->state = SCREEN_CAST_SESSION_STATE_CLOSED;
+
+  screen_cast_close_audio_session (session);
 
   xdp_session_persistence_generate_and_save_restore_token (session,
                                                            SCREEN_CAST_PERMISSION_TABLE,
@@ -444,6 +448,75 @@ validate_cursor_mode (const char  *key,
   return TRUE;
 }
 
+static const struct {
+  XdpScreenCastSourceType source_type;
+  XdpScreenCastAudioType audio_types;
+} accepted_audio_types[] = {
+  { XDP_SCREEN_CAST_SOURCE_TYPE_MONITOR,
+    XDP_SCREEN_CAST_AUDIO_TYPE_NONE | XDP_SCREEN_CAST_AUDIO_TYPE_SYSTEM },
+  { XDP_SCREEN_CAST_SOURCE_TYPE_WINDOW,
+    XDP_SCREEN_CAST_AUDIO_TYPE_NONE | XDP_SCREEN_CAST_AUDIO_TYPE_SYSTEM |
+    XDP_SCREEN_CAST_AUDIO_TYPE_APPLICATION },
+  { XDP_SCREEN_CAST_SOURCE_TYPE_VIRTUAL,
+    XDP_SCREEN_CAST_AUDIO_TYPE_NONE | XDP_SCREEN_CAST_AUDIO_TYPE_SYSTEM },
+};
+
+static uint32_t
+accepted_audio_types_for (uint32_t source_type)
+{
+  for (size_t i = 0; i < G_N_ELEMENTS (accepted_audio_types); i++)
+    {
+      if (accepted_audio_types[i].source_type == source_type)
+        return accepted_audio_types[i].audio_types;
+    }
+  return 0;
+}
+
+static gboolean
+validate_audio_types (const char  *key,
+                      GVariant    *value,
+                      GVariant    *options,
+                      gpointer     user_data,
+                      GError     **error)
+{
+  ScreenCast *screen_cast = user_data;
+  uint32_t available_audio_types =
+    xdp_dbus_screen_cast_get_available_audio_types (XDP_DBUS_SCREEN_CAST (screen_cast));
+  uint32_t audio_types = g_variant_get_uint32 (value);
+  uint32_t types = XDP_SCREEN_CAST_SOURCE_TYPE_MONITOR;
+
+  if (audio_types == 0 || (audio_types & ~available_audio_types) != 0)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Unavailable audio types %x", audio_types);
+      return FALSE;
+    }
+
+  if ((audio_types & XDP_SCREEN_CAST_AUDIO_TYPE_NONE) &&
+      audio_types != XDP_SCREEN_CAST_AUDIO_TYPE_NONE)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Audio type None combined with others: %x", audio_types);
+      return FALSE;
+    }
+
+  /* Each source type asked for must accept one of the audio types */
+  g_variant_lookup (options, "types", "u", &types);
+  for (size_t i = 0; i < G_N_ELEMENTS (accepted_audio_types); i++)
+    {
+      if ((types & accepted_audio_types[i].source_type) &&
+          !(audio_types & accepted_audio_types[i].audio_types))
+        {
+          g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                       "Audio types %x not accepted for source type %x",
+                       audio_types, accepted_audio_types[i].source_type);
+          return FALSE;
+        }
+    }
+
+  return TRUE;
+}
+
 static gboolean
 validate_restore_token (const char  *key,
                         GVariant    *value,
@@ -473,6 +546,7 @@ static XdpOptionKey screen_cast_select_sources_options[] = {
   { "cursor_mode", G_VARIANT_TYPE_UINT32, validate_cursor_mode },
   { "restore_token", G_VARIANT_TYPE_STRING, validate_restore_token },
   { "persist_mode", G_VARIANT_TYPE_UINT32, validate_persist_mode },
+  { "audio_types", G_VARIANT_TYPE_UINT32, validate_audio_types },
 };
 
 static gboolean
@@ -526,6 +600,7 @@ handle_select_sources (XdpDbusScreenCast *object,
   g_auto(GVariantBuilder) options_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
+  uint32_t audio_types;
 
   REQUEST_AUTOLOCK (request);
 
@@ -618,6 +693,13 @@ handle_select_sources (XdpDbusScreenCast *object,
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
+
+  if (!g_variant_lookup (arg_options, "audio_types", "u", &audio_types))
+    audio_types = XDP_SCREEN_CAST_AUDIO_TYPE_NONE;
+  if (IS_SCREEN_CAST_SESSION (session))
+    SCREEN_CAST_SESSION (session)->audio_types = audio_types;
+  else
+    remote_desktop_session_set_audio_types (REMOTE_DESKTOP_SESSION (session), audio_types);
 
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
@@ -772,6 +854,222 @@ collect_screen_cast_stream_data (GVariantIter *streams_iter)
   return streams;
 }
 
+G_DEFINE_QUARK (xdp-screen-cast-audio-session, audio_session)
+G_DEFINE_QUARK (xdp-screen-cast-app-audio-capture, app_audio_capture)
+
+static void
+on_audio_session_closed (XdpDbusImplSession *audio_session,
+                         XdpSession         *session)
+{
+  SESSION_AUTOLOCK_UNREF (g_object_ref (session));
+
+  g_object_set_qdata (G_OBJECT (session), audio_session_quark (), NULL);
+  xdp_session_close (session, TRUE);
+}
+
+static gboolean
+ensure_audio_session (XdpSession  *session,
+                      GError     **error)
+{
+  const char *handle = xdp_session_get_object_path (session);
+  g_auto(GVariantBuilder) options = G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  g_autoptr(XdpDbusImplAppAudioCapture) app_audio_capture = NULL;
+  g_autoptr(XdpDbusImplSession) audio_session = NULL;
+
+  if (g_object_get_qdata (G_OBJECT (session), audio_session_quark ()))
+    return TRUE;
+
+  app_audio_capture =
+    xdp_dbus_impl_app_audio_capture_proxy_new_sync (session->impl_connection,
+                                                    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+                                                    APP_AUDIO_CAPTURE_DBUS_IMPL_IFACE,
+                                                    DESKTOP_DBUS_PATH,
+                                                    NULL, error);
+  if (!app_audio_capture)
+    return FALSE;
+
+  audio_session = xdp_dbus_impl_session_proxy_new_sync (session->impl_connection,
+                                                        G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+                                                        APP_AUDIO_CAPTURE_DBUS_IMPL_IFACE,
+                                                        handle,
+                                                        NULL, error);
+  if (!audio_session)
+    return FALSE;
+  g_signal_connect_object (audio_session, "closed",
+                           G_CALLBACK (on_audio_session_closed), session, G_CONNECT_DEFAULT);
+
+  if (!xdp_dbus_impl_app_audio_capture_call_create_session_sync (
+        app_audio_capture, handle, xdp_app_info_get_id (session->app_info),
+        g_variant_builder_end (&options), NULL, error))
+    return FALSE;
+
+  g_object_set_qdata_full (G_OBJECT (session), app_audio_capture_quark (),
+                           g_steal_pointer (&app_audio_capture), g_object_unref);
+  g_object_set_qdata_full (G_OBJECT (session), audio_session_quark (),
+                           g_steal_pointer (&audio_session), g_object_unref);
+  return TRUE;
+}
+
+static gboolean
+create_audio_stream (XdpSession       *session,
+                     uint32_t          audio_types,
+                     uint32_t          source_type,
+                     GVariant         *audio_source,
+                     const char       *mapping_id,
+                     GVariantBuilder  *streams_builder,
+                     GList           **streams,
+                     GError          **error)
+{
+  g_auto(GVariantBuilder) options = G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  const char *handle = xdp_session_get_object_path (session);
+  g_autoptr(GVariant) results = NULL;
+  XdpDbusImplAppAudioCapture *app_audio_capture;
+  gboolean created;
+  ScreenCastStream *stream;
+  uint32_t node_id;
+  uint64_t serial;
+  uint32_t audio_type = 0;
+  uint32_t pid = 0;
+
+  /* The backend picks it, among the types the caller accepts for the source */
+  if (!g_variant_lookup (audio_source, "audio_type", "u", &audio_type) ||
+      (audio_type != XDP_SCREEN_CAST_AUDIO_TYPE_SYSTEM &&
+       audio_type != XDP_SCREEN_CAST_AUDIO_TYPE_APPLICATION) ||
+      !(audio_type & audio_types & accepted_audio_types_for (source_type)))
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Audio type %x not asked for source type %x", audio_type, source_type);
+      return FALSE;
+    }
+
+  if (audio_type == XDP_SCREEN_CAST_AUDIO_TYPE_APPLICATION &&
+      g_variant_lookup (audio_source, "pid", "u", &pid))
+    g_variant_builder_add (&options, "{sv}", "pid", g_variant_new_uint32 (pid));
+
+  if (!ensure_audio_session (session, error))
+    return FALSE;
+
+  app_audio_capture = g_object_get_qdata (G_OBJECT (session), app_audio_capture_quark ());
+  if (audio_type == XDP_SCREEN_CAST_AUDIO_TYPE_APPLICATION)
+    created = xdp_dbus_impl_app_audio_capture_call_create_application_stream_sync (
+      app_audio_capture, handle, g_variant_builder_end (&options), &results, NULL, error);
+  else
+    created = xdp_dbus_impl_app_audio_capture_call_create_system_stream_sync (
+      app_audio_capture, handle, g_variant_builder_end (&options), &results, NULL, error);
+  if (!created)
+    return FALSE;
+
+  if (!g_variant_lookup (results, "pipewire-node-id", "u", &node_id) ||
+      !g_variant_lookup (results, "pipewire-serial", "t", &serial))
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED, "No audio stream node");
+      return FALSE;
+    }
+
+  stream = g_new0 (ScreenCastStream, 1);
+  stream->id = node_id;
+  stream->pipewire_serial = serial;
+  stream->has_pipewire_serial = TRUE;
+  *streams = g_list_append (*streams, stream);
+
+  g_variant_builder_add (streams_builder, "(u@a{sv})", node_id,
+                         g_variant_new_parsed ("{'media_type': <'audio'>, "
+                                               "'audio_type': <%u>, "
+                                               "'mapping_id': <%s>, "
+                                               "'pipewire-serial': <%t>}",
+                                               audio_type, mapping_id, serial));
+  return TRUE;
+}
+
+gboolean
+screen_cast_create_audio_streams (XdpSession   *session,
+                                  uint32_t      audio_types,
+                                  GVariant    **in_out_results,
+                                  GList       **streams,
+                                  GError      **error)
+{
+  g_auto(GVariantBuilder) results = G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  g_auto(GVariantBuilder) streams_builder = G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE ("a(ua{sv})"));
+  g_autoptr(GVariantIter) streams_iter = NULL;
+  GVariantIter results_iter;
+  const char *key;
+  GVariant *value;
+  uint32_t node_id;
+  GVariant *options;
+
+  if (!g_variant_lookup (*in_out_results, "streams", "a(ua{sv})", &streams_iter))
+    return TRUE;
+
+  while (g_variant_iter_next (streams_iter, "(u@a{sv})", &node_id, &options))
+    {
+      g_autoptr(GVariant) stream_options = options;
+      g_autoptr(GVariant) audio_source = NULL;
+      g_autofree char *mapping_id = NULL;
+      uint32_t source_type = 0;
+      g_auto(GVariantBuilder) video = G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+      GVariantIter options_iter;
+
+      audio_source = g_variant_lookup_value (stream_options, "audio_source",
+                                             G_VARIANT_TYPE_VARDICT);
+      if (!audio_source)
+        {
+          g_variant_builder_add (&streams_builder, "(u@a{sv})", node_id, stream_options);
+          continue;
+        }
+
+      if (!g_variant_lookup (stream_options, "mapping_id", "s", &mapping_id))
+        mapping_id = g_uuid_string_random ();
+      g_variant_lookup (stream_options, "source_type", "u", &source_type);
+
+      g_variant_iter_init (&options_iter, stream_options);
+      while (g_variant_iter_next (&options_iter, "{&sv}", &key, &value))
+        {
+          g_autoptr(GVariant) option = value;
+
+          if (!g_str_equal (key, "audio_source") && !g_str_equal (key, "mapping_id"))
+            g_variant_builder_add (&video, "{sv}", key, option);
+        }
+      g_variant_builder_add (&video, "{sv}", "mapping_id", g_variant_new_string (mapping_id));
+      g_variant_builder_add (&streams_builder, "(u@a{sv})", node_id,
+                             g_variant_builder_end (&video));
+
+      /* Closed while the backend's Start was in flight: nothing would close the stream */
+      if (session->closed)
+        continue;
+
+      if (!create_audio_stream (session, audio_types, source_type, audio_source,
+                                mapping_id, &streams_builder, streams, error))
+        return FALSE;
+    }
+
+  g_variant_iter_init (&results_iter, *in_out_results);
+  while (g_variant_iter_next (&results_iter, "{&sv}", &key, &value))
+    {
+      g_autoptr(GVariant) result = value;
+
+      if (!g_str_equal (key, "streams"))
+        g_variant_builder_add (&results, "{sv}", key, result);
+    }
+  g_variant_builder_add (&results, "{sv}", "streams", g_variant_builder_end (&streams_builder));
+
+  g_variant_unref (*in_out_results);
+  *in_out_results = g_variant_ref_sink (g_variant_builder_end (&results));
+  return TRUE;
+}
+
+void
+screen_cast_close_audio_session (XdpSession *session)
+{
+  g_autoptr(XdpDbusImplSession) audio_session =
+    g_object_steal_qdata (G_OBJECT (session), audio_session_quark ());
+
+  if (!audio_session)
+    return;
+
+  g_signal_handlers_disconnect_by_data (audio_session, session);
+  xdp_dbus_impl_session_call_close (audio_session, NULL, NULL, NULL);
+}
+
 static void
 replace_restore_screen_cast_data_with_token (ScreenCastSession *screen_cast_session,
                                              GVariant **in_out_results)
@@ -843,7 +1141,10 @@ start_done (GObject *source_object,
     {
       if (response == 0)
         {
-          if (!process_results (screen_cast_session, &results, &error))
+          if (!process_results (screen_cast_session, &results, &error) ||
+              !screen_cast_create_audio_streams (session, screen_cast_session->audio_types,
+                                                 &results,
+                                                 &screen_cast_session->streams, &error))
             {
               g_warning ("Failed to process results: %s", error->message);
               g_clear_error (&error);
@@ -1104,6 +1405,19 @@ screen_cast_class_init (ScreenCastClass *klass)
     g_quark_from_static_string ("-xdp-request-screen-cast-session");
 }
 
+static gboolean
+add_audio_type_none (GBinding     *binding,
+                     const GValue *from_value,
+                     GValue       *to_value,
+                     gpointer      user_data)
+{
+  g_value_set_uint (to_value,
+                    XDP_SCREEN_CAST_AUDIO_TYPE_NONE |
+                    (g_value_get_uint (from_value) &
+                     (XDP_SCREEN_CAST_AUDIO_TYPE_SYSTEM | XDP_SCREEN_CAST_AUDIO_TYPE_APPLICATION)));
+  return TRUE;
+}
+
 static ScreenCast *
 screen_cast_new (XdpContext            *context,
                  XdpDbusImplScreenCast *impl)
@@ -1128,6 +1442,16 @@ screen_cast_new (XdpContext            *context,
       g_object_bind_property (G_OBJECT (screen_cast->impl), "available-cursor-modes",
                               G_OBJECT (screen_cast), "available-cursor-modes",
                               G_BINDING_SYNC_CREATE);
+    }
+
+  xdp_dbus_screen_cast_set_available_audio_types (XDP_DBUS_SCREEN_CAST (screen_cast),
+                                                  XDP_SCREEN_CAST_AUDIO_TYPE_NONE);
+  if (xdp_dbus_impl_screen_cast_get_version (screen_cast->impl) >= 7)
+    {
+      g_object_bind_property_full (G_OBJECT (screen_cast->impl), "available-audio-types",
+                                   G_OBJECT (screen_cast), "available-audio-types",
+                                   G_BINDING_SYNC_CREATE,
+                                   add_audio_type_none, NULL, NULL, NULL);
     }
 
   return screen_cast;

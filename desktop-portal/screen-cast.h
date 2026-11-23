@@ -8,6 +8,7 @@
 
 #include <gio/gio.h>
 
+#include "xdp-session.h"
 #include "xdp-types.h"
 
 typedef struct _ScreenCastStream ScreenCastStream;
@@ -25,5 +26,13 @@ void screen_cast_stream_get_size (ScreenCastStream *stream,
                                   int32_t *height);
 
 GList * collect_screen_cast_stream_data (GVariantIter *streams_iter);
+
+gboolean screen_cast_create_audio_streams (XdpSession   *session,
+                                           uint32_t      audio_types,
+                                           GVariant    **in_out_results,
+                                           GList       **streams,
+                                           GError      **error);
+
+void screen_cast_close_audio_session (XdpSession *session);
 
 void init_screen_cast (XdpContext *context);

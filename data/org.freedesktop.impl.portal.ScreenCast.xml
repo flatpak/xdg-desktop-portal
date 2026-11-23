@@ -97,6 +97,23 @@
 
           This option was added in version 4 of this interface.
 
+        * ``audio_types`` (``u``)
+
+          Bitmask of what audio types to record, from those in
+          :ref:`org.freedesktop.impl.portal.ScreenCast:AvailableAudioTypes`:
+
+          - ``1``: None: No audio. It can't be combined with the other types.
+          - ``2``: System: The audio stream carries the audio output of every application.
+          - ``4``: Application: The audio stream of a window carries the audio output of its application.
+
+          The backend gives each selected source one of these types: 'System',
+          or 'Application' for a window. A window gets 'Application' whenever
+          it is requested. Default is 'None'.
+
+          The result of :ref:`org.freedesktop.impl.portal.ScreenCast.Start`
+          must contain an ``audio_source`` for each selected source whose
+          audio the user agreed to share.
+
         For available source types, see the
         :ref:`org.freedesktop.impl.portal.ScreenCast:AvailableSourceTypes` property.
     -->
@@ -130,7 +147,7 @@
 
           An array of PipeWire streams. Each stream consists of a PipeWire
           node ID (the first element in the tuple, and a Vardict of
-          properties.
+          properties).
 
           Since version 6 of this interface, the node ID in the stream
           tuple is deprecated for stream targeting. PipeWire node IDs can
@@ -167,6 +184,27 @@
             property.
 
             This property was added in version 3 of this interface.
+
+          * ``audio_source`` (``a{sv}``)
+
+            Present if the user agreed to share the audio of the stream's
+            source. The portal creates the audio stream from it, with
+            :ref:`org.freedesktop.impl.portal.AppAudioCapture.CreateSystemStream` or
+            :ref:`org.freedesktop.impl.portal.AppAudioCapture.CreateApplicationStream`,
+            and gives it the ``mapping_id`` of this stream.
+
+            * ``audio_type`` (``u``)
+
+              The audio type of the source, as described for the
+              ``audio_types`` option of
+              :ref:`org.freedesktop.impl.portal.ScreenCast.SelectSources`.
+
+            For Application, it names the window's application:
+
+            * ``pid`` (``u``)
+
+              The pid of the window's client process. The portal finds the
+              application from it.
 
           * ``mapping_id`` (``s``)
 
@@ -260,6 +298,17 @@
         - ``4``: Metadata: The cursor is not part of the screen cast stream, but sent as PipeWire stream metadata.
     -->
     <property name="AvailableCursorModes" type="u" access="read"/>
+    <!--
+        AvailableAudioTypes:
+
+        A bitmask of the audio types the backend can give a source, see the
+        ``audio_types`` option of
+        :ref:`org.freedesktop.impl.portal.ScreenCast.SelectSources`:
+
+        - ``2``: System
+        - ``4``: Application
+    -->
+    <property name="AvailableAudioTypes" type="u" access="read"/>
     <property name="version" type="u" access="read"/>
   </interface>
 </node>
