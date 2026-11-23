@@ -20,6 +20,7 @@
 #include "xdp-portal-config.h"
 #include "xdp-pw-keys.h"
 #include "xdp-request.h"
+#include "xdp-screen-cast.h"
 #include "xdp-session-persistence.h"
 #include "xdp-session.h"
 #include "xdp-utils.h"
@@ -400,11 +401,14 @@ validate_source_types (const char  *key,
                        GError     **error)
 {
   guint32 types = g_variant_get_uint32 (value);
+  guint32 supported_types = XDP_SCREEN_CAST_SOURCE_TYPE_MONITOR |
+                            XDP_SCREEN_CAST_SOURCE_TYPE_WINDOW |
+                            XDP_SCREEN_CAST_SOURCE_TYPE_VIRTUAL;
 
-  if ((types & ~(1 | 2 | 4)) != 0)
+  if ((types & ~supported_types) != 0)
     {
       g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   "Unsupported device type: %x", types & ~(1 | 2 | 4));
+                   "Unsupported device type: %x", types & ~supported_types);
       return FALSE;
     } 
 
