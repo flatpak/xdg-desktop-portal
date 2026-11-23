@@ -51,3 +51,35 @@ granted to the client.
 
 An object manager is set to watch node considered as camera, to update allowed
 clients if a new matching node is added.
+
+App audio capture
+"""""""""""""""""
+
+The plugin owns ``org.freedesktop.impl.portal.AppAudioCapture`` on the session
+bus. Each audio stream returned is coming from the playback node of pipewire's
+``module-loopback``, providing a single pre-mixed stream from all captured
+streams. Once the playback node has a reader, the plugin links to the capture
+node:
+
+* for an Application stream, the ``Stream/Output/Audio`` nodes of the requested
+  application;
+* for a System stream, every ``Stream/Output/Audio`` node.
+
+With the ``exclude_self`` option, we can also exclude the nodes from the
+session's application from being captured.
+
+To know which nodes belong to which application, applications are matched by
+app id. Currently, ScreenCast backends return the selected window's client pid in
+``audio_source``, and xdg-desktop-portal gives that pid to AppAudioCapture when
+capturing Application audio, which resolves the app identity from it. On the
+other side, we resolve the app identity of PipeWire streams by either getting
+direct ``app_id`` props from clients created in sandboxed apps, or by resolving
+the app identity via pid.
+
+As future work, this entire process of app identification can be greatly
+simplified once appd is supported:
+
+* the backends and compositors can then reliably query and then return app id,
+  rather than a pid;
+* PipeWire may tag its nodes and clients already with an app id also for host
+  applications.
