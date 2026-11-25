@@ -324,7 +324,7 @@ xdp_app_info_init (XdpAppInfo *app_info)
   priv->pidfd = -1;
 }
 
-static XdpAppInfo *
+XdpAppInfo *
 xdp_app_info_new (const char  *sender,
                   uint32_t     pid,
                   int          pidfd,

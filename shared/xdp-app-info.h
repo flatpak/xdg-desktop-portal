@@ -28,6 +28,11 @@ G_DECLARE_DERIVABLE_TYPE (XdpAppInfo,
                           XDP, APP_INFO,
                           GObject);
 
+XdpAppInfo * xdp_app_info_new (const char  *sender,
+                               uint32_t     pid,
+                               int          pidfd,
+                               GError     **error);
+
 DexFuture * xdp_app_info_new_for_invocation (GDBusMethodInvocation *invocation);
 
 DexFuture * xdp_app_info_new_for_registered (GDBusMethodInvocation *invocation,
