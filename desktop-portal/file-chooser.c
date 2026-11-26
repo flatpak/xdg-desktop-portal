@@ -16,6 +16,7 @@
 
 #include <gio/gio.h>
 
+#include "xdp-app-info.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-documents.h"
@@ -453,6 +454,26 @@ validate_choices (const char  *key,
   return TRUE;
 }
 
+static char *
+resolve_path_option (GVariant                   *arg_options,
+                     XdpAppInfo                 *app_info,
+                     const char                 *key,
+                     XdpResolveDocumentStrategy  strategy)
+{
+  g_autoptr(GVariant) value = NULL;
+  const char *path_from_app;
+  g_autofree char *host_path = NULL;
+
+  value = g_variant_lookup_value (arg_options, key, G_VARIANT_TYPE_BYTESTRING);
+  if (!value)
+    return NULL;
+
+  path_from_app = g_variant_get_bytestring (value);
+  host_path = xdp_app_info_remap_path (app_info, path_from_app);
+
+  return xdp_resolve_document_portal_path (host_path, strategy);
+}
+
 /* Note: current_folder is intentionally left out */
 static XdpOptionKey open_file_options[] = {
   { "accept_label", G_VARIANT_TYPE_STRING, NULL },
@@ -494,18 +515,13 @@ handle_open_file (XdpDbusFileChooser *object,
     }
 
   {
-    g_autoptr(GVariant) current_folder =
-      g_variant_lookup_value (arg_options, "current_folder", G_VARIANT_TYPE_BYTESTRING);
+    g_autofree char *current_folder =
+      resolve_path_option (arg_options, request->app_info,
+                           "current_folder", XDP_RESOLVE_DOCUMENT_TO_DIRECTORY);
 
     if (current_folder)
-      {
-        const char *path_from_app = g_variant_get_bytestring (current_folder);
-        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app,
-                                                                       XDP_RESOLVE_DOCUMENT_TO_DIRECTORY);
-
-        g_variant_builder_add (&options, "{sv}", "current_folder",
-                              g_variant_new_bytestring (host_path));
-      }
+      g_variant_builder_add (&options, "{sv}", "current_folder",
+                             g_variant_new_bytestring (current_folder));
   }
 
   impl_request =
@@ -626,32 +642,22 @@ handle_save_file (XdpDbusFileChooser *object,
     }
 
   {
-    g_autoptr(GVariant) current_file =
-      g_variant_lookup_value (arg_options, "current_file", G_VARIANT_TYPE_BYTESTRING);
+    g_autofree char *current_file =
+      resolve_path_option (arg_options, request->app_info,
+                           "current_file", XDP_RESOLVE_DOCUMENT_TO_FILE);
 
     if (current_file)
-      {
-        const char *path_from_app = g_variant_get_bytestring (current_file);
-        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app,
-                                                                       XDP_RESOLVE_DOCUMENT_TO_FILE);
-
-        g_variant_builder_add (&options, "{sv}", "current_file",
-                              g_variant_new_bytestring (host_path));
-      }
+      g_variant_builder_add (&options, "{sv}", "current_file",
+                             g_variant_new_bytestring (current_file));
   }
   {
-    g_autoptr(GVariant) current_folder =
-      g_variant_lookup_value (arg_options, "current_folder", G_VARIANT_TYPE_BYTESTRING);
+    g_autofree char *current_folder =
+      resolve_path_option (arg_options, request->app_info,
+                           "current_folder", XDP_RESOLVE_DOCUMENT_TO_DIRECTORY);
 
     if (current_folder)
-      {
-        const char *path_from_app = g_variant_get_bytestring (current_folder);
-        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app,
-                                                                       XDP_RESOLVE_DOCUMENT_TO_DIRECTORY);
-
-        g_variant_builder_add (&options, "{sv}", "current_folder",
-                              g_variant_new_bytestring (host_path));
-      }
+      g_variant_builder_add (&options, "{sv}", "current_folder",
+                             g_variant_new_bytestring (current_folder));
   }
 
   impl_request =
