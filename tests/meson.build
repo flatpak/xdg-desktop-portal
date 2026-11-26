@@ -139,6 +139,7 @@ template_files = [
   'templates/print.py',
   'templates/remotedesktop.py',
   'templates/screencast.py',
+  'templates/appaudiocapture.py',
   'templates/screenshot.py',
   'templates/settings.py',
   'templates/usb.py',

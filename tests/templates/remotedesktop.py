@@ -12,7 +12,13 @@ import dbus.service
 from dbusmock import MOCK_IFACE
 from gi.repository import GLib
 
-from tests.templates.xdp_utils import ImplRequest, ImplSession, Response, init_logger
+from tests.templates.screencast import audio_source, pick_audio_type
+from tests.templates.xdp_utils import (
+    ImplRequest,
+    ImplSession,
+    Response,
+    init_logger,
+)
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -148,6 +154,20 @@ def Start(
     response = Response(params.response, {})
     if params.force_clipboard_enabled:
         response.results["clipboard_enabled"] = True
+
+    # A screen cast in this session (the ScreenCast template's SelectSources): its stream
+    source_types = getattr(self, "source_types", {})
+    if session_handle in source_types:
+        window = source_types[session_handle] == 2
+        stream_properties = dbus.Dictionary(
+            {"source_type": dbus.UInt32(2 if window else 1)}, signature="sv"
+        )
+        audio_type = pick_audio_type(window, self.audio_types.get(session_handle, 1))
+        if audio_type:
+            stream_properties["audio_source"] = audio_source(audio_type)
+        response.results["streams"] = dbus.Array(
+            [(dbus.UInt32(1), stream_properties)], signature="(ua{sv})"
+        )
 
     if params.expect_close:
         request.wait_for_close()

@@ -4,12 +4,18 @@
 # This file is formatted with Python Black
 # mypy: disable-error-code="misc"
 
+import os
 from dataclasses import dataclass
 
 import dbus
 import dbus.service
 
-from tests.templates.xdp_utils import ImplRequest, ImplSession, Response, init_logger
+from tests.templates.xdp_utils import (
+    ImplRequest,
+    ImplSession,
+    Response,
+    init_logger,
+)
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -21,6 +27,19 @@ VERSION = 6
 logger = init_logger(__name__)
 
 
+def pick_audio_type(window: bool, audio_types: int) -> int:
+    if window and audio_types & 4:
+        return 4
+    return audio_types & 2
+
+
+def audio_source(audio_type: int) -> dbus.Dictionary:
+    source: dict[str, object] = {"audio_type": dbus.UInt32(audio_type)}
+    if audio_type == 4:
+        source["pid"] = dbus.UInt32(os.getpid())
+    return dbus.Dictionary(source, signature="sv")
+
+
 @dataclass
 class ScreenCastParameters:
     delay: int
@@ -29,6 +48,7 @@ class ScreenCastParameters:
     version: int
     node_id: int
     pipewire_serial: int
+    n_streams: int
 
 
 def load(mock, parameters=None):
@@ -45,19 +65,26 @@ def load(mock, parameters=None):
         version=version,
         node_id=parameters.get("node-id", 42),
         pipewire_serial=parameters.get("pipewire-serial", 133742),
+        n_streams=parameters.get("n-streams", 1),
     )
 
-    mock.AddProperties(
-        MAIN_IFACE,
-        dbus.Dictionary(
-            {
-                "version": dbus.UInt32(version),
-                "AvailableSourceTypes": dbus.UInt32(parameters.get("source-types", 1)),
-                "AvailableCursorModes": dbus.UInt32(parameters.get("cursor-modes", 1)),
-            }
-        ),
-    )
+    properties = {
+        "version": dbus.UInt32(version),
+        "AvailableSourceTypes": dbus.UInt32(parameters.get("source-types", 1)),
+        "AvailableCursorModes": dbus.UInt32(parameters.get("cursor-modes", 1)),
+    }
+    if version >= 7:
+        # 2: System, 4: Application
+        properties["AvailableAudioTypes"] = dbus.UInt32(
+            parameters.get("audio-types", 2 | 4)
+        )
+
+    mock.AddProperties(MAIN_IFACE, dbus.Dictionary(properties))
     mock.sessions = {}
+    mock.source_types = {}
+    mock.audio_types = {}
+    # An audio source of this type, whatever was asked for
+    mock.forced_audio_type = parameters.get("audio-type", 0)
 
 
 @dbus.service.method(
@@ -95,6 +122,8 @@ def SelectSources(self, handle, session_handle, app_id, options, cb_success, cb_
     params = self.screencast_params
 
     assert session_handle in self.sessions
+    self.source_types[session_handle] = options.get("types", 1)
+    self.audio_types[session_handle] = options.get("audio_types", 1)
 
     request = ImplRequest(self, BUS_NAME, handle, logger, cb_success, cb_error)
 
@@ -122,19 +151,31 @@ def Start(
 
     request = ImplRequest(self, BUS_NAME, handle, logger, cb_success, cb_error)
 
-    stream_properties = dbus.Dictionary(
-        {"size": dbus.Struct((dbus.Int32(1920), dbus.Int32(1080)), signature="ii")},
-        signature="sv",
-    )
-    # The PipeWire serial was added to the stream properties in version 6;
-    # an older backend does not advertise it.
-    if params.version >= 6:
-        stream_properties["pipewire-serial"] = dbus.UInt64(params.pipewire_serial)
+    streams = dbus.Array([], signature="(ua{sv})")
+    for i in range(params.n_streams):
+        stream_properties = dbus.Dictionary(
+            {"size": dbus.Struct((dbus.Int32(1920), dbus.Int32(1080)), signature="ii")},
+            signature="sv",
+        )
+        # The PipeWire serial was added to the stream properties in version 6;
+        # an older backend does not advertise it.
+        if params.version >= 6:
+            stream_properties["pipewire-serial"] = dbus.UInt64(
+                params.pipewire_serial + i
+            )
+        streams.append((dbus.UInt32(params.node_id + i), stream_properties))
 
-    streams = dbus.Array(
-        [(dbus.UInt32(params.node_id), stream_properties)],
-        signature="(ua{sv})",
+    # Windows if only windows were asked for, monitors otherwise
+    window = self.source_types.get(session_handle) == 2
+    audio_type = self.forced_audio_type or pick_audio_type(
+        window, self.audio_types.get(session_handle, 1)
     )
+    for _node_id, stream_properties in streams:
+        stream_properties["source_type"] = dbus.UInt32(2 if window else 1)
+        if not audio_type:
+            continue
+        # The portal creates the source's audio stream from it
+        stream_properties["audio_source"] = audio_source(audio_type)
     response = Response(params.response, {"streams": streams})
 
     if params.expect_close:

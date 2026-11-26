@@ -4,6 +4,8 @@
 xdp_wireplumber_module_sources = [
   'xdp-wp-permission-manager.c',
   'xdp-wp-plugin.c',
+  'xdp-wp-app-audio-capture.c',
+  xdp_utils_sources,
 ]
 
 xdp_wireplumber_module_sources += gnome.gdbus_codegen(
@@ -12,13 +14,21 @@ xdp_wireplumber_module_sources += gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.impl.portal',
   namespace: 'XdpDbusImpl',
   docbook: 'portal',
+  extra_args: [f'--extension-path=@libdex_codegen_ext@'],
 )
 
 xdp_wireplumber_module = shared_library(
   'xdg-desktop-portal',
   xdp_wireplumber_module_sources,
-  dependencies: [wireplumber_dep, pipewire_dep],
-  include_directories: xdp_pipewire_includes,
+  dependencies: [
+    wireplumber_dep,
+    pipewire_dep,
+    gio_unix_dep,
+    json_glib_dep,
+    libdex_dep,
+    xdp_utils_deps,
+  ],
+  include_directories: [common_includes, xdp_pipewire_includes, xdp_utils_includes],
   install: true,
   install_dir: wireplumber_module_dir,
 )

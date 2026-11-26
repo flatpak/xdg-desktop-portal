@@ -89,6 +89,9 @@ typedef struct _RemoteDesktopSession
   char *restore_token;
   XdpSessionPersistenceMode persist_mode;
   GVariant *restore_data;
+
+  uint32_t audio_types;
+  uint32_t exclude_self;
 } RemoteDesktopSession;
 
 typedef struct _RemoteDesktopSessionClass
@@ -171,6 +174,20 @@ remote_desktop_session_sources_selected (RemoteDesktopSession *session)
   session->sources_selected = TRUE;
 }
 
+void
+remote_desktop_session_set_audio_types (RemoteDesktopSession *session,
+                                        uint32_t              audio_types)
+{
+  session->audio_types = audio_types;
+}
+
+void
+remote_desktop_session_set_exclude_self (RemoteDesktopSession *session,
+                                         uint32_t              exclude_self)
+{
+  session->exclude_self = exclude_self;
+}
+
 gboolean
 remote_desktop_session_is_clipboard_enabled (RemoteDesktopSession *session)
 {
@@ -195,6 +212,8 @@ remote_desktop_session_close (XdpSession *session)
   RemoteDesktopSession *remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
 
   remote_desktop_session->state = REMOTE_DESKTOP_SESSION_STATE_CLOSED;
+
+  screen_cast_close_audio_session (session);
 
   g_debug ("remote desktop session owned by '%s' closed", session->sender);
 }
@@ -693,7 +712,11 @@ start_done (GObject *source_object,
     {
       if (response == 0)
         {
-          if (!process_results (remote_desktop_session, &results, &error))
+          if (!process_results (remote_desktop_session, &results, &error) ||
+              !screen_cast_create_audio_streams (session, remote_desktop_session->audio_types,
+                                                 remote_desktop_session->exclude_self,
+                                                 &results,
+                                                 &remote_desktop_session->streams, &error))
             {
               g_warning ("Could not start remote desktop session: %s",
                          error->message);

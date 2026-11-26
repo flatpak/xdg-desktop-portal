@@ -139,13 +139,10 @@ get_app_from_pid (pid_t      pid,
   desktop_id = g_strconcat (app_id, ".desktop", NULL);
   desktop_app_info = g_desktop_app_info_new (desktop_id);
 
-  if (!desktop_app_info)
-    return FALSE;
-
   if (app_id_out)
     *app_id_out = g_steal_pointer (&app_id);
   if (app_info_out)
-    *app_info_out = G_APP_INFO (g_steal_pointer (&desktop_app_info));
+    *app_info_out = desktop_app_info ? G_APP_INFO (g_steal_pointer (&desktop_app_info)) : NULL;
   return TRUE;
 
 #else

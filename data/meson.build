@@ -53,6 +53,7 @@ portal_host_sources = files(
 portal_impl_sources = files(
   'org.freedesktop.impl.portal.Access.xml',
   'org.freedesktop.impl.portal.Account.xml',
+  'org.freedesktop.impl.portal.AppAudioCapture.xml',
   'org.freedesktop.impl.portal.AppChooser.xml',
   'org.freedesktop.impl.portal.Background.xml',
   'org.freedesktop.impl.portal.Clipboard.xml',

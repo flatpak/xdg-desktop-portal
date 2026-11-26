@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include <gio/gio.h>
 
 #include "xdp-session.h"
@@ -37,6 +39,12 @@ gboolean remote_desktop_session_can_request_clipboard (RemoteDesktopSession *ses
 gboolean remote_desktop_session_is_clipboard_enabled (RemoteDesktopSession *session);
 
 void remote_desktop_session_sources_selected (RemoteDesktopSession *session);
+
+void remote_desktop_session_set_audio_types (RemoteDesktopSession *session,
+                                             uint32_t              audio_types);
+
+void remote_desktop_session_set_exclude_self (RemoteDesktopSession *session,
+                                              uint32_t              exclude_self);
 
 void remote_desktop_session_clipboard_requested (RemoteDesktopSession *session);
 
