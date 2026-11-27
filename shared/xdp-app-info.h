@@ -60,6 +60,16 @@ gboolean xdp_app_info_get_pidns (XdpAppInfo  *app_info,
                                  ino_t       *pidns_id_out,
                                  GError     **error);
 
+/* Textually remaps a path from the app's namespace to the host namespace.
+ *
+ * The path is controlled by the app and can be made to point anywhere (for
+ * example via symlinks), so the result must not be used to grant the app
+ * access to the target. Only use it where the target is not given any access
+ * based on the path, such as a current_folder hint passed to a backend.
+ */
+char * xdp_app_info_remap_path (XdpAppInfo *app_info,
+                                const char *path);
+
 char * xdp_app_info_get_path_for_fd (XdpAppInfo   *app_info,
                                      int           fd,
                                      int           require_st_mode,
