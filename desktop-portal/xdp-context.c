@@ -365,7 +365,8 @@ authorize_callback_fiber (GDBusInterfaceSkeleton *interface,
       return FALSE;
     }
 
-  g_object_set_data (G_OBJECT (invocation), "xdp-app-info", app_info);
+  g_object_set_data_full (G_OBJECT (invocation), "xdp-app-info",
+                          g_object_ref (app_info), g_object_unref);
 
   return check_entitlement (interface, invocation, app_info);
 }

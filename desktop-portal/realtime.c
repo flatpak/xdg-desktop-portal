@@ -57,21 +57,21 @@ map_pid (XdpAppInfo *app_info, pid_t *pid, pid_t *tid, GError **error)
   if (!xdp_app_info_get_pidns (app_info, &pidns_id, error))
     {
       g_prefix_error (error, "Could not get pidns for pid %d: ", unmapped_pid);
-      g_warning ("Realtime error: %s", (*error)->message);
+      g_debug ("Realtime error: %s", (*error)->message);
       return FALSE;
     }
 
   if (pidns_id != 0 && !xdp_map_pids (pidns_id, pid, 1, error))
     {
       g_prefix_error (error, "Could not map pid %d: ", unmapped_pid);
-      g_warning ("Realtime error: %s", (*error)->message);
+      g_debug ("Realtime error: %s", (*error)->message);
       return FALSE;
     }
 
   if (pidns_id != 0 && !xdp_map_tids (pidns_id, *pid, tid, 1, error))
     {
       g_prefix_error (error, "Could not map tid %d of pid %d: ", *tid, unmapped_pid);
-      g_warning ("Realtime error: %s", (*error)->message);
+      g_debug ("Realtime error: %s", (*error)->message);
       return FALSE;
     }
 
