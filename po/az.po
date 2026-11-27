@@ -1,0 +1,256 @@
+# Azerbaijani translation for xdg-desktop-portal.
+# Copyright (C) 2026 xdg-desktop-portal's COPYRIGHT HOLDER
+# This file is distributed under the same license as the xdg-desktop-portal package.
+# Nicat Xalid <nicat.m@pm.me>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal main\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-07 13:57+0200\n"
+"PO-Revision-Date: 2026-11-16 14:25+0400\n"
+"Last-Translator: \n"
+"Language-Team: Azerbaijani <Azerbaijani>\n"
+"Language: az\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.10\n"
+
+#: src/background.c:941
+#, c-format
+msgid "Allow %s to Run in the Background?"
+msgstr "%s tətbiqinə arxa planda çalışmağa icazə verilsin?"
+
+#: src/background.c:945
+#, c-format
+msgid "%s wants to be started automatically and run in the background"
+msgstr "%s avtomatik başladılmaq və arxa fonda çalışmaq istəyir"
+
+#: src/background.c:947
+#, c-format
+msgid "%s wants to run in the background"
+msgstr "%s arxa planda çalışmaq istəyir"
+
+#: src/background.c:948
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings"
+msgstr ""
+"\"Arxa fonda işə sal\" icazəsi istənilən vaxt tətbiq ayarlarından "
+"dəyişdirilə bilər"
+
+#: src/background.c:952
+msgid "Don't allow"
+msgstr "İcazə vermə"
+
+#: src/background.c:953 src/screenshot.c:275 src/wallpaper.c:192
+msgid "Allow"
+msgstr "İcazə ver"
+
+#: src/camera.c:105
+#, c-format
+msgid "Allow %s to Use the Camera?"
+msgstr "%s tətbiqinə kameradan istifadə etməyə icazə verilsin?"
+
+#: src/camera.c:106
+#, c-format
+msgid "%s wants to access the camera"
+msgstr "%s kameradan istifadə etmək istəyir"
+
+#: src/camera.c:110
+msgid "Allow Apps to Use the Camera?"
+msgstr "Tətbiqlərə kameradan istifadəyə icazə verilsin?"
+
+#: src/camera.c:111
+msgid "An app wants to access the camera"
+msgstr "Bir tətbiq kameradan istifadə etmək istəyir"
+
+#: src/camera.c:114 src/screenshot.c:327 src/wallpaper.c:208
+msgid "This permission can be changed at any time from the privacy settings"
+msgstr "Bu icazə istənilən vaxt məxfilik ayarlarında dəyişdirilə bilər"
+
+#: src/dynamic-launcher.c:127
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr "Masaüstü fayl id-sinin .desktop sonluğu çatışmır: %s"
+
+#: src/dynamic-launcher.c:138
+#, c-format
+msgid "Desktop file id is not valid"
+msgstr "Masaüstü fayl id-si etibarlı deyil"
+
+#: src/dynamic-launcher.c:316
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr "Install()-a verilmiş masaüstü daxiletməsi etibarlı açar faylı deyil"
+
+#: src/dynamic-launcher.c:329
+#, c-format
+msgid "Desktop entry given to Install() must have exactly one group"
+msgstr ""
+"Install()-a verilən masaüstü daxiletməsinin yalnız bir qrupu olmalıdır"
+
+#: src/dynamic-launcher.c:367
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr "Verilən token etibarsızdır: %s"
+
+#: src/dynamic-launcher.c:410
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr "Install()-a verilmiş masaüstü daxiletməsi etibarsızdır"
+
+#: src/dynamic-launcher.c:419 src/dynamic-launcher.c:879
+#: src/dynamic-launcher.c:928
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr "Masaüstü faylı maksimum ölçünü keçir (%d): %s"
+
+#: src/dynamic-launcher.c:603
+#, c-format
+msgid "Given URI is invalid: %s"
+msgstr "Verilə URI etibarsızdır: %s"
+
+#: src/dynamic-launcher.c:625
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr "Etibarsız simvol növü: %x"
+
+#: src/dynamic-launcher.c:632
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr "Dəstəklənməyən başladıcı növü: %x"
+
+#: src/dynamic-launcher.c:698 src/dynamic-launcher.c:773
+msgid "Dynamic launcher icon failed validation"
+msgstr "Dinamik başladıcı ikonu təsdiqlənə bilmədi"
+
+#: src/dynamic-launcher.c:789
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr "RequestInstallToken() %s id-li tətbiq üçün icazə verilmir"
+
+#: src/dynamic-launcher.c:968
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr ""
+
+#: src/dynamic-launcher.c:991
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr ""
+
+#: src/dynamic-launcher.c:1030
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr "\"%s\" id-li dinamik başladıcı mövcud deyil"
+
+#: src/dynamic-launcher.c:1049
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr "GDesktopAppInfo üçün \"%s\" id-li başladıcı yaratmaq uğursuz oldu"
+
+#: src/location.c:555
+msgid "Deny Access"
+msgstr "İcazə vermə"
+
+#: src/location.c:557
+msgid "Grant Access"
+msgstr "İcazə ver"
+
+#: src/location.c:563
+#, c-format
+msgid "Allow %s to Access Your Location?"
+msgstr "%s tətbiqinə məkanınıza baxmağa icazə verilsin?"
+
+#: src/location.c:573
+#, c-format
+msgid "%s wants to use your location"
+msgstr "%s məkanınızı öyrənmək istəyir"
+
+#: src/location.c:579
+msgid "Allow Apps to Access Your Location?"
+msgstr "Tətbiqlərə məkanınıza giriş icazəsi verilsin?"
+
+#: src/location.c:580
+msgid "An app wants to use your location"
+msgstr "Bir tətbiq məkanınıza baxmaq istəyir"
+
+#: src/location.c:583
+msgid "Location access can be changed at any time from the privacy settings"
+msgstr ""
+"Məkana giriş icazəsi istənilən vaxt məxfilik ayarlarından dəyişdirilə bilər"
+
+#: src/screenshot.c:273 src/wallpaper.c:190
+msgid "Deny"
+msgstr "Rədd et"
+
+#: src/screenshot.c:299
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "%s tətbiqinə ekran görüntüsü götürməyə icazə verilsin?"
+
+#: src/screenshot.c:300
+#, c-format
+msgid "%s wants to take screenshots at any time"
+msgstr "%s istənilən vaxt ekran görüntüsü çəkmək istəyir"
+
+#: src/screenshot.c:304
+#, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "%s tətbiqinə ekran görüntüsü götürməyə icazə verilsin?"
+
+#: src/screenshot.c:305
+#, c-format
+msgid "%s wants to take a screenshot"
+msgstr "%s ekran görüntüsü çəkmək istəyir"
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: src/screenshot.c:316
+msgid "Allow Apps to Take Screenshots?"
+msgstr "Tətbiqlərə ekran görüntüsü götürməyə icazə verilsin?"
+
+#: src/screenshot.c:317
+msgid "An app wants to take screenshots at any time"
+msgstr "Bir tətbiq istənilən vaxt ekran görüntüsü çəkmək istəyir"
+
+#: src/screenshot.c:321
+msgid "Allow to Take a Screenshot?"
+msgstr "Ekran görüntüsü götürməyə icazə verilsin?"
+
+#: src/screenshot.c:322
+msgid "An app wants to take a screenshot"
+msgstr "Bir tətbiq ekran görüntüsü çəkmək istəyir"
+
+#: src/settings.c:196 src/settings.c:235
+msgid "Requested setting not found"
+msgstr "Sorğulanan ayar tapılmadı"
+
+#: src/usb.c:1333
+msgid "Device not available"
+msgstr "Qurğu əlçatan deyil"
+
+#: src/usb.c:1347
+msgid "Not allowed"
+msgstr "İcazə verilmir"
+
+#: src/wallpaper.c:198
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "%s tətbiqinə arxa plan təyin etməyə icazə verilsin?"
+
+#: src/wallpaper.c:199
+#, c-format
+msgid "%s wants to change the background image"
+msgstr "%s arxa plan şəklini dəyişmək istəyir"
+
+#: src/wallpaper.c:204
+msgid "Allow Apps to Set Backgrounds?"
+msgstr "Tətbiqlərə arxa plan təyin etməyə icazə verilsin?"
+
+#: src/wallpaper.c:205
+msgid "An app wants to change the background image"
+msgstr "Bir tətbiq arxa plan şəklini dəyişmək istəyir"
