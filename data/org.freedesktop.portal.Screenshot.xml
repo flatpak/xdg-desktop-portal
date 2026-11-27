@@ -67,6 +67,15 @@
           - ``4``: Area: An area selected by the user.
           - ``8``: Active Window: The currently active window.
 
+          When ``interactive`` is ``false``, the backend uses the requested
+          target without offering optional customization. It can still ask
+          the user to select a window or area when the target requires it.
+          The usual permission checks still apply.
+
+          When ``interactive`` is ``true``, the backend may use the requested
+          target as the initial mode in its screenshot UI. The user may
+          choose a different mode.
+
           This option was added in version 3 of this interface.
 
         The following results get returned via the :ref:`Request::Response <org.freedesktop.portal.Request::Response>`
