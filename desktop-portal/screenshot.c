@@ -319,8 +319,7 @@ handle_screenshot (XdpDbusScreenshot     *object,
   if (!g_variant_lookup (filtered_options, "interactive", "b", &interactive))
     interactive = FALSE;
 
-  if (xdp_dbus_impl_screenshot_get_version (screenshot->impl) >= 2 &&
-      !interactive)
+  if (screenshot->impl_version >= 2 && !interactive)
     {
       if (!get_permission (screenshot,
                            request,
