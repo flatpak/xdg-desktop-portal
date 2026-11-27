@@ -51,6 +51,91 @@ G_DEFINE_TYPE_WITH_CODE (FileChooser, file_chooser,
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (FileChooser, g_object_unref)
 
 static void
+send_response (XdpRequest *request)
+{
+  g_auto(GVariantBuilder) results =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  g_auto(GVariantBuilder) ruris =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_STRING_ARRAY);
+  guint response;
+  GVariant *options;
+  XdpDocumentFlags flags = XDP_DOCUMENT_FLAG_WRITABLE | XDP_DOCUMENT_FLAG_DIRECTORY;
+  g_autofree char **uris = NULL;
+  g_autoptr(GVariant) choices = NULL;
+  g_autoptr(GVariant) current_filter = NULL;
+  g_autoptr(GVariant) writable = NULL;
+
+  if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "for-save")) == TRUE)
+    flags |= XDP_DOCUMENT_FLAG_FOR_SAVE;
+  if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "directory")) == FALSE)
+    flags &= ~XDP_DOCUMENT_FLAG_DIRECTORY;
+  response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
+  options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
+
+  if (response != 0)
+    goto out;
+
+  writable = g_variant_lookup_value (options, "writable", G_VARIANT_TYPE("b"));
+  if (writable && !g_variant_get_boolean (writable))
+    flags &= ~XDP_DOCUMENT_FLAG_WRITABLE;
+
+  choices = g_variant_lookup_value (options, "choices", G_VARIANT_TYPE ("a(ss)"));
+  if (choices)
+    g_variant_builder_add (&results, "{sv}", "choices", choices);
+
+  current_filter = g_variant_lookup_value (options, "current_filter", G_VARIANT_TYPE ("(sa(us))"));
+  if (current_filter)
+    g_variant_builder_add (&results, "{sv}", "current_filter", current_filter);
+
+  if (g_variant_lookup (options, "uris", "^a&s", &uris))
+    {
+      int i;
+
+      for (i = 0; uris && uris[i]; i++)
+        {
+          g_autofree char *ruri = NULL;
+          g_autoptr(GError) error = NULL;
+
+          g_assert (uris[i] != NULL);
+
+          if (!g_str_has_prefix (uris[i], "file://"))
+            {
+              g_warning ("Only URIs with the \"file://\" scheme are allowed");
+              continue;
+            }
+
+          if (xdp_app_info_is_host (request->app_info))
+            ruri = g_strdup (uris[i]);
+          else
+            ruri = xdp_register_document (uris[i],
+                                          xdp_app_info_get_id (request->app_info),
+                                          xdp_app_info_get_gappinfo (request->app_info),
+                                          flags,
+                                          &error);
+
+          if (ruri == NULL)
+            {
+              g_warning ("Failed to register %s: %s", uris[i], error->message);
+              continue;
+            }
+          g_debug ("convert uri %s -> %s\n", uris[i], ruri);
+          g_variant_builder_add (&ruris, "s", ruri);
+        }
+    }
+
+out:
+  g_variant_builder_add (&results, "{sv}", "uris", g_variant_builder_end (&ruris));
+
+  if (request->exported)
+    {
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response,
+                                      g_variant_builder_end (&results));
+      xdp_request_unexport (request);
+    }
+}
+
+static void
 send_response_in_thread_func (GTask        *task,
                               gpointer      source_object,
                               gpointer      task_data,
@@ -141,37 +226,6 @@ out:
     }
 
   g_task_return_boolean (task, TRUE);
-}
-
-static void
-open_file_done (GObject *source,
-                GAsyncResult *result,
-                gpointer data)
-{
-  g_autoptr(XdpRequest) request = data;
-  guint response = 2;
-  g_autoptr(GVariant) options = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autoptr(GTask) task = NULL;
-
-  if (!xdp_dbus_impl_file_chooser_call_open_file_finish (XDP_DBUS_IMPL_FILE_CHOOSER (source),
-                                                         &response,
-                                                         &options,
-                                                         result,
-                                                         &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_warning ("Backend call failed: %s", error->message);
-    }
-
-  g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
-  if (options)
-    g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
-
-  task = g_task_new (NULL, NULL, NULL, NULL);
-  g_task_set_source_tag (task, open_file_done);
-  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
-  g_task_run_in_thread (task, send_response_in_thread_func);
 }
 
 static gboolean
@@ -472,14 +526,17 @@ handle_open_file (XdpDbusFileChooser *object,
                   GVariant *arg_options)
 {
   FileChooser *file_chooser = (FileChooser *) object;
+  g_autoptr(XdpDbusImplFileChooserOpenFileResult) open_file_result = NULL;
   XdpDbusImplFileChooser *impl = file_chooser->impl;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
+  g_autoptr(GError) open_file_error = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) options =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) dir_option = NULL;
+  guint response = 2;
 
   g_debug ("Handling OpenFile");
 
@@ -529,17 +586,29 @@ handle_open_file (XdpDbusFileChooser *object,
   xdp_request_set_impl_request (request, impl_request);
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  xdp_dbus_impl_file_chooser_call_open_file (impl,
-                                             xdp_request_get_object_path (request),
-                                             app_id,
-                                             arg_parent_window,
-                                             arg_title,
-                                             g_variant_builder_end (&options),
-                                             NULL,
-                                             open_file_done,
-                                             g_object_ref (request));
+  open_file_result = dex_await_boxed (
+    xdp_dbus_impl_file_chooser_call_open_file_future (impl,
+                                                      xdp_request_get_object_path (request),
+                                                      app_id,
+                                                      arg_parent_window,
+                                                      arg_title,
+                                                      g_variant_builder_end (&options)),
+    &open_file_error);
 
-  xdp_dbus_file_chooser_complete_open_file (object, invocation, xdp_request_get_object_path (request));
+  if (open_file_result != NULL)
+    {
+      g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
+      if (arg_options)
+        g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (arg_options), (GDestroyNotify)g_variant_unref);
+
+      xdp_dbus_file_chooser_complete_open_file (object, invocation, xdp_request_get_object_path (request));
+      send_response (request);
+    }
+  else
+    {
+      g_dbus_error_strip_remote_error (open_file_error);
+      g_warning ("Backend call failed: %s", open_file_error->message);
+    }
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -870,9 +939,10 @@ file_chooser_new (XdpDbusImplFileChooser *impl,
   return file_chooser;
 }
 
-void
-init_file_chooser (XdpContext *context)
+DexFuture *
+init_file_chooser (gpointer user_data)
 {
+  XdpContext *context = XDP_CONTEXT (user_data);
   g_autoptr(FileChooser) file_chooser = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
@@ -883,7 +953,7 @@ init_file_chooser (XdpContext *context)
 
   impl_config = xdp_portal_config_find (config, FILE_CHOOSER_DBUS_IMPL_IFACE);
   if (impl_config == NULL)
-    return;
+    return dex_future_new_true ();
 
   impl = xdp_dbus_impl_file_chooser_proxy_new_sync (connection,
                                                     G_DBUS_PROXY_FLAGS_NONE,
@@ -895,7 +965,7 @@ init_file_chooser (XdpContext *context)
   if (impl == NULL)
     {
       g_warning ("Failed to create file chooser proxy: %s", error->message);
-      return;
+      return dex_future_new_false ();
     }
 
   lockdown_impl = xdp_context_get_lockdown_impl (context);
@@ -906,4 +976,5 @@ init_file_chooser (XdpContext *context)
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&file_chooser)),
                                       XDP_ENTITLEMENT_FILE_CHOOSER,
                                       XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
+  return dex_future_new_true ();
 }
