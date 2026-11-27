@@ -507,6 +507,9 @@ xdp_request_dex_emit_response (XdpRequestDex                *request,
 {
   g_autoptr(GVariant) results_owned = NULL;
 
+  if (results) 
+    results_owned = g_variant_ref_sink (results);
+
   g_return_if_fail (!request->responded);
 
   if (!request->exported)
